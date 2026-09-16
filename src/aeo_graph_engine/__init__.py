@@ -1,6 +1,7 @@
 """
 AEO Graph Engine
 Answer Engine Optimization (AEO/GEO), Schema.org Graph & llms.txt Generator Engine.
+Includes Google-designed AEO Studio interactive dashboard, HTML extractor, and audit scorer.
 """
 
 __version__ = "1.0.0"
@@ -18,6 +19,9 @@ from .core import (
 )
 from .injector import inject_jsonld_into_html, inject_file
 from .validator import validate_aeo_bundle, AEODiagnosticReport
+from .extractor import extract_metadata_from_html, extract_from_file
+from .discovery import discover_project_metadata
+from .ui_server import start_ui_server
 from .presets import DEFAULT_CONFIG, NICHE_PRESETS
 
 __all__ = [
@@ -33,6 +37,10 @@ __all__ = [
     "inject_file",
     "validate_aeo_bundle",
     "AEODiagnosticReport",
+    "extract_metadata_from_html",
+    "extract_from_file",
+    "discover_project_metadata",
+    "start_ui_server",
     "DEFAULT_CONFIG",
     "NICHE_PRESETS",
 ]

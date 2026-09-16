@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AEO Studio — Answer Engine Optimization & Schema Knowledge Graph Workbench</title>
+  <meta name="description" content="Google Material-designed Answer Engine Optimization (AEO/GEO) Workbench. Generate Schema.org JSON-LD @graph, llms.txt, ai.txt, and AI crawler directives.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --google-blue: #1a73e8;
+      --google-blue-hover: #1557b0;
+      --google-blue-surface: #e8f0fe;
+      --google-green: #1e8e3e;
+      --google-green-surface: #e6f4ea;
+      --google-yellow: #f9ab00;
+      --google-yellow-surface: #fef7e0;
+      --google-red: #d93025;
+      --google-red-surface: #fce8e6;
+      --canvas-bg: #f8f9fa;
+      --surface-bg: #ffffff;
+      --border-subtle: #dadce0;
+      --border-divider: #e8eaed;
+      --text-primary: #202124;
+      --text-secondary: #5f6368;
+      --text-tertiary: #80868b;
+      --font-sans: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-mono: 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--canvas-bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Google-Style App Bar */
+    header.app-bar {
+      background: var(--surface-bg);
+      border-bottom: 1px solid var(--border-divider);
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 2px rgba(60,64,67,0.06);
+    }
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .google-dots {
+      display: flex;
+      gap: 3px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-blue { background: #4285f4; }
+    .dot-red { background: #ea4335; }
+    .dot-yellow { background: #fbbc04; }
+    .dot-green { background: #34a853; }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: var(--google-blue-surface);
+      color: var(--google-blue);
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .score-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--google-green-surface);
+      color: var(--google-green);
+      border: 1px solid rgba(30, 142, 62, 0.2);
+    }
+
+    /* Buttons */
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+      outline: none;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--google-blue);
+      color: #ffffff;
+      box-shadow: 0 1px 2px rgba(60,64,67,0.3);
+    }
+    .btn-primary:hover {
+      background: var(--google-blue-hover);
+      box-shadow: 0 1px 3px 1px rgba(60,64,67,0.25);
+    }
+    .btn-tonal {
+      background: var(--google-blue-surface);
+      color: var(--google-blue);
+    }
+    .btn-tonal:hover {
+      background: #d2e3fc;
+    }
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border-subtle);
+      color: var(--text-primary);
+    }
+    .btn-outline:hover {
+      background: rgba(60,64,67,0.04);
+      border-color: var(--text-secondary);
+    }
+    .btn-sm {
+      padding: 5px 12px;
+      font-size: 12px;
+      border-radius: 16px;
+    }
+
+    /* Layout */
+    .app-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      flex: 1;
+      height: calc(100vh - 64px);
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--surface-bg);
+      border-right: 1px solid var(--border-divider);
+      overflow-y: auto;
+      padding: 20px 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Preset Pills */
+    .preset-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .preset-pill {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-bg);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+    .preset-pill.active {
+      background: var(--google-blue-surface);
+      color: var(--google-blue);
+      border-color: var(--google-blue);
+      font-weight: 600;
+    }
+
+    /* Form Fields */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .form-control {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      color: var(--text-primary);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--google-blue);
+      box-shadow: 0 0 0 2px var(--google-blue-surface);
+    }
+    textarea.form-control {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    /* Main Area */
+    .main-panel {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      background: var(--canvas-bg);
+    }
+    .tabs-bar {
+      background: var(--surface-bg);
+      border-bottom: 1px solid var(--border-divider);
+      display: flex;
+      padding: 0 20px;
+      gap: 4px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 14px 18px;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-btn:hover {
+      color: var(--google-blue);
+      background: rgba(26, 115, 232, 0.04);
+    }
+    .tab-btn.active {
+      color: var(--google-blue);
+      border-bottom-color: var(--google-blue);
+      font-weight: 600;
+    }
+
+    .tab-content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface-bg);
+      border: 1px solid var(--border-divider);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 1px 2px rgba(60,64,67,0.06);
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Score Gauge Grid */
+    .audit-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+      align-items: center;
+    }
+    .gauge-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: var(--google-green-surface);
+      border-radius: 16px;
+      border: 1px solid rgba(30, 142, 62, 0.2);
+    }
+    .gauge-num {
+      font-size: 56px;
+      font-weight: 700;
+      color: var(--google-green);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .gauge-label {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--google-green);
+    }
+
+    .audit-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .audit-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #ffffff;
+      border: 1px solid var(--border-divider);
+      border-radius: 8px;
+    }
+    .audit-row-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .status-icon { font-size: 16px; }
+    .status-pass { color: var(--google-green); }
+
+    /* Code Viewers */
+    .code-box {
+      background: #ffffff;
+      border: 1px solid var(--border-divider);
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px;
+      color: #24292e;
+      overflow-x: auto;
+      max-height: 520px;
+      white-space: pre;
+    }
+
+    /* Entity Cards Grid */
+    .entity-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .entity-card {
+      background: #ffffff;
+      border: 1px solid var(--border-divider);
+      border-left: 4px solid var(--google-blue);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .entity-type {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--google-blue);
+      margin-bottom: 4px;
+    }
+    .entity-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .entity-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* Bot Crawler Matrix */
+    .bot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .bot-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: #ffffff;
+      border: 1px solid var(--border-divider);
+      border-radius: 8px;
+    }
+    .bot-name { font-weight: 600; font-size: 14px; }
+    .bot-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: var(--google-green-surface);
+      color: var(--google-green);
+    }
+
+    @media (max-width: 900px) {
+      .app-layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
+      .sidebar { border-right: none; border-bottom: 1px solid var(--border-divider); height: auto; }
+      .audit-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Google-Style Header -->
+  <header class="app-bar">
+    <div class="brand-section">
+      <div class="google-dots">
+        <div class="dot dot-blue"></div>
+        <div class="dot dot-red"></div>
+        <div class="dot dot-yellow"></div>
+        <div class="dot dot-green"></div>
+      </div>
+      <div class="brand-title">
+        AEO Studio
+        <span class="brand-badge">Engine v1.0</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div class="score-chip" id="topScoreChip">
+        <span id="topScoreValue">100 / 100</span> AEO Readiness
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="downloadAllFilesClient()">📥 Download Bundle</button>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="section-header">
+          <span class="section-title">Domain Niche Preset</span>
+        </div>
+        <div class="preset-group">
+          <button class="preset-pill active" onclick="selectPreset('developer_tools')">Developer Tools</button>
+          <button class="preset-pill" onclick="selectPreset('saas')">SaaS Platform</button>
+          <button class="preset-pill" onclick="selectPreset('ai_swarm')">AI Swarm</button>
+          <button class="preset-pill" onclick="selectPreset('cybersecurity')">Security</button>
+          <button class="preset-pill" onclick="selectPreset('spatial_3d')">3D Spatial</button>
+          <button class="preset-pill" onclick="selectPreset('creator')">Creator</button>
+          <button class="preset-pill" onclick="selectPreset('ecommerce')">E-Commerce</button>
+          <button class="preset-pill" onclick="selectPreset('local_business')">Local Business</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Site / Brand Name</label>
+        <input type="text" class="form-control" id="inpSiteName" value="AEO Graph Engine" oninput="clientSynthesize()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Canonical Domain Name</label>
+        <input type="text" class="form-control" id="inpDomain" value="aeo.nullai.tech" oninput="clientSynthesize()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tagline</label>
+        <input type="text" class="form-control" id="inpTagline" value="Answer Engine Optimization (AEO/GEO) Knowledge Graph & llms.txt Engine" oninput="clientSynthesize()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Description (AI Knowledge Base)</label>
+        <textarea class="form-control" id="inpDescription" oninput="clientSynthesize()">Standalone, zero-dependency generator and validator for Schema.org linked data, llms.txt, ai.txt, and AI crawler directives.</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Publisher / Organization</label>
+        <input type="text" class="form-control" id="inpPublisher" value="NullAI" oninput="clientSynthesize()">
+      </div>
+    </aside>
+
+    <!-- Main Panel -->
+    <main class="main-panel">
+      <nav class="tabs-bar">
+        <button class="tab-btn active" onclick="switchTab('tab-audit')">📊 AEO Scorecard</button>
+        <button class="tab-btn" onclick="switchTab('tab-schema')">🕸️ Schema.org Graph</button>
+        <button class="tab-btn" onclick="switchTab('tab-llms')">📄 llms.txt</button>
+        <button class="tab-btn" onclick="switchTab('tab-llms-full')">📚 llms-full.txt</button>
+        <button class="tab-btn" onclick="switchTab('tab-ai-txt')">🤖 ai.txt & robots.txt</button>
+        <button class="tab-btn" onclick="switchTab('tab-injector')">💉 HTML Injector</button>
+        <button class="tab-btn" onclick="switchTab('tab-api')">🔌 CLI & Python API</button>
+      </nav>
+
+      <div class="tab-content-area">
+        <!-- 1. Audit Scorecard -->
+        <div id="tab-audit" class="tab-pane active">
+          <div class="card">
+            <div class="audit-grid">
+              <div class="gauge-container">
+                <div class="gauge-num">100</div>
+                <div class="gauge-label">EXCELLENT AEO</div>
+              </div>
+              <div class="audit-items">
+                <div class="audit-row">
+                  <div class="audit-row-left">
+                    <span class="status-icon status-pass">✔</span>
+                    <span>Schema.org Linked Data Graph (@graph: Organization, WebSite, App, FAQ)</span>
+                  </div>
+                  <span class="bot-badge">Connected</span>
+                </div>
+                <div class="audit-row">
+                  <div class="audit-row-left">
+                    <span class="status-icon status-pass">✔</span>
+                    <span>llms.txt Standard Manifest (llmstxt.org compliant)</span>
+                  </div>
+                  <span class="bot-badge">Valid</span>
+                </div>
+                <div class="audit-row">
+                  <div class="audit-row-left">
+                    <span class="status-icon status-pass">✔</span>
+                    <span>Deep Research Knowledge Base (llms-full.txt with citations)</span>
+                  </div>
+                  <span class="bot-badge">Active</span>
+                </div>
+                <div class="audit-row">
+                  <div class="audit-row-left">
+                    <span class="status-icon status-pass">✔</span>
+                    <span>AI Search Bot Directives (GPTBot, PerplexityBot, ClaudeBot, Applebot)</span>
+                  </div>
+                  <span class="bot-badge">Optimized</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Connected Schema Entities</div>
+            <div class="entity-grid" id="entityGridPreview"></div>
+          </div>
+        </div>
+
+        <!-- 2. Schema Tab -->
+        <div id="tab-schema" class="tab-pane">
+          <div class="card">
+            <div class="card-title">
+              Schema.org JSON-LD Linked Data (@graph)
+              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeSchema')">📋 Copy JSON-LD</button>
+            </div>
+            <div class="code-box" id="codeSchema"></div>
+          </div>
+        </div>
+
+        <!-- 3. llms.txt Tab -->
+        <div id="tab-llms" class="tab-pane">
+          <div class="card">
+            <div class="card-title">
+              llms.txt (Concise AI Index)
+              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeLlms')">📋 Copy llms.txt</button>
+            </div>
+            <div class="code-box" id="codeLlms"></div>
+          </div>
+        </div>
+
+        <!-- 4. llms-full.txt Tab -->
+        <div id="tab-llms-full" class="tab-pane">
+          <div class="card">
+            <div class="card-title">
+              llms-full.txt (Deep Research Knowledge Base)
+              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeLlmsFull')">📋 Copy llms-full.txt</button>
+            </div>
+            <div class="code-box" id="codeLlmsFull"></div>
+          </div>
+        </div>
+
+        <!-- 5. ai.txt & robots.txt Tab -->
+        <div id="tab-ai-txt" class="tab-pane">
+          <div class="card">
+            <div class="card-title">AI Search Engine Bot Directives</div>
+            <div class="bot-grid">
+              <div class="bot-card">
+                <span class="bot-name">ChatGPT (GPTBot)</span>
+                <span class="bot-badge">Allowed</span>
+              </div>
+              <div class="bot-card">
+                <span class="bot-name">Perplexity (PerplexityBot)</span>
+                <span class="bot-badge">Allowed</span>
+              </div>
+              <div class="bot-card">
+                <span class="bot-name">Claude (ClaudeBot)</span>
+                <span class="bot-badge">Allowed</span>
+              </div>
+              <div class="bot-card">
+                <span class="bot-name">Apple (Applebot-Ext)</span>
+                <span class="bot-badge">Allowed</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              ai.txt Machine Access Policy
+              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeAiTxt')">📋 Copy ai.txt</button>
+            </div>
+            <div class="code-box" id="codeAiTxt"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              robots.txt AI Directives
+              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeRobots')">📋 Copy robots.txt</button>
+            </div>
+            <div class="code-box" id="codeRobots"></div>
+          </div>
+        </div>
+
+        <!-- 6. HTML Injector Tab -->
+        <div id="tab-injector" class="tab-pane">
+          <div class="card">
+            <div class="card-title">Live HTML Schema Injector</div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <textarea class="form-control" id="inpRawHtml" style="min-height:120px; font-family:var(--font-mono); font-size:12px;"><!DOCTYPE html>
+<html>
+<head>
+  <title>My Platform</title>
+</head>
+<body>
+  <h1>Welcome</h1>
+</body>
+</html></textarea>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="clientPerformInjection()">💉 Inject Schema</button>
+            <div style="margin-top:20px;">
+              <div class="card-title">
+                Injected HTML Result
+                <button class="btn btn-tonal btn-sm" onclick="copyCode('codeInjectedHtml')">📋 Copy Result</button>
+              </div>
+              <div class="code-box" id="codeInjectedHtml">Click 'Inject Schema' above...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. API Tab -->
+        <div id="tab-api" class="tab-pane">
+          <div class="card">
+            <div class="card-title">CLI Quickstart</div>
+            <div class="code-box"># Generate AEO bundle into dist/
+aeo --generate-all --output-dir dist/ --niche saas
+
+# Audit readiness
+aeo --validate dist/
+
+# Start interactive local Studio
+aeo serve --port 8080</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const CLIENT_PRESETS = {
+      developer_tools: { site_name: "AEO Graph Engine", tagline: "Answer Engine Optimization (AEO/GEO) Knowledge Graph Engine", description: "Standalone, zero-dependency generator for Schema.org linked data, llms.txt, and AI crawler rules." },
+      saas: { site_name: "Nexus SaaS Platform", tagline: "Sub-Millisecond Edge Compute & Real-Time API Mesh", description: "High-velocity infrastructure delivering serverless edge compute and automated multi-cloud deployment pipelines." },
+      ai_swarm: { site_name: "Apex AI Swarm", tagline: "Coordinated Multi-Agent Intelligence & Task Mesh", description: "Deploy sovereign AI multi-agent swarms that deliberate and execute distributed workflows with zero latency." },
+      cybersecurity: { site_name: "Sentinel Zero-Trust Suite", tagline: "Autonomous Threat Surface Recon & Secret Containment", description: "Comprehensive attack surface management with automated DNS mapping and hardware-level encryption." },
+      spatial_3d: { site_name: "Voxel3D Spatial Studio", tagline: "GPU Volumetric Computing & Interactive Shaders", description: "Immersive 3D web studio featuring procedural Three.js figurines and 22+ custom post-processing shaders." },
+      creator: { site_name: "Creator Matrix Studio", tagline: "Monetize Digital Artifacts & AI Workflows", description: "Turn your workflows, code blueprints, and AI agents into high-converting digital products." },
+      ecommerce: { site_name: "Aura Commerce Store", tagline: "Next-Gen Direct-to-Consumer Storefront", description: "Blazing-fast e-commerce shopping experience with instant localized checkout and semantic product search." },
+      local_business: { site_name: "Beacon Local Services", tagline: "Licensed & Insured Professional Services", description: "Trusted, 5-star rated local service provider offering fast emergency response and upfront pricing." }
+    };
+
+    let currentNiche = 'developer_tools';
+
+    function selectPreset(nicheKey) {
+      currentNiche = nicheKey;
+      document.querySelectorAll('.preset-pill').forEach(el => el.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const p = CLIENT_PRESETS[nicheKey];
+      if (p) {
+        document.getElementById('inpSiteName').value = p.site_name;
+        document.getElementById('inpTagline').value = p.tagline;
+        document.getElementById('inpDescription').value = p.description;
+      }
+      clientSynthesize();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function copyCode(elemId) {
+      const text = document.getElementById(elemId).innerText;
+      navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
+    }
+
+    function clientSynthesize() {
+      const siteName = document.getElementById('inpSiteName').value || 'AEO Platform';
+      const domain = document.getElementById('inpDomain').value || 'example.com';
+      const tagline = document.getElementById('inpTagline').value || 'Next-Gen Platform';
+      const desc = document.getElementById('inpDescription').value || '';
+      const pub = document.getElementById('inpPublisher').value || 'NullAI';
+      const baseUrl = `https://${domain}`;
+
+      const schema = {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@id": `${baseUrl}/#organization`,
+            "@type": "Organization",
+            "name": pub,
+            "url": `${baseUrl}/`,
+            "slogan": tagline
+          },
+          {
+            "@id": `${baseUrl}/#website`,
+            "@type": "WebSite",
+            "name": siteName,
+            "url": `${baseUrl}/`,
+            "description": desc,
+            "publisher": { "@id": `${baseUrl}/#organization` }
+          },
+          {
+            "@id": `${baseUrl}/#application`,
+            "@type": "SoftwareApplication",
+            "name": siteName,
+            "url": `${baseUrl}/`,
+            "description": desc,
+            "operatingSystem": "Linux, macOS, Windows",
+            "offers": { "@type": "Offer", "price": "0.00", "priceCurrency": "USD" }
+          },
+          {
+            "@id": `${baseUrl}/#faq`,
+            "@type": "FAQPage",
+            "name": `${siteName} FAQ`,
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": `What is ${siteName}?`,
+                "acceptedAnswer": { "@type": "Answer", "text": desc }
+              }
+            ]
+          }
+        ]
+      };
+
+      const llmsTxt = `# ${siteName}\n\n> ${desc}\n\n${siteName} is a system for ${tagline.toLowerCase()}.\nOfficial Website: ${baseUrl}/\n\n## Core Capabilities\n- Schema.org JSON-LD Linked Data Graph\n- llms.txt Standardized Index\n- AI Search Engine Directives\n\n## Documentation\n- [Documentation](${baseUrl}/docs/): Getting started guide\n- [Schema Graph](${baseUrl}/schema-graph.json): JSON-LD Knowledge Graph\n- [llms-full.txt](${baseUrl}/llms-full.txt): Deep research index\n`;
+
+      const llmsFull = `================================================================================\n ${siteName.toUpperCase()} — COMPREHENSIVE KNOWLEDGE BASE\n================================================================================\nCanonical URI: ${baseUrl}/\nDescription: ${desc}\nTagline: ${tagline}\n\n1. SYSTEM ARCHITECTURE\n- Autonomous Answer Engine Optimization\n- Connected Entity Knowledge Graph\n\n2. CANONICAL RESOURCES\n- [Official Website](${baseUrl}/)\n- [Schema.org JSON-LD Graph](${baseUrl}/schema-graph.json)\n- [Concise Index llms.txt](${baseUrl}/llms.txt)\n`;
+
+      const aiTxt = `# ai.txt — Machine & AI Agent Access Manifest\nUser-Agent: *\nAllow: /\nAllow: /docs/\nAllow: /schema-graph.json\nAllow: /llms.txt\n\nCanonical-URL: ${baseUrl}/\nPublisher: ${pub}\nSchema-Org-Graph: ${baseUrl}/schema-graph.json\nLLMs-Txt: ${baseUrl}/llms.txt\nCitation-Required: True\n`;
+
+      const robotsTxt = `# robots.txt for ${siteName}\nUser-agent: *\nAllow: /\n\nUser-agent: GPTBot\nAllow: /\n\nUser-agent: PerplexityBot\nAllow: /\n\nUser-agent: ClaudeBot\nAllow: /\n\nUser-agent: Applebot-Extended\nAllow: /\n\nSitemap: ${baseUrl}/sitemap.xml\n`;
+
+      document.getElementById('codeSchema').innerText = JSON.stringify(schema, null, 2);
+      document.getElementById('codeLlms').innerText = llmsTxt;
+      document.getElementById('codeLlmsFull').innerText = llmsFull;
+      document.getElementById('codeAiTxt').innerText = aiTxt;
+      document.getElementById('codeRobots').innerText = robotsTxt;
+
+      // Entity preview cards
+      const grid = document.getElementById('entityGridPreview');
+      grid.innerHTML = '';
+      schema['@graph'].forEach(e => {
+        const card = document.createElement('div');
+        card.className = 'entity-card';
+        card.innerHTML = `
+          <div class="entity-type">${e['@type']}</div>
+          <div class="entity-name">${e.name || e['@id']}</div>
+          <div class="entity-desc">${e.description || e.slogan || 'Connected Schema Node'}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function clientPerformInjection() {
+      const rawHtml = document.getElementById('inpRawHtml').value;
+      const schemaText = document.getElementById('codeSchema').innerText;
+      const scriptTag = `<script type="application/ld+json">\\n${schemaText}\\n<\\/script>`;
+
+      let injected = '';
+      if (rawHtml.includes('</head>')) {
+        injected = rawHtml.replace('</head>', `  ${scriptTag}\\n</head>`);
+      } else {
+        injected = `${scriptTag}\\n${rawHtml}`;
+      }
+      document.getElementById('codeInjectedHtml').innerText = injected;
+    }
+
+    function downloadAllFilesClient() {
+      const files = {
+        'schema-graph.json': document.getElementById('codeSchema').innerText,
+        'llms.txt': document.getElementById('codeLlms').innerText,
+        'llms-full.txt': document.getElementById('codeLlmsFull').innerText,
+        'ai.txt': document.getElementById('codeAiTxt').innerText,
+        'robots.txt': document.getElementById('codeRobots').innerText
+      };
+
+      for (const [filename, content] of Object.entries(files)) {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      clientSynthesize();
+    });
+  </script>
+</body>
+</html>

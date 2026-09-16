@@ -1,6 +1,7 @@
 """
 Command Line Interface for AEO Graph Engine.
-Provides commands for generating, validating, inspecting, and testing AEO artifacts.
+Provides commands for generating, validating, inspecting, testing, extracting,
+and serving the interactive Google-designed AEO Studio dashboard.
 """
 
 import sys
@@ -21,6 +22,9 @@ from .core import (
 )
 from .injector import inject_file, inject_jsonld_into_html
 from .validator import validate_aeo_bundle
+from .extractor import extract_from_file, extract_metadata_from_html
+from .discovery import discover_project_metadata
+from .ui_server import start_ui_server
 from .presets import NICHE_PRESETS
 
 
@@ -31,7 +35,7 @@ def run_internal_tests() -> int:
     print("=" * 70)
 
     # 1. Test Schema Graph Generation
-    print("\n--- [1/5] Testing Schema.org JSON-LD Graph Generation ---")
+    print("\n--- [1/6] Testing Schema.org JSON-LD Graph Generation ---")
     cfg = resolve_config(None, niche="developer_tools")
     graph = generate_schema_graph(cfg)
     assert graph["@context"] == "https://schema.org"
@@ -39,7 +43,7 @@ def run_internal_tests() -> int:
     print(f"  ✅ Schema.org Graph validated ({len(graph['@graph'])} connected entities)")
 
     # 2. Test llms.txt & llms-full.txt
-    print("\n--- [2/5] Testing llms.txt & llms-full.txt Generation ---")
+    print("\n--- [2/6] Testing llms.txt & llms-full.txt Generation ---")
     llms = generate_llms_txt(cfg)
     assert "# AEO Graph Engine" in llms
     assert "> " in llms
@@ -50,7 +54,7 @@ def run_internal_tests() -> int:
     print(f"  ✅ llms-full.txt validated ({len(llms_full.splitlines())} lines)")
 
     # 3. Test ai.txt and robots.txt
-    print("\n--- [3/5] Testing ai.txt & robots.txt Crawler Directives ---")
+    print("\n--- [3/6] Testing ai.txt & robots.txt Crawler Directives ---")
     ai = generate_ai_txt(cfg)
     assert "Schema-Org-Graph:" in ai
     print("  ✅ ai.txt machine manifest validated")
@@ -62,19 +66,26 @@ def run_internal_tests() -> int:
     print("  ✅ robots.txt AI search directives validated")
 
     # 4. Test HTML Injection
-    print("\n--- [4/5] Testing HTML Injection & Replacement ---")
+    print("\n--- [4/6] Testing HTML Injection & Replacement ---")
     sample_html = "<html><head><title>Test</title></head><body><h1>Hello</h1></body></html>"
     injected = inject_jsonld_into_html(sample_html, graph)
     assert '<script type="application/ld+json">' in injected
     assert '</head>' in injected
 
-    # Test Idempotent update
     re_injected = inject_jsonld_into_html(injected, graph)
     assert re_injected.count('<script type="application/ld+json">') == 1
     print("  ✅ HTML injection and idempotent replacement verified")
 
-    # 5. Test Bundle Generation & Validation
-    print("\n--- [5/5] Testing Directory Bundle Generation & Readiness Scorer ---")
+    # 5. Test Metadata Extractor & Discovery
+    print("\n--- [5/6] Testing HTML Metadata Extractor & Project Discovery ---")
+    extracted = extract_metadata_from_html(sample_html)
+    assert extracted["site_name"] == "Test"
+
+    discovered = discover_project_metadata(".")
+    print(f"  ✅ Project discovery verified (Detected framework: {discovered.get('framework', 'generic')})")
+
+    # 6. Test Bundle Generation & Validation
+    print("\n--- [6/6] Testing Directory Bundle Generation & Readiness Scorer ---")
     import tempfile
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp_path = Path(tmpdir)
@@ -102,6 +113,20 @@ def build_parser() -> argparse.ArgumentParser:
         description="AEO Graph Engine — Answer Engine Optimization, Schema.org Graph & llms.txt Generator"
     )
 
+    subparsers = parser.add_subparsers(dest="subcommand", help="Available subcommands")
+
+    # `aeo serve` / `aeo ui`
+    serve_parser = subparsers.add_parser("serve", help="Start the interactive Google-designed AEO Studio UI server")
+    serve_parser.add_argument("--port", type=int, default=8080, help="Port to listen on (default: 8080)")
+    serve_parser.add_argument("--host", type=str, default="127.0.0.1", help="Host interface (default: 127.0.0.1)")
+
+    subparsers.add_parser("ui", help="Alias for 'aeo serve'")
+
+    # `aeo extract <file>`
+    extract_parser = subparsers.add_parser("extract", help="Extract metadata from an HTML file")
+    extract_parser.add_argument("file", type=str, help="Path to HTML file to extract metadata from")
+
+    # Main root flags
     parser.add_argument("--generate-all", action="store_true", help="Generate complete AEO bundle into output directory")
     parser.add_argument("--output-dir", type=str, default="dist", help="Output directory to write generated files (default: dist)")
     parser.add_argument(
@@ -114,6 +139,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--site-name", type=str, help="Override site name")
     parser.add_argument("--domain", type=str, help="Override domain name (e.g. example.com)")
     parser.add_argument("--version", type=str, help="Override version string")
+    parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format for validation/reports")
 
     # Single artifact output flags
     parser.add_argument("--jsonld", action="store_true", help="Print Schema.org JSON-LD graph to stdout")
@@ -139,6 +165,31 @@ def main(args: Optional[List[str]] = None) -> int:
     if parsed_args.test:
         return run_internal_tests()
 
+    # Subcommand: serve / ui
+    if parsed_args.subcommand in ("serve", "ui"):
+        port = getattr(parsed_args, "port", 8080)
+        host = getattr(parsed_args, "host", "127.0.0.1")
+        print(f"✨ Starting Google-Styled AEO Studio at http://{host}:{port}/")
+        print("💡 Press Ctrl+C to stop.")
+        server = start_ui_server(host=host, port=port)
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print("\n🛑 Shutting down AEO Studio.")
+            server.server_close()
+        return 0
+
+    # Subcommand: extract
+    if parsed_args.subcommand == "extract":
+        target = parsed_args.file
+        try:
+            meta = extract_from_file(target)
+            print(json.dumps(meta, indent=2, ensure_ascii=False))
+            return 0
+        except Exception as e:
+            print(f"❌ Error extracting metadata: {e}", file=sys.stderr)
+            return 1
+
     # Load custom JSON config if provided
     user_config = {}
     if parsed_args.config:
@@ -163,26 +214,30 @@ def main(args: Optional[List[str]] = None) -> int:
     if parsed_args.validate:
         report = validate_aeo_bundle(parsed_args.validate)
         data = report.to_dict()
-        print(f"\n🔍 AEO Audit Report for: {data['target']}")
-        print(f"📊 AEO Readiness Score: {data['score']}/100 ({data['status']})")
-        print(f"  • Passed checks: {data['passed_count']}")
-        print(f"  • Warnings:      {data['warnings_count']}")
-        print(f"  • Errors:        {data['errors_count']}\n")
 
-        if data["passed"]:
-            print("Passed Checks:")
-            for p in data["passed"]:
-                print(f"  ✅ {p}")
+        if parsed_args.format == "json":
+            print(json.dumps(data, indent=2))
+        else:
+            print(f"\n🔍 AEO Audit Report for: {data['target']}")
+            print(f"📊 AEO Readiness Score: {data['score']}/100 ({data['status']})")
+            print(f"  • Passed checks: {data['passed_count']}")
+            print(f"  • Warnings:      {data['warnings_count']}")
+            print(f"  • Errors:        {data['errors_count']}\n")
 
-        if data["warnings"]:
-            print("\nWarnings:")
-            for w in data["warnings"]:
-                print(f"  ⚠️  {w}")
+            if data["passed"]:
+                print("Passed Checks:")
+                for p in data["passed"]:
+                    print(f"  ✅ {p}")
 
-        if data["errors"]:
-            print("\nErrors:")
-            for e in data["errors"]:
-                print(f"  ❌ {e}")
+            if data["warnings"]:
+                print("\nWarnings:")
+                for w in data["warnings"]:
+                    print(f"  ⚠️  {w}")
+
+            if data["errors"]:
+                print("\nErrors:")
+                for e in data["errors"]:
+                    print(f"  ❌ {e}")
 
         return 1 if data["errors_count"] > 0 else 0
 
