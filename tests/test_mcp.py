@@ -15,6 +15,9 @@ from aeo_graph_engine.mcp_server import (
     AEOMCPServer,
     generate_mcp_client_config,
     get_framework_snippets,
+    simulate_ai_citations,
+    visualize_schema_graph,
+    crawl_sitemap_batch,
     main as mcp_main,
     TOOLS_DEFINITIONS,
     SERVER_NAME,
@@ -119,7 +122,10 @@ def test_mcp_tools_list(mcp_server):
         "aeo_generate_bundle",
         "aeo_inject_html",
         "aeo_validate",
-        "aeo_get_framework_snippets"
+        "aeo_get_framework_snippets",
+        "aeo_simulate_citation",
+        "aeo_visualize_schema",
+        "aeo_crawl_sitemap"
     ]
 
     for expected in expected_tools:
@@ -446,6 +452,208 @@ def test_tool_call_aeo_get_framework_snippets(mcp_server):
     assert len(single_data) == 1
     assert "astro" in single_data
     assert "set:html" in single_data["astro"]["code"]
+
+
+def test_tool_call_aeo_simulate_citation(mcp_server):
+    sample_html = """
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>ApexGraph - Fast Graph Neural Network Library</title>
+        <link rel="canonical" href="https://apexgraph.ai/" />
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "ApexGraph",
+          "applicationCategory": "DeveloperApplication",
+          "description": "High-performance GPU graph neural network framework."
+        }
+        </script>
+      </head>
+      <body>
+        <h1>ApexGraph</h1>
+        <p>ApexGraph is an ultra-scalable Python library for graph neural networks and node classification. It enables fast graph processing at scale.</p>
+        <p>It achieves 10x faster inference speed on GPUs using custom CUDA kernels for tensor operations.</p>
+      </body>
+    </html>
+    """
+    req = {
+        "jsonrpc": "2.0",
+        "id": 19,
+        "method": "tools/call",
+        "params": {
+            "name": "aeo_simulate_citation",
+            "arguments": {
+                "url_or_content": sample_html,
+                "query": "What is ApexGraph?"
+            }
+        }
+    }
+    resp = mcp_server.process_jsonrpc_request(req)
+    assert resp["result"]["isError"] is False
+    assert len(resp["result"]["content"]) == 2
+    text_out = resp["result"]["content"][0]["text"]
+    assert "AI CITATION SIMULATION REPORT" in text_out
+    assert "ApexGraph" in text_out
+
+    sim_data = json.loads(resp["result"]["content"][1]["text"])
+    assert sim_data["brand_name"] == "ApexGraph"
+    assert sim_data["extractability_score"] >= 60
+    assert "extracted_quotes" in sim_data
+    assert len(sim_data["extracted_quotes"]) >= 1
+    assert "engines" in sim_data
+    assert "perplexity" in sim_data["engines"]
+    assert "chatgpt" in sim_data["engines"]
+    assert "gemini" in sim_data["engines"]
+
+
+def test_tool_call_aeo_visualize_schema(mcp_server, tmp_path):
+    schema_dict = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {"@type": "Organization", "@id": "https://acme.org/#org", "name": "Acme Inc"},
+            {"@type": "WebSite", "@id": "https://acme.org/#site", "name": "Acme Site", "publisher": {"@id": "https://acme.org/#org"}},
+            {"@type": "SoftwareApplication", "@id": "https://acme.org/#app", "name": "Acme App", "author": {"@id": "https://acme.org/#org"}}
+        ]
+    }
+
+    # 1. Format: mermaid
+    req_m = {
+        "jsonrpc": "2.0",
+        "id": 20,
+        "method": "tools/call",
+        "params": {
+            "name": "aeo_visualize_schema",
+            "arguments": {
+                "schema_data": schema_dict,
+                "format": "mermaid"
+            }
+        }
+    }
+    resp_m = mcp_server.process_jsonrpc_request(req_m)
+    assert resp_m["result"]["isError"] is False
+    m_data = json.loads(resp_m["result"]["content"][1]["text"])
+    assert "mermaid" in m_data
+    assert "graph TD" in m_data["mermaid"]
+    assert "Acme Inc" in m_data["mermaid"]
+    assert m_data["entities_count"] == 3
+
+    # 2. Format: ascii with schema file on disk
+    schema_file = tmp_path / "schema-graph.json"
+    schema_file.write_text(json.dumps(schema_dict), encoding="utf-8")
+    req_a = {
+        "jsonrpc": "2.0",
+        "id": 21,
+        "method": "tools/call",
+        "params": {
+            "name": "aeo_visualize_schema",
+            "arguments": {
+                "schema_file": str(schema_file),
+                "format": "ascii"
+            }
+        }
+    }
+    resp_a = mcp_server.process_jsonrpc_request(req_a)
+    assert resp_a["result"]["isError"] is False
+    a_data = json.loads(resp_a["result"]["content"][1]["text"])
+    assert "ascii" in a_data
+    assert "Schema.org Knowledge Graph" in a_data["ascii"]
+    assert "Acme Inc" in a_data["ascii"]
+
+
+def test_tool_call_aeo_crawl_sitemap(mcp_server, monkeypatch):
+    mock_sitemap_report = {
+        "sitemap_target": "https://testdomain.com/sitemap.xml",
+        "sitemaps_discovered": ["https://testdomain.com/sitemap.xml"],
+        "total_urls_in_sitemap": 3,
+        "pages_audited_count": 3,
+        "overall_sitemap_aeo_score": 96.0,
+        "status": "EXCELLENT",
+        "coverage_metrics": {
+            "schema_coverage_pct": 100,
+            "faq_coverage_pct": 67,
+            "h1_coverage_pct": 100,
+            "canonical_coverage_pct": 100
+        },
+        "pages": [
+            {
+                "url": "https://testdomain.com/",
+                "status": 200,
+                "title": "Home",
+                "h1": "Welcome",
+                "word_count": 300,
+                "schema_count": 2,
+                "schema_types": ["Organization", "WebSite"],
+                "aeo_score": 98.0,
+                "issues": []
+            }
+        ],
+        "action_items": []
+    }
+
+    with patch("aeo_graph_engine.mcp_server.crawl_sitemap_batch", return_value=mock_sitemap_report):
+        req = {
+            "jsonrpc": "2.0",
+            "id": 22,
+            "method": "tools/call",
+            "params": {
+                "name": "aeo_crawl_sitemap",
+                "arguments": {
+                    "sitemap_url_or_domain": "https://testdomain.com/sitemap.xml",
+                    "max_pages": 5
+                }
+            }
+        }
+        resp = mcp_server.process_jsonrpc_request(req)
+        assert resp["result"]["isError"] is False
+        assert len(resp["result"]["content"]) == 2
+        text_out = resp["result"]["content"][0]["text"]
+        assert "SITEMAP AEO CRAWL REPORT" in text_out
+        assert "96.0/100" in text_out
+        data_out = json.loads(resp["result"]["content"][1]["text"])
+        assert data_out["overall_sitemap_aeo_score"] == 96.0
+
+
+def test_direct_helper_functions(tmp_path):
+    # 1. Test simulate_ai_citations
+    sim = simulate_ai_citations("<html><head><title>Direct Test</title></head><body><h1>Hello</h1><p>A fast AI tool.</p></body></html>")
+    assert sim["brand_name"] == "Direct Test"
+    assert "extractability_score" in sim
+    assert len(sim["extracted_quotes"]) >= 1
+
+    # 2. Test visualize_schema_graph
+    vis = visualize_schema_graph({
+        "@graph": [
+            {"@type": "Organization", "@id": "https://x.org/#org", "name": "Org X"},
+            {"@type": "WebSite", "@id": "https://x.org/#site", "name": "Site X"}
+        ]
+    }, format="both")
+    assert "graph TD" in vis["mermaid"]
+    assert "Schema.org Knowledge Graph" in vis["ascii"]
+
+    # 3. Test crawl_sitemap_batch with local sitemap.xml
+    sitemap_xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+      <url><loc>https://example.com/</loc></url>
+      <url><loc>https://example.com/about</loc></url>
+    </urlset>
+    """
+    sitemap_file = tmp_path / "sitemap.xml"
+    sitemap_file.write_text(sitemap_xml, encoding="utf-8")
+
+    # Patch urllib to avoid live requests during batch test
+    with patch("urllib.request.urlopen") as mock_urlopen:
+        mock_resp = MagicMock()
+        mock_resp.getcode.return_value = 200
+        mock_resp.read.return_value = b"<html><head><title>Local Page</title></head><body><h1>Title</h1><p>Words here</p></body></html>"
+        mock_resp.__enter__.return_value = mock_resp
+        mock_urlopen.return_value = mock_resp
+
+        crawl = crawl_sitemap_batch(str(sitemap_file), max_pages=2)
+        assert crawl["total_urls_in_sitemap"] == 2
+        assert crawl["pages_audited_count"] == 2
+        assert "coverage_metrics" in crawl
 
 
 # ==============================================================================

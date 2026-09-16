@@ -28,7 +28,14 @@ from .discovery import discover_project_metadata
 from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
 from .scanner import LiveAEOScanner
 from .framework_exporter import FrameworkExporter, AEORemediationGenerator
-from .mcp_server import MCPServer, generate_mcp_client_config, run_stdio_server
+from .mcp_server import (
+    MCPServer,
+    generate_mcp_client_config,
+    run_stdio_server,
+    simulate_ai_citations,
+    visualize_schema_graph,
+    crawl_sitemap_batch,
+)
 from .wizard import run_wizard
 from .ci_gate import run_ci_check
 from .bot_inspector import BotInspector, AI_BOT_REGISTRY
@@ -256,6 +263,27 @@ def build_parser() -> argparse.ArgumentParser:
     report_parser.add_argument("--competitor-url", type=str, help="Optional competitor URL for benchmark delta analysis")
     report_parser.add_argument("--output-dir", type=str, default=".", help="Directory to save generated report files (default: .)")
     report_parser.add_argument("--format", choices=["md", "html", "both"], default="both", help="Report format to generate (default: both)")
+
+    # `aeo simulate <url-or-html>`
+    sim_parser = subparsers.add_parser("simulate", help="Simulate AI search engine citations & extractability scores")
+    sim_parser.add_argument("target", type=str, help="Target live URL, HTML file, or raw text content")
+    sim_parser.add_argument("--query", "-q", type=str, help="Simulated search query / prompt")
+    sim_parser.add_argument("--json", action="store_true", help="Output JSON results")
+
+    # `aeo visual <schema-file>` / `aeo visualize`
+    vis_parser = subparsers.add_parser("visual", help="Generate Mermaid or ASCII entity diagram from Schema.org @graph")
+    vis_parser.add_argument("schema_file", nargs="?", default="dist/schema-graph.json", help="Path to schema JSON/HTML file or bundle directory (default: dist/schema-graph.json)")
+    vis_parser.add_argument("--format", choices=["mermaid", "ascii", "both"], default="mermaid", help="Output diagram format (default: mermaid)")
+
+    vis_alias = subparsers.add_parser("visualize", help="Alias for 'aeo visual'")
+    vis_alias.add_argument("schema_file", nargs="?", default="dist/schema-graph.json", help="Path to schema JSON/HTML file or bundle directory (default: dist/schema-graph.json)")
+    vis_alias.add_argument("--format", choices=["mermaid", "ascii", "both"], default="mermaid", help="Output diagram format (default: mermaid)")
+
+    # `aeo crawl <sitemap-or-url>`
+    crawl_parser = subparsers.add_parser("crawl", help="Batch crawl XML sitemap and produce multi-page AEO audit report")
+    crawl_parser.add_argument("target", type=str, help="Target sitemap URL, website domain, or sitemap.xml file")
+    crawl_parser.add_argument("--max-pages", type=int, default=10, help="Maximum pages to discover & crawl (default: 10)")
+    crawl_parser.add_argument("--json", action="store_true", help="Output JSON results")
 
     # Main root flags
     parser.add_argument("--generate-all", action="store_true", help="Generate complete AEO bundle into output directory")
@@ -600,6 +628,120 @@ def main(args: Optional[List[str]] = None) -> int:
             print(f"  🌐 Saved Standalone HTML Report: {html_file}")
 
         print(f"\n✅ Reports generated successfully in: {out_dir}")
+        return 0
+
+    # Subcommand: simulate
+    if parsed_args.subcommand == "simulate":
+        target = parsed_args.target
+        query = getattr(parsed_args, "query", None)
+        is_json = getattr(parsed_args, "json", False)
+
+        sim_res = simulate_ai_citations(target, query=query)
+
+        if is_json:
+            print(json.dumps(sim_res, indent=2, ensure_ascii=False))
+            return 0
+
+        print("\n" + "=" * 70)
+        print("🎯 AI SEARCH ENGINE CITATION & EXTRACTABILITY SIMULATION")
+        print("=" * 70)
+        print(f"  • Entity Name:          {sim_res['brand_name']}")
+        print(f"  • Canonical Domain:     {sim_res['domain']}")
+        print(f"  • Extractability Score: {sim_res['extractability_score']} / 100 ({sim_res['status']})")
+        print(f"  • Citation Confidence:  {sim_res['confidence']}")
+        print(f"  • Simulated Query:      \"{sim_res['query']}\"")
+        print(f"  • Word Count / Schemas: {sim_res['word_count']} words | {sim_res['schemas_detected_count']} schema tag(s)")
+
+        print("\n--- [1] Signal Breakdown ---")
+        for sig_key, sig_data in sim_res["signals"].items():
+            name = sig_key.replace("_", " ").title()
+            print(f"  • {name:32}: {sig_data['score']:4.1f} / {sig_data['max']:4.1f} ({sig_data['details']})")
+
+        print("\n--- [2] Extracted High-Confidence Quotes & Citations ---")
+        for i, q in enumerate(sim_res["extracted_quotes"], 1):
+            print(f"  [{i}] {q['quote']}")
+            print(f"      Source: {q['source']} | Context: {q['context']} ({q['confidence']})")
+
+        print("\n--- [3] Perplexity AI (Sonar Pro) Simulation ---")
+        print(sim_res["engines"]["perplexity"]["response"])
+
+        print("\n--- [4] ChatGPT Search Simulation ---")
+        print(sim_res["engines"]["chatgpt"]["response"])
+
+        print("\n--- [5] Google Gemini AI Overview Simulation ---")
+        print(sim_res["engines"]["gemini"]["response"])
+
+        print("=" * 70 + "\n")
+        return 0
+
+    # Subcommand: visual / visualize
+    if parsed_args.subcommand in ("visual", "visualize"):
+        target_file = getattr(parsed_args, "schema_file", "dist/schema-graph.json")
+        out_fmt = getattr(parsed_args, "format", "mermaid")
+
+        p = Path(target_file)
+        if p.is_dir() and (p / "schema-graph.json").exists():
+            target_file = str(p / "schema-graph.json")
+
+        vis_res = visualize_schema_graph(target_file, format=out_fmt)
+
+        if out_fmt == "mermaid":
+            print(vis_res["mermaid"])
+        elif out_fmt == "ascii":
+            print(vis_res["ascii"])
+        else:
+            print("=" * 70)
+            print("🕸️ SCHEMA.ORG ENTITY KNOWLEDGE GRAPH (MERMAID & ASCII)")
+            print("=" * 70)
+            print("```mermaid")
+            print(vis_res["mermaid"])
+            print("```\n")
+            print(vis_res["ascii"])
+            print("=" * 70)
+        return 0
+
+    # Subcommand: crawl
+    if parsed_args.subcommand == "crawl":
+        target = parsed_args.target
+        max_pages = getattr(parsed_args, "max_pages", 10)
+        is_json = getattr(parsed_args, "json", False)
+
+        if not is_json:
+            print(f"🕷️ Crawling sitemap: {target} (limit: {max_pages} pages)...")
+        crawl_res = crawl_sitemap_batch(target, max_pages=max_pages)
+
+        if is_json:
+            print(json.dumps(crawl_res, indent=2, ensure_ascii=False))
+            return 0
+
+        print("\n" + "=" * 70)
+        print("🕷️ SITEMAP & MULTI-PAGE AEO AUDIT REPORT")
+        print("=" * 70)
+        print(f"  • Target:                  {crawl_res['sitemap_target']}")
+        print(f"  • Sitemaps Discovered:     {', '.join(crawl_res['sitemaps_discovered'])}")
+        print(f"  • Total Sitemap URLs:      {crawl_res['total_urls_in_sitemap']}")
+        print(f"  • Pages Audited:           {crawl_res['pages_audited_count']}")
+        print(f"  • Site-Wide AEO Score:     {crawl_res['overall_sitemap_aeo_score']} / 100 ({crawl_res['status']})")
+        print(f"  • Schema.org Coverage:     {crawl_res['coverage_metrics']['schema_coverage_pct']}%")
+        print(f"  • FAQ Coverage:            {crawl_res['coverage_metrics']['faq_coverage_pct']}%")
+        print(f"  • Primary H1 Coverage:     {crawl_res['coverage_metrics']['h1_coverage_pct']}%")
+        print(f"  • Canonical Tag Coverage:  {crawl_res['coverage_metrics']['canonical_coverage_pct']}%")
+
+        print("\n--- Crawled Pages Table ---")
+        header = f"{'Status':<8} {'Score':<8} {'Schemas':<10} {'Words':<8} {'URL'}"
+        print(header)
+        print("-" * len(header) + "-" * 20)
+        for p in crawl_res["pages"]:
+            status_tag = f"{p['status']} OK" if p["status"] == 200 else f"ERR {p['status']}"
+            print(f"{status_tag:<8} {p['aeo_score']:<8.1f} {p['schema_count']:<10} {p['word_count']:<8} {p['url']}")
+
+        if crawl_res.get("action_items"):
+            print("\n--- Site-Wide Remediation Actions ---")
+            for item in crawl_res["action_items"]:
+                print(f"  [{item['priority']}] {item['category']}: {item['issue']}")
+                print(f"        -> Fix: {item['fix']}")
+
+        print("=" * 70 + "\n")
         return 0
 
     # Load custom JSON config if provided

@@ -32,7 +32,13 @@ from .discovery import discover_project_metadata
 from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
 from .scanner import LiveAEOScanner
 from .framework_exporter import FrameworkExporter, AEORemediationGenerator
-from .mcp_server import MCPServer, generate_mcp_client_config
+from .mcp_server import (
+    MCPServer,
+    generate_mcp_client_config,
+    simulate_ai_citations,
+    visualize_schema_graph,
+    crawl_sitemap_batch,
+)
 from .ai_gateway import AIGateway, DEFAULT_AI_GATEWAY_CONFIG
 from .bot_inspector import BotInspector, AI_BOT_REGISTRY
 from .benchmark import compare_sites, CompetitorBenchmark
@@ -810,6 +816,9 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     <main class="main-panel">
       <nav class="tabs-bar">
         <button class="tab-btn active" onclick="switchTab('tab-scanner')">🌐 Live Scanner</button>
+        <button class="tab-btn" onclick="switchTab('tab-citation-simulator')">🎯 AI Citation Simulator</button>
+        <button class="tab-btn" onclick="switchTab('tab-entity-visualizer')">📊 Entity Graph Visualizer</button>
+        <button class="tab-btn" onclick="switchTab('tab-sitemap-crawler')">🕷️ Sitemap & Batch Crawler</button>
         <button class="tab-btn" onclick="switchTab('tab-frameworks')">📦 Frameworks & Code</button>
         <button class="tab-btn" onclick="switchTab('tab-agent-hub')">🤖 AI Agent & MCP Hub</button>
         <button class="tab-btn" onclick="switchTab('tab-audit')">📊 AEO Scorecard</button>
@@ -1265,6 +1274,207 @@ print(f"Overall AEO Score: {results['overall_aeo_score']}/100")
 exporter = FrameworkExporter({"site_name": "Apex", "domain": "apex.dev"})
 next_files = exporter.export("nextjs_app")
 print(f"Generated {len(next_files)} Next.js integration files.")</div>
+          </div>
+        </div>
+
+        <!-- Tab: AI Citation Simulator -->
+        <div id="tab-citation-simulator" class="tab-pane">
+          <div class="scanner-hero">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
+                  🎯 AI Search Engine Citation & Perception Simulator
+                </h2>
+                <p style="font-size:13px; color:var(--text-secondary);">
+                  Simulate real-time conversational retrieval and Answer Engine citations across Perplexity AI, ChatGPT Search, and Google Gemini with extractability scoring.
+                </p>
+              </div>
+              <span class="brand-badge">Multi-Engine Simulator</span>
+            </div>
+
+            <div class="scanner-bar" style="margin-top:10px;">
+              <input type="text" id="inpSimTarget" class="scanner-input" placeholder="Enter target URL (e.g. https://example.com) or text content..." value="https://example.com" onkeydown="if(event.key==='Enter') executeCitationSimulation()">
+              <input type="text" id="inpSimQuery" class="form-control" style="width:300px; border-radius:24px; padding:10px 16px;" placeholder="Optional search query (e.g. What is X?)..." onkeydown="if(event.key==='Enter') executeCitationSimulation()">
+              <button id="btnRunSim" class="btn btn-primary" onclick="executeCitationSimulation()">🎯 Simulate Citations</button>
+            </div>
+          </div>
+
+          <div id="simLoadingState" style="display:none; text-align:center; padding:40px;">
+            <div style="font-size:24px; margin-bottom:8px;">⏳</div>
+            <div style="font-weight:600; color:var(--text-primary);">Simulating Answer Engine Retrieval & Perception...</div>
+            <div style="font-size:12px; color:var(--text-secondary);">Querying neural grounding weights and extracting key quotes</div>
+          </div>
+
+          <div id="simResultsArea">
+            <div class="card">
+              <div class="card-title">Extractability & Citation Readiness</div>
+              <div class="audit-grid">
+                <div class="gauge-container" id="simScoreGauge">
+                  <div class="gauge-num" id="simScoreNum">94</div>
+                  <div class="gauge-label" id="simScoreLabel">EXCELLENT</div>
+                  <div style="font-size:12px; font-weight:600; margin-top:6px; color:var(--text-primary);" id="simConfidenceChip">
+                    🔮 96% Citation Confidence
+                  </div>
+                </div>
+
+                <div id="simSignalBars" style="display:flex; flex-direction:column; gap:8px;"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span>📑 High-Confidence Extracted Quotes & Citations</span>
+                <span class="brand-badge" id="simQuoteCountBadge">3 Key Facts</span>
+              </div>
+              <div id="simQuotesList" style="display:flex; flex-direction:column; gap:10px;"></div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; margin-bottom:20px;">
+              <div class="card" style="margin-bottom:0; border-top:4px solid var(--google-purple);">
+                <div class="card-title" style="color:var(--google-purple);">
+                  <span>🟣 Perplexity AI (Sonar Pro)</span>
+                </div>
+                <div class="code-box" id="simPerplexityBox" style="min-height:180px; max-height:300px;"></div>
+              </div>
+
+              <div class="card" style="margin-bottom:0; border-top:4px solid var(--google-green);">
+                <div class="card-title" style="color:var(--google-green);">
+                  <span>🟢 ChatGPT Search (GPT-4o)</span>
+                </div>
+                <div class="code-box" id="simChatGPTBox" style="min-height:180px; max-height:300px;"></div>
+              </div>
+
+              <div class="card" style="margin-bottom:0; border-top:4px solid var(--google-blue);">
+                <div class="card-title" style="color:var(--google-blue);">
+                  <span>🔵 Google Gemini (AI Overview)</span>
+                </div>
+                <div class="code-box" id="simGeminiBox" style="min-height:180px; max-height:300px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Entity Graph Visualizer -->
+        <div id="tab-entity-visualizer" class="tab-pane">
+          <div class="scanner-hero">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
+                  📊 Entity Knowledge Graph & Schema Visualizer
+                </h2>
+                <p style="font-size:13px; color:var(--text-secondary);">
+                  Explore connected Schema.org linked data nodes, entity relationships, publisher links, and hierarchy via Mermaid diagrams and interactive trees.
+                </p>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-outline btn-sm" onclick="loadEntityVisualizer('mermaid')">Mermaid Syntax</button>
+                <button class="btn btn-outline btn-sm" onclick="loadEntityVisualizer('ascii')">ASCII Tree</button>
+                <button class="btn btn-primary btn-sm" onclick="loadEntityVisualizer('both')">🔄 Refresh Graph</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span>🕸️ Connected Knowledge Graph Overview</span>
+              <div style="display:flex; gap:8px;" id="visStatsBadges">
+                <span class="brand-badge" id="visEntityCountBadge">4 Entities</span>
+                <span class="brand-badge" style="background:var(--google-green-surface); color:var(--google-green);" id="visEdgeCountBadge">3 Relationships</span>
+              </div>
+            </div>
+
+            <div class="entity-grid" id="visEntitiesGrid"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span>📐 Mermaid Diagram & Entity Relations</span>
+              <button class="btn btn-outline btn-sm" onclick="copyVisCode()">📋 Copy Mermaid Code</button>
+            </div>
+            <div class="code-box" id="visMermaidCode" style="max-height:400px; margin-bottom:14px;"></div>
+            <div class="card-title" style="margin-top:18px;">
+              <span>🌲 ASCII Entity Tree</span>
+            </div>
+            <div class="code-box" id="visAsciiCode" style="max-height:400px;"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Sitemap & Batch Crawler -->
+        <div id="tab-sitemap-crawler" class="tab-pane">
+          <div class="scanner-hero">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
+                  🕷️ Sitemap Discovery & Batch Multi-Page AEO Auditor
+                </h2>
+                <p style="font-size:13px; color:var(--text-secondary);">
+                  Batch crawl XML sitemaps, inspect per-page JSON-LD schemas, measure word count, verify canonical URLs, and detect site-wide optimization gaps.
+                </p>
+              </div>
+              <span class="brand-badge">Sitemap Engine</span>
+            </div>
+
+            <div class="scanner-bar" style="margin-top:10px;">
+              <input type="text" id="inpSitemapTarget" class="scanner-input" placeholder="Enter domain or sitemap URL (e.g. https://example.com/sitemap.xml)..." value="https://example.com" onkeydown="if(event.key==='Enter') executeSitemapCrawl()">
+              <select id="selSitemapMaxPages" class="form-control" style="width:140px; border-radius:20px; font-weight:500;">
+                <option value="5">5 Pages</option>
+                <option value="10" selected>10 Pages</option>
+                <option value="25">25 Pages</option>
+                <option value="50">50 Pages</option>
+              </select>
+              <button id="btnRunSitemap" class="btn btn-primary" onclick="executeSitemapCrawl()">🕷️ Crawl Sitemap</button>
+            </div>
+          </div>
+
+          <div id="sitemapLoadingState" style="display:none; text-align:center; padding:40px;">
+            <div style="font-size:24px; margin-bottom:8px;">⏳</div>
+            <div style="font-weight:600; color:var(--text-primary);">Discovering Sitemaps & Crawling Internal Routes...</div>
+            <div style="font-size:12px; color:var(--text-secondary);">Auditing JSON-LD tags, H1 headings, and semantic health</div>
+          </div>
+
+          <div id="sitemapResultsArea" style="display:none;">
+            <div class="card">
+              <div class="card-title">Site-Wide AEO Coverage & Health</div>
+              <div class="audit-grid">
+                <div class="gauge-container" id="sitemapScoreGauge">
+                  <div class="gauge-num" id="sitemapScoreNum">88</div>
+                  <div class="gauge-label" id="sitemapScoreLabel">HEALTHY</div>
+                  <div style="font-size:12px; font-weight:600; margin-top:6px; color:var(--text-primary);" id="sitemapTotalUrlsBadge">
+                    📄 10 Pages Audited
+                  </div>
+                </div>
+
+                <div id="sitemapCoverageBars" style="display:flex; flex-direction:column; gap:8px;"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">
+                <span>📑 Crawled Sitemap Pages Breakdown</span>
+                <button class="btn btn-outline btn-sm" onclick="exportSitemapJson()">📥 Export JSON</button>
+              </div>
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Status</th>
+                      <th>Score</th>
+                      <th>Page Title & URL</th>
+                      <th>H1 Heading</th>
+                      <th>Schemas Detected</th>
+                      <th>Words</th>
+                      <th>Issues</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sitemapPagesTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card" id="sitemapActionItemsCard">
+              <div class="card-title">🛠️ Site-Wide Remediation Actions</div>
+              <div id="sitemapActionItemsList" style="display:flex; flex-direction:column; gap:10px;"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1755,10 +1965,312 @@ Focus on:
       alert("Scanned site metadata successfully loaded into AEO Generator!");
     }
 
+    // --- AI Citation Simulator JS ---
+    let lastSimData = null;
+    async function executeCitationSimulation() {
+      const target = document.getElementById('inpSimTarget').value.trim();
+      const query = document.getElementById('inpSimQuery').value.trim();
+      if (!target) {
+        alert("Please enter a target URL or text content.");
+        return;
+      }
+      const btn = document.getElementById('btnRunSim');
+      const loader = document.getElementById('simLoadingState');
+      const results = document.getElementById('simResultsArea');
+
+      btn.disabled = true;
+      btn.innerText = "Simulating...";
+      loader.style.display = 'block';
+
+      try {
+        const res = await fetch('/api/simulate-citation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: target, query: query || undefined })
+        });
+        const data = await res.json();
+        if (data.error) {
+          alert("Simulation Error: " + data.error);
+          return;
+        }
+        lastSimData = data;
+        renderSimulationResults(data);
+        results.style.display = 'block';
+      } catch (e) {
+        alert("Failed to simulate citations: " + e);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "🎯 Simulate Citations";
+        loader.style.display = 'none';
+      }
+    }
+
+    function renderSimulationResults(data) {
+      const score = data.extractability_score || 0;
+      document.getElementById('simScoreNum').innerText = score;
+      document.getElementById('simScoreLabel').innerText = data.status || 'READY';
+      document.getElementById('simConfidenceChip').innerText = `🔮 ${data.confidence || '90%'} Citation Confidence`;
+
+      const gauge = document.getElementById('simScoreGauge');
+      if (score >= 80) {
+        gauge.style.background = 'var(--google-green-surface)';
+        gauge.style.borderColor = 'rgba(30,142,62,0.3)';
+        document.getElementById('simScoreNum').style.color = 'var(--google-green)';
+      } else if (score >= 50) {
+        gauge.style.background = 'var(--google-yellow-surface)';
+        gauge.style.borderColor = 'rgba(249,171,0,0.3)';
+        document.getElementById('simScoreNum').style.color = 'var(--google-yellow)';
+      } else {
+        gauge.style.background = 'var(--google-red-surface)';
+        gauge.style.borderColor = 'rgba(217,48,37,0.3)';
+        document.getElementById('simScoreNum').style.color = 'var(--google-red)';
+      }
+
+      const barsContainer = document.getElementById('simSignalBars');
+      barsContainer.innerHTML = '';
+      for (const [key, sig] of Object.entries(data.signals || {})) {
+        const pct = Math.round((sig.score / sig.max) * 100);
+        const name = key.replace(/_/g, ' ').toUpperCase();
+        const row = document.createElement('div');
+        row.innerHTML = `
+          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600;">
+            <span>${name}</span>
+            <span>${sig.score} / ${sig.max} pts (${pct}%)</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${pct}%; background:${pct >= 75 ? 'var(--google-green)' : pct >= 40 ? 'var(--google-yellow)' : 'var(--google-red)'};"></div>
+          </div>
+          <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">${sig.details}</div>
+        `;
+        barsContainer.appendChild(row);
+      }
+
+      const quotesList = document.getElementById('simQuotesList');
+      quotesList.innerHTML = '';
+      const quotes = data.extracted_quotes || [];
+      document.getElementById('simQuoteCountBadge').innerText = `${quotes.length} Key Facts`;
+      quotes.forEach((q, idx) => {
+        const item = document.createElement('div');
+        item.className = 'guide-box';
+        item.style.marginBottom = '0';
+        item.innerHTML = `
+          <div style="font-weight:600; font-size:13px; color:var(--text-primary); margin-bottom:3px;">${q.quote}</div>
+          <div style="font-size:11px; color:var(--google-blue); font-weight:600;">🔗 ${q.source} <span style="color:var(--text-secondary); font-weight:normal;">• Context: ${q.context} (${q.confidence})</span></div>
+        `;
+        quotesList.appendChild(item);
+      });
+
+      const engines = data.engines || {};
+      if (engines.perplexity) {
+        document.getElementById('simPerplexityBox').innerText = engines.perplexity.response;
+      }
+      if (engines.chatgpt) {
+        document.getElementById('simChatGPTBox').innerText = engines.chatgpt.response;
+      }
+      if (engines.gemini) {
+        document.getElementById('simGeminiBox').innerText = engines.gemini.response;
+      }
+    }
+
+    // --- Entity Graph Visualizer JS ---
+    let lastVisData = null;
+    async function loadEntityVisualizer(format = 'both') {
+      try {
+        const res = await fetch('/api/visualize-schema', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ schema: (typeof currentSchemaGraph !== 'undefined' ? currentSchemaGraph : undefined), format: format })
+        });
+        const data = await res.json();
+        lastVisData = data;
+        renderEntityVisualizer(data);
+      } catch (e) {
+        console.error("Failed to load entity visualizer: ", e);
+      }
+    }
+
+    function renderEntityVisualizer(data) {
+      if (document.getElementById('visEntityCountBadge')) {
+        document.getElementById('visEntityCountBadge').innerText = `${data.entities_count || 0} Entities`;
+      }
+      if (document.getElementById('visEdgeCountBadge')) {
+        document.getElementById('visEdgeCountBadge').innerText = `${data.relationships_count || 0} Relationships`;
+      }
+
+      if (document.getElementById('visMermaidCode')) {
+        document.getElementById('visMermaidCode').innerText = data.mermaid || '';
+      }
+      if (document.getElementById('visAsciiCode')) {
+        document.getElementById('visAsciiCode').innerText = data.ascii || '';
+      }
+
+      const grid = document.getElementById('visEntitiesGrid');
+      if (grid) {
+        grid.innerHTML = '';
+        (data.entities || []).forEach(ent => {
+          const card = document.createElement('div');
+          card.className = 'entity-card';
+          card.innerHTML = `
+            <div class="entity-type">${ent.icon || '📦'} ${ent.type}</div>
+            <div class="entity-name">${ent.name}</div>
+            <div class="entity-desc" style="font-family:var(--font-mono); font-size:11px; color:var(--text-secondary);">
+              ID: ${ent.raw_id}
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+    }
+
+    function copyVisCode() {
+      if (lastVisData && lastVisData.mermaid) {
+        navigator.clipboard.writeText(lastVisData.mermaid);
+        alert("Mermaid code copied to clipboard!");
+      }
+    }
+
+    // --- Sitemap & Batch Crawler JS ---
+    let lastSitemapData = null;
+    async function executeSitemapCrawl() {
+      const target = document.getElementById('inpSitemapTarget').value.trim();
+      const maxPages = document.getElementById('selSitemapMaxPages').value;
+      if (!target) {
+        alert("Please enter a domain or sitemap.xml URL.");
+        return;
+      }
+
+      const btn = document.getElementById('btnRunSitemap');
+      const loader = document.getElementById('sitemapLoadingState');
+      const results = document.getElementById('sitemapResultsArea');
+
+      btn.disabled = true;
+      btn.innerText = "Crawling...";
+      loader.style.display = 'block';
+      results.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/crawl-sitemap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sitemap_url: target, max_pages: parseInt(maxPages) })
+        });
+        const data = await res.json();
+        if (data.error) {
+          alert("Sitemap Crawl Error: " + data.error);
+          return;
+        }
+
+        lastSitemapData = data;
+        renderSitemapResults(data);
+        results.style.display = 'block';
+      } catch (e) {
+        alert("Failed to crawl sitemap: " + e);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "🕷️ Crawl Sitemap";
+        loader.style.display = 'none';
+      }
+    }
+
+    function renderSitemapResults(data) {
+      const score = data.overall_sitemap_aeo_score || 0;
+      document.getElementById('sitemapScoreNum').innerText = score;
+      document.getElementById('sitemapScoreLabel').innerText = data.status || 'AEO AUDIT';
+      document.getElementById('sitemapTotalUrlsBadge').innerText = `📄 ${data.pages_audited_count} / ${data.total_urls_in_sitemap} URLs Audited`;
+
+      const gauge = document.getElementById('sitemapScoreGauge');
+      if (score >= 80) {
+        gauge.style.background = 'var(--google-green-surface)';
+        gauge.style.borderColor = 'rgba(30,142,62,0.3)';
+        document.getElementById('sitemapScoreNum').style.color = 'var(--google-green)';
+      } else if (score >= 50) {
+        gauge.style.background = 'var(--google-yellow-surface)';
+        gauge.style.borderColor = 'rgba(249,171,0,0.3)';
+        document.getElementById('sitemapScoreNum').style.color = 'var(--google-yellow)';
+      } else {
+        gauge.style.background = 'var(--google-red-surface)';
+        gauge.style.borderColor = 'rgba(217,48,37,0.3)';
+        document.getElementById('sitemapScoreNum').style.color = 'var(--google-red)';
+      }
+
+      const barsContainer = document.getElementById('sitemapCoverageBars');
+      barsContainer.innerHTML = '';
+      for (const [key, val] of Object.entries(data.coverage_metrics || {})) {
+        const name = key.replace(/_/g, ' ').toUpperCase();
+        const row = document.createElement('div');
+        row.innerHTML = `
+          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600;">
+            <span>${name}</span>
+            <span>${val}%</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${val}%; background:${val >= 75 ? 'var(--google-green)' : val >= 40 ? 'var(--google-yellow)' : 'var(--google-red)'};"></div>
+          </div>
+        `;
+        barsContainer.appendChild(row);
+      }
+
+      const tbody = document.getElementById('sitemapPagesTableBody');
+      tbody.innerHTML = '';
+      (data.pages || []).forEach(p => {
+        const tr = document.createElement('tr');
+        const schemaTypes = (p.schema_types || []).join(', ') || 'None';
+        const issuesStr = (p.issues || []).join(', ') || 'None';
+        tr.innerHTML = `
+          <td><span class="bot-badge ${p.status === 200 ? '' : 'bot-badge-warn'}">${p.status}</span></td>
+          <td><strong style="color:var(--google-blue);">${p.aeo_score}</strong>/100</td>
+          <td style="font-family:var(--font-mono); font-size:11px;">
+            <strong>${p.title}</strong><br>
+            <a href="${p.url}" target="_blank" style="color:var(--google-blue); text-decoration:none;">${p.url}</a>
+          </td>
+          <td>${p.h1 || 'None'}</td>
+          <td><span style="font-weight:600; color:var(--google-blue);">${p.schema_count}</span> (${schemaTypes})</td>
+          <td>${p.word_count || 0}</td>
+          <td style="font-size:11px; color:${p.issues && p.issues.length ? 'var(--google-red)' : 'var(--google-green)'};">${issuesStr}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const actionsList = document.getElementById('sitemapActionItemsList');
+      actionsList.innerHTML = '';
+      if (!data.action_items || data.action_items.length === 0) {
+        actionsList.innerHTML = '<div style="color:var(--google-green); font-size:13px; font-weight:600;">✨ All crawled pages are fully optimized for Answer Engines!</div>';
+      } else {
+        data.action_items.forEach(item => {
+          const isCrit = item.priority === 'CRITICAL';
+          const isHigh = item.priority === 'HIGH';
+          const card = document.createElement('div');
+          card.style.borderLeft = `4px solid ${isCrit ? 'var(--google-red)' : isHigh ? 'var(--google-yellow)' : 'var(--google-blue)'}`;
+          card.style.background = '#f8f9fa';
+          card.style.padding = '12px 14px';
+          card.style.borderRadius = '0 8px 8px 0';
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-weight:700; font-size:13px; color:var(--text-primary);">${item.issue}</span>
+              <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:10px; background:${isCrit ? 'var(--google-red-surface)' : isHigh ? 'var(--google-yellow-surface)' : 'var(--google-blue-surface)'}; color:${isCrit ? 'var(--google-red)' : isHigh ? 'var(--google-yellow)' : 'var(--google-blue)'};">${item.priority}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); line-height:1.4;">${item.fix}</div>
+          `;
+          actionsList.appendChild(card);
+        });
+      }
+    }
+
+    function exportSitemapJson() {
+      if (!lastSitemapData) return;
+      const blob = new Blob([JSON.stringify(lastSitemapData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sitemap-aeo-report.json';
+      a.click();
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       regenerateAll();
       selectMcpClient('claude_desktop');
       selectAgentPrompt('engineer');
+      loadEntityVisualizer('both');
     });
   </script>
 </body>
@@ -1869,6 +2381,31 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
         if path == "/api/ai/settings":
             gateway = AIGateway()
             return self._send_json(gateway.get_public_status())
+
+        if path == "/api/simulate-citation":
+            query_params = urllib.parse.parse_qs(parsed.query)
+            target = query_params.get("url", [""])[0] or query_params.get("target", [""])[0] or query_params.get("content", [""])[0]
+            query = query_params.get("query", [None])[0]
+            brand = query_params.get("brand_name", [None])[0]
+            dom = query_params.get("domain", [None])[0]
+            res = simulate_ai_citations(target, query=query, brand_name=brand, domain=dom)
+            return self._send_json(res)
+
+        if path == "/api/visualize-schema":
+            query_params = urllib.parse.parse_qs(parsed.query)
+            fmt = query_params.get("format", ["mermaid"])[0]
+            file_path = query_params.get("file", [None])[0]
+            res = visualize_schema_graph(schema_input=file_path, format=fmt)
+            return self._send_json(res)
+
+        if path == "/api/crawl-sitemap":
+            query_params = urllib.parse.parse_qs(parsed.query)
+            target = query_params.get("url", [""])[0] or query_params.get("sitemap_url", [""])[0] or query_params.get("domain", [""])[0]
+            max_pages = int(query_params.get("max_pages", [10])[0])
+            if not target:
+                return self._send_json({"error": "Missing 'url' or 'sitemap_url' parameter"}, status=400)
+            res = crawl_sitemap_batch(target, max_pages=max_pages)
+            return self._send_json(res)
 
         self.send_error(404, "Endpoint not found")
 
@@ -2008,6 +2545,31 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
                 "html": html_report,
                 "target_url": target_url or (scan_data or {}).get("url", "https://example.com")
             })
+
+        if path == "/api/simulate-citation":
+            target = payload.get("url") or payload.get("content") or payload.get("target") or ""
+            query = payload.get("query")
+            brand = payload.get("brand_name")
+            dom = payload.get("domain")
+            timeout = int(payload.get("timeout", 8))
+            res = simulate_ai_citations(target, query=query, brand_name=brand, domain=dom, timeout=timeout)
+            return self._send_json(res)
+
+        if path == "/api/visualize-schema":
+            schema = payload.get("schema")
+            schema_file = payload.get("file_path") or payload.get("schema_file")
+            fmt = payload.get("format", "mermaid")
+            res = visualize_schema_graph(schema_input=schema or schema_file, format=fmt)
+            return self._send_json(res)
+
+        if path == "/api/crawl-sitemap":
+            target = payload.get("sitemap_url") or payload.get("url") or payload.get("domain") or payload.get("target") or ""
+            max_pages = int(payload.get("max_pages", 10))
+            timeout = int(payload.get("timeout", 8))
+            if not target:
+                return self._send_json({"error": "Missing 'sitemap_url' parameter"}, status=400)
+            res = crawl_sitemap_batch(target, max_pages=max_pages, timeout=timeout)
+            return self._send_json(res)
 
         self.send_error(404, "Endpoint not found")
 
