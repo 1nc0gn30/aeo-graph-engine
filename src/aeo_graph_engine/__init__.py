@@ -31,6 +31,20 @@ from .framework_exporter import (
     normalize_framework_name,
 )
 from .mcp_server import MCPServer, generate_mcp_client_config, run_stdio_server
+from .compat import (
+    is_windows,
+    is_macos,
+    is_linux,
+    is_termux,
+    is_wsl,
+    get_platform_info,
+    configure_utf8_streams,
+    safe_print,
+    open_browser,
+    atomic_write_text,
+    to_posix_path,
+    resolve_path,
+)
 from .ui_server import start_ui_server
 from .presets import DEFAULT_CONFIG, NICHE_PRESETS
 
@@ -60,6 +74,18 @@ __all__ = [
     "MCPServer",
     "generate_mcp_client_config",
     "run_stdio_server",
+    "is_windows",
+    "is_macos",
+    "is_linux",
+    "is_termux",
+    "is_wsl",
+    "get_platform_info",
+    "configure_utf8_streams",
+    "safe_print",
+    "open_browser",
+    "atomic_write_text",
+    "to_posix_path",
+    "resolve_path",
     "start_ui_server",
     "DEFAULT_CONFIG",
     "NICHE_PRESETS",

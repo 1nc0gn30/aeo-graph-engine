@@ -1,0 +1,145 @@
+name: Automated Release & Package Distribution
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      custom_tag:
+        description: "Custom release tag (e.g. v1.0.1)"
+        required: false
+        default: ""
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  build-and-release:
+    name: Build Wheel & Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Build Tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build wheel pytest
+
+      - name: Run Test Verification Suite
+        run: |
+          python -m pip install -e ".[dev]"
+          pytest tests/ -v
+          python -m aeo_graph_engine.cli --test
+
+      - name: Determine Release Tag & Version
+        id: release_meta
+        shell: bash
+        run: |
+          # 1. Extract package version from pyproject.toml
+          PKG_VERSION=$(python3 -c "import tomllib; f=open('pyproject.toml', 'rb'); print(tomllib.load(f)['project']['version'])" 2>/dev/null || grep -m1 '^version =' pyproject.toml | cut -d '"' -f 2)
+          
+          if [ -n "${{ github.event.inputs.custom_tag }}" ]; then
+            TAG_NAME="${{ github.event.inputs.custom_tag }}"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          else
+            TAG_NAME="v${PKG_VERSION}"
+          fi
+          
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "pkg_version=${PKG_VERSION}" >> $GITHUB_OUTPUT
+          echo "Release Target: ${TAG_NAME} (Package version: ${PKG_VERSION})"
+
+      - name: Build Distribution Packages (.whl & .tar.gz)
+        run: |
+          python -m build --sdist --wheel --outdir dist/
+          ls -la dist/
+
+      - name: Generate SHA-256 Checksums
+        shell: bash
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          cd ..
+
+      - name: Generate Release Notes & Changelog
+        id: generate_notes
+        shell: bash
+        run: |
+          cat << 'EOF' > RELEASE_NOTES.md
+          ## 🌐 AEO Graph Engine Release
+
+          Autonomous Answer Engine Optimization (AEO/GEO), Schema.org Knowledge Graph generator, `llms.txt` manifest compiler, Model Context Protocol (MCP) server, multi-framework code exporter, and Google-designed Studio UI.
+
+          ### 📦 Platform & Runtime Highlights
+          - **Universal Cross-Platform Support**: Linux, Termux (Android), macOS (Apple Silicon & Intel), Windows (PowerShell, CMD, WSL2).
+          - **Zero External Runtime Dependencies**: 100% pure standard library Python.
+          - **Model Context Protocol (MCP)**: Native stdio JSON-RPC 2.0 server for Claude Desktop, Cursor, Cline, Zed, Hermes, OpenCode.
+          - **Multi-Framework Code Exporters**: Next.js App & Pages Router, Astro, Vite + React, SvelteKit, Remix, Nuxt 3, and Hugo/Jekyll.
+          - **Live Website Multi-Page Crawler**: Live audit of sitemaps, robots.txt, subpages, AI search engine permissions, and high-authority backlink strategy.
+          - **Google-Grade Studio UI**: Interactive Material 3 web workbench (`aeo serve`).
+
+          ### 🚀 Quick Install
+
+          ```bash
+          # From PyPI
+          pip install aeo-graph-engine
+
+          # Or install wheel directly
+          pip install https://github.com/${{ github.repository }}/releases/download/${{ steps.release_meta.outputs.tag_name }}/aeo_graph_engine-${{ steps.release_meta.outputs.pkg_version }}-py3-none-any.whl
+          ```
+
+          ### 🔒 Checksums (SHA-256)
+          ```text
+          EOF
+          cat dist/SHA256SUMS.txt >> RELEASE_NOTES.md
+          cat << 'EOF' >> RELEASE_NOTES.md
+          ```
+
+          ### 📝 Recent Commit History
+          EOF
+          git log -n 10 --pretty=format:"* %s (%h by @%an)" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_meta.outputs.tag_name }}
+          name: "AEO Graph Engine ${{ steps.release_meta.outputs.tag_name }}"
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to PyPI (Optional if PYPI_API_TOKEN is set)
+        if: env.HAVE_PYPI_SECRET == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: dist/
+        env:
+          HAVE_PYPI_SECRET: ${{ secrets.PYPI_API_TOKEN != '' }}

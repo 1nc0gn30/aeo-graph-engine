@@ -31,16 +31,29 @@ from .framework_exporter import FrameworkExporter, AEORemediationGenerator
 from .mcp_server import MCPServer, generate_mcp_client_config, run_stdio_server
 from .ui_server import start_ui_server
 from .presets import NICHE_PRESETS
+from .compat import (
+    configure_utf8_streams,
+    get_platform_info,
+    open_browser,
+    atomic_write_text,
+    to_posix_path,
+    resolve_path,
+    is_windows,
+    is_termux,
+    is_macos,
+    is_linux,
+)
 
 
 def run_internal_tests() -> int:
     """Runs built-in engine verification test suite."""
+    configure_utf8_streams()
     print("=" * 70)
     print("⚡ RUNNING AEO GRAPH ENGINE TEST SUITE")
     print("=" * 70)
 
     # 1. Test Schema Graph Generation
-    print("\n--- [1/7] Testing Schema.org JSON-LD Graph Generation ---")
+    print("\n--- [1/8] Testing Schema.org JSON-LD Graph Generation ---")
     cfg = resolve_config(None, niche="developer_tools")
     graph = generate_schema_graph(cfg)
     assert graph["@context"] == "https://schema.org"
@@ -98,7 +111,7 @@ def run_internal_tests() -> int:
     print(f"  ✅ AI Prompt Synthesizer validated (Extracted: '{ai_syn['site_name']}' on {ai_syn['domain']})")
 
     # 7. Test Framework Exporter & MCP Server
-    print("\n--- [7/7] Testing Framework Exporter & MCP Server ---")
+    print("\n--- [7/8] Testing Framework Exporter & MCP Server ---")
     exporter = FrameworkExporter(cfg)
     next_bundle = exporter.export("nextjs_app")
     assert "app/layout.tsx" in next_bundle
@@ -108,6 +121,15 @@ def run_internal_tests() -> int:
     init_res = mcp.handle_message({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
     assert init_res["result"]["serverInfo"]["name"] == "aeo-graph-engine-mcp"
     print("  ✅ Framework Exporter & MCP Server validated")
+
+    # 8. Test Cross-Platform Compatibility (Linux, Termux, macOS, Windows)
+    print("\n--- [8/8] Testing Cross-Platform Compatibility Layer ---")
+    plat_info = get_platform_info()
+    assert "system_type" in plat_info
+    assert "python_version" in plat_info
+    posix_path = to_posix_path("dist/schema-graph.json")
+    assert "\\" not in posix_path
+    print(f"  ✅ Platform detected: {plat_info['system_type']} (Python {plat_info['python_version']}, OS: {plat_info['platform_system']})")
 
     print("\n" + "=" * 70)
     print("🎉 ALL AEO GRAPH ENGINE TEST SUITES PASSED (100% SPEC CONFORMANCE)")
@@ -128,8 +150,12 @@ def build_parser() -> argparse.ArgumentParser:
     serve_parser = subparsers.add_parser("serve", help="Start the interactive Google-designed AEO Studio UI server")
     serve_parser.add_argument("--port", type=int, default=8080, help="Port to listen on (default: 8080)")
     serve_parser.add_argument("--host", type=str, default="127.0.0.1", help="Host interface (default: 127.0.0.1)")
+    serve_parser.add_argument("--open", action="store_true", help="Automatically open browser to AEO Studio")
 
     subparsers.add_parser("ui", help="Alias for 'aeo serve'")
+
+    # `aeo platform`
+    subparsers.add_parser("platform", help="Display platform environment details (Linux, Termux, macOS, Windows)")
 
     # `aeo mcp`
     mcp_parser = subparsers.add_parser("mcp", help="Run Model Context Protocol (MCP) server or generate client configs")
@@ -204,6 +230,7 @@ def build_parser() -> argparse.ArgumentParser:
     # Injection and validation
     parser.add_argument("--inject", type=str, help="Inject Schema.org JSON-LD into specified HTML file")
     parser.add_argument("--validate", type=str, help="Validate AEO bundle directory or single artifact file")
+    parser.add_argument("--platform", action="store_true", help="Display platform environment details (Linux, Termux, macOS, Windows)")
     parser.add_argument("--test", action="store_true", help="Run comprehensive unit tests and engine verification")
     parser.add_argument("--dry-run", action="store_true", help="Preview output without writing files to disk")
 
@@ -212,8 +239,25 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(args: Optional[List[str]] = None) -> int:
     """Main CLI entrypoint."""
+    configure_utf8_streams()
     parser = build_parser()
     parsed_args = parser.parse_args(args)
+
+    if parsed_args.platform or parsed_args.subcommand == "platform":
+        info = get_platform_info()
+        print("=" * 60)
+        print("🌐 AEO GRAPH ENGINE — PLATFORM COMPATIBILITY INFO")
+        print("=" * 60)
+        print(f"  • Environment:           {info['system_type'].upper()}")
+        print(f"  • Operating System:      {info['platform_system']} ({info['os_name']})")
+        print(f"  • OS Release:            {info['platform_release']}")
+        print(f"  • Python Version:        {info['python_version']} ({info['python_implementation']})")
+        print(f"  • Default Encoding:      {info['default_encoding']}")
+        print(f"  • Filesystem Encoding:   {info['filesystem_encoding']}")
+        print(f"  • Termux Android:        {'Yes' if info['is_termux'] else 'No'}")
+        print(f"  • Windows Subsystem/WSL: {'Yes' if info['is_wsl'] else 'No'}")
+        print("=" * 60)
+        return 0
 
     if parsed_args.test:
         return run_internal_tests()
@@ -353,6 +397,8 @@ def main(args: Optional[List[str]] = None) -> int:
         host = getattr(parsed_args, "host", "127.0.0.1")
         print(f"✨ Starting Google-Styled AEO Studio at http://{host}:{port}/")
         print("💡 Press Ctrl+C to stop.")
+        if getattr(parsed_args, "open", False):
+            open_browser(f"http://{host}:{port}/")
         server = start_ui_server(host=host, port=port)
         try:
             server.serve_forever()

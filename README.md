@@ -5,7 +5,8 @@
 ### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & Google-Grade UI Workbench*
 
 [![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-00f0ff?style=for-the-badge&logo=pypi&logoColor=white)](https://github.com/1nc0gn30/aeo-graph-engine)
-[![Tests](https://img.shields.io/badge/tests-73%2F73%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-86%2F86%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Termux%20%7C%20macOS%20%7C%20Windows-38bdf8?style=for-the-badge&logo=linux&logoColor=white)](docs/PLATFORMS.md)
 [![MCP Protocol](https://img.shields.io/badge/MCP-JSON--RPC%202.0-8b5cf6?style=for-the-badge&logo=anthropic&logoColor=white)](docs/MCP_GUIDE.md)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-fbbf24?style=for-the-badge&logo=python&logoColor=black)](pyproject.toml)
 [![Zero-Dependencies](https://img.shields.io/badge/dependencies-Zero%20Runtime%20Deps-4ade80?style=for-the-badge&logo=checkmarx&logoColor=white)](src/aeo_graph_engine/)
@@ -16,6 +17,7 @@
   <a href="#-google-designed-aeo-studio-workbench">Google AEO Studio UI</a> •
   <a href="#-model-context-protocol-mcp-server--ai-agent-hub">MCP & AI Agents</a> •
   <a href="#-framework-code-exporters--auto-remediation">Framework Exporters</a> •
+  <a href="docs/PLATFORMS.md">Multi-Platform Guide</a> •
   <a href="#-live-site-scanner--ai-readiness-crawler">Live Site Crawler</a> •
   <a href="#-quick-start">Quick Start</a> •
   <a href="#%EF%B8%8F-cli-reference">CLI Reference</a> •
@@ -378,20 +380,34 @@ jobs:
 
 ---
 
-## 🧪 Testing & Verification
+## 🧪 Testing & Multi-Platform Verification
 
 Run the full automated test suite:
 
 ```bash
-# Run 29 unit tests across engine, injector, validator, crawler, and UI
+# Run 86 unit tests across engine, injector, validator, crawler, MCP server, framework exporter, and compat
 pytest tests/ -v
 
 # Or run the built-in zero-drift engine test
-python3 -m aeo_graph_engine.cli --test
+aeo --test
+
+# Verify your current platform compatibility & environment info
+aeo --platform
 ```
+
+---
+
+## 🚀 Automated Release Pipeline
+
+Every push to the `main` branch or tag creation (`v*`) triggers the automated release pipeline in `.github/workflows/release.yml`:
+1. Runs full test matrix verification across Linux, macOS, and Windows.
+2. Builds distribution wheel (`.whl`) and source archive (`.tar.gz`).
+3. Computes cryptographic SHA-256 checksums (`dist/SHA256SUMS.txt`).
+4. Generates changelog and creates a published GitHub Release with attached assets.
 
 ---
 
 ## 📄 License
 
 Licensed under the [MIT License](LICENSE). Extracted and modularized from the [Zoth Studio](https://github.com/NullAITech/zoth-studio) open architecture.
+
