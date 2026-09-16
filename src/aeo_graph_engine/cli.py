@@ -1,7 +1,8 @@
 """
 Command Line Interface for AEO Graph Engine.
 Provides commands for generating, validating, inspecting, testing, extracting,
-AI prompt auto-synthesis, and serving the Google-designed AEO Studio dashboard.
+AI prompt auto-synthesis, Model Context Protocol (MCP) server, framework exporter,
+and serving the Google-designed AEO Studio dashboard.
 """
 
 import sys
@@ -25,6 +26,9 @@ from .validator import validate_aeo_bundle
 from .extractor import extract_from_file, extract_metadata_from_html
 from .discovery import discover_project_metadata
 from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
+from .scanner import LiveAEOScanner
+from .framework_exporter import FrameworkExporter, AEORemediationGenerator
+from .mcp_server import MCPServer, generate_mcp_client_config, run_stdio_server
 from .ui_server import start_ui_server
 from .presets import NICHE_PRESETS
 
@@ -36,7 +40,7 @@ def run_internal_tests() -> int:
     print("=" * 70)
 
     # 1. Test Schema Graph Generation
-    print("\n--- [1/6] Testing Schema.org JSON-LD Graph Generation ---")
+    print("\n--- [1/7] Testing Schema.org JSON-LD Graph Generation ---")
     cfg = resolve_config(None, niche="developer_tools")
     graph = generate_schema_graph(cfg)
     assert graph["@context"] == "https://schema.org"
@@ -44,7 +48,7 @@ def run_internal_tests() -> int:
     print(f"  ✅ Schema.org Graph validated ({len(graph['@graph'])} connected entities)")
 
     # 2. Test llms.txt & llms-full.txt
-    print("\n--- [2/6] Testing llms.txt & llms-full.txt Generation ---")
+    print("\n--- [2/7] Testing llms.txt & llms-full.txt Generation ---")
     llms = generate_llms_txt(cfg)
     assert "# AEO Graph Engine" in llms
     assert "> " in llms
@@ -55,7 +59,7 @@ def run_internal_tests() -> int:
     print(f"  ✅ llms-full.txt validated ({len(llms_full.splitlines())} lines)")
 
     # 3. Test ai.txt and robots.txt
-    print("\n--- [3/6] Testing ai.txt & robots.txt Crawler Directives ---")
+    print("\n--- [3/7] Testing ai.txt & robots.txt Crawler Directives ---")
     ai = generate_ai_txt(cfg)
     assert "Schema-Org-Graph:" in ai
     print("  ✅ ai.txt machine manifest validated")
@@ -67,7 +71,7 @@ def run_internal_tests() -> int:
     print("  ✅ robots.txt AI search directives validated")
 
     # 4. Test HTML Injection
-    print("\n--- [4/6] Testing HTML Injection & Replacement ---")
+    print("\n--- [4/7] Testing HTML Injection & Replacement ---")
     sample_html = "<html><head><title>Test</title></head><body><h1>Hello</h1></body></html>"
     injected = inject_jsonld_into_html(sample_html, graph)
     assert '<script type="application/ld+json">' in injected
@@ -78,7 +82,7 @@ def run_internal_tests() -> int:
     print("  ✅ HTML injection and idempotent replacement verified")
 
     # 5. Test Metadata Extractor & Discovery
-    print("\n--- [5/6] Testing HTML Metadata Extractor & Project Discovery ---")
+    print("\n--- [5/7] Testing HTML Metadata Extractor & Project Discovery ---")
     extracted = extract_metadata_from_html(sample_html)
     assert extracted["site_name"] == "Test"
 
@@ -86,12 +90,24 @@ def run_internal_tests() -> int:
     print(f"  ✅ Project discovery verified (Detected framework: {discovered.get('framework', 'generic')})")
 
     # 6. Test AI Prompt Synthesis
-    print("\n--- [6/6] Testing AI Prompt Synthesizer & Schema Contract ---")
+    print("\n--- [6/7] Testing AI Prompt Synthesizer & Schema Contract ---")
     ai_syn = synthesize_config_from_prompt("A high-performance Solana DeFi lending protocol called SolarYield on solaryield.fi")
     assert ai_syn["site_name"] == "SolarYield"
     assert "solaryield.fi" in ai_syn["domain"]
     assert len(ai_syn["faqs"]) >= 2
     print(f"  ✅ AI Prompt Synthesizer validated (Extracted: '{ai_syn['site_name']}' on {ai_syn['domain']})")
+
+    # 7. Test Framework Exporter & MCP Server
+    print("\n--- [7/7] Testing Framework Exporter & MCP Server ---")
+    exporter = FrameworkExporter(cfg)
+    next_bundle = exporter.export("nextjs_app")
+    assert "app/layout.tsx" in next_bundle
+    assert "app/robots.ts" in next_bundle
+
+    mcp = MCPServer()
+    init_res = mcp.handle_message({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {}})
+    assert init_res["result"]["serverInfo"]["name"] == "aeo-graph-engine-mcp"
+    print("  ✅ Framework Exporter & MCP Server validated")
 
     print("\n" + "=" * 70)
     print("🎉 ALL AEO GRAPH ENGINE TEST SUITES PASSED (100% SPEC CONFORMANCE)")
@@ -115,6 +131,26 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("ui", help="Alias for 'aeo serve'")
 
+    # `aeo mcp`
+    mcp_parser = subparsers.add_parser("mcp", help="Run Model Context Protocol (MCP) server or generate client configs")
+    mcp_parser.add_argument("--tools", action="store_true", help="Print available MCP tools JSON schema")
+    mcp_parser.add_argument(
+        "--config",
+        choices=["claude_desktop", "cursor", "cline", "zed", "hermes", "opencode", "generic"],
+        help="Generate copy-pasteable MCP client configuration"
+    )
+    mcp_parser.add_argument("--python-path", type=str, default="python3", help="Python binary path in client config")
+
+    # `aeo framework <name>`
+    fw_parser = subparsers.add_parser("framework", help="Export copy-paste framework integration files")
+    fw_parser.add_argument(
+        "name",
+        choices=["nextjs_app", "nextjs_pages", "astro", "vite_react", "sveltekit", "remix", "nuxt", "static", "hugo", "jekyll"],
+        help="Target web framework"
+    )
+    fw_parser.add_argument("--output-dir", type=str, help="Directory to write framework files (optional, stdout otherwise)")
+    fw_parser.add_argument("--niche", choices=list(NICHE_PRESETS.keys()), default="developer_tools", help="Domain niche preset")
+
     # `aeo prompt "<description>"`
     prompt_parser = subparsers.add_parser("prompt", help="Synthesize complete AEO bundle from natural language description")
     prompt_parser.add_argument("description", type=str, help="Natural language description of the website or application")
@@ -127,6 +163,17 @@ def build_parser() -> argparse.ArgumentParser:
     scan_parser.add_argument("url", type=str, help="Target live website URL (e.g. https://example.com)")
     scan_parser.add_argument("--max-pages", type=int, default=5, help="Maximum internal pages to crawl (default: 5)")
     scan_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format (default: text)")
+
+    # `aeo fix <url>`
+    fix_parser = subparsers.add_parser("fix", help="Audit live site and generate concrete framework-tailored code remediations")
+    fix_parser.add_argument("url", type=str, help="Target live website URL to audit and remediate")
+    fix_parser.add_argument(
+        "--framework",
+        choices=["nextjs_app", "nextjs_pages", "astro", "vite_react", "sveltekit", "remix", "nuxt", "static"],
+        default="nextjs_app",
+        help="Target framework to generate code fixes for"
+    )
+    fix_parser.add_argument("--output-dir", type=str, help="Directory to write remediation code files")
 
     # `aeo extract <file>`
     extract_parser = subparsers.add_parser("extract", help="Extract metadata from an HTML file")
@@ -171,6 +218,63 @@ def main(args: Optional[List[str]] = None) -> int:
     if parsed_args.test:
         return run_internal_tests()
 
+    # Subcommand: mcp
+    if parsed_args.subcommand == "mcp":
+        if parsed_args.tools:
+            mcp = MCPServer()
+            print(json.dumps(mcp._get_tools_list(), indent=2))
+            return 0
+        if parsed_args.config:
+            cfg = generate_mcp_client_config(parsed_args.config, python_path=parsed_args.python_path)
+            print(json.dumps(cfg, indent=2))
+            return 0
+        # Run stdio server
+        return run_stdio_server()
+
+    # Subcommand: framework
+    if parsed_args.subcommand == "framework":
+        cfg = resolve_config(None, niche=parsed_args.niche)
+        exporter = FrameworkExporter(cfg)
+        bundle = exporter.export(parsed_args.name)
+
+        if parsed_args.output_dir:
+            out_dir = Path(parsed_args.output_dir).resolve()
+            written = exporter.write_bundle(parsed_args.name, out_dir)
+            print(f"✨ Framework bundle '{parsed_args.name}' exported to: {out_dir}")
+            for p in written:
+                print(f"  📄 {p}")
+            return 0
+
+        # Print to stdout
+        for rel_path, content in bundle.items():
+            print(f"\n{'='*70}\n// FILE: {rel_path}\n{'='*70}")
+            print(content)
+        return 0
+
+    # Subcommand: fix
+    if parsed_args.subcommand == "fix":
+        target_url = parsed_args.url
+        print(f"🔍 Scanning {target_url} to generate remediation plan...")
+        scanner = LiveAEOScanner(target_url, max_pages=3)
+        audit_res = scanner.compute_audit_scores()
+        
+        remediator = AEORemediationGenerator(audit_res, target_framework=parsed_args.framework)
+        plan = remediator.generate_remediations()
+
+        print(f"\n📊 Current AEO Score: {audit_res['overall_aeo_score']}/100")
+        print(f"🛠️  Generated {len(plan['remediations'])} Remediation Action(s) for framework '{parsed_args.framework}':")
+        for r in plan["remediations"]:
+            print(f"  [{r['priority']}] {r['category']}: {r['issue']}")
+
+        if parsed_args.output_dir:
+            out_dir = Path(parsed_args.output_dir).resolve()
+            remediator.write_remediations(out_dir)
+            print(f"\n✅ All remediation files written to: {out_dir}")
+            print(f"   Plan details: {out_dir / 'AEO_REMEDIATION_PLAN.md'}")
+        else:
+            print("\n💡 Tip: Run with `--output-dir <path>` to write all fixed code files directly to disk.")
+        return 0
+
     # Subcommand: schema
     if parsed_args.subcommand == "schema":
         print(json.dumps(get_agent_json_schema(), indent=2))
@@ -178,7 +282,6 @@ def main(args: Optional[List[str]] = None) -> int:
 
     # Subcommand: scan
     if parsed_args.subcommand == "scan":
-        from .scanner import LiveAEOScanner
         target_url = parsed_args.url
         max_pages = getattr(parsed_args, "max_pages", 5)
         print(f"🚀 Scanning live website: {target_url} (Crawl limit: {max_pages} pages)...")

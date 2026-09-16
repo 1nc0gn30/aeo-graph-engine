@@ -2,7 +2,8 @@
 Interactive Web UI & REST API Server for AEO Graph Engine.
 Delivers a Google-designed light mode AEO Studio dashboard with real-time
 Schema.org visualization, llms.txt compiler, HTML injector, AI prompt synthesizer,
-live multi-page website crawler & audit scoring. Zero external runtime dependencies.
+Model Context Protocol (MCP) hub, framework code exporter, and live multi-page crawler.
+Zero external runtime dependencies.
 """
 
 import sys
@@ -30,6 +31,8 @@ from .extractor import extract_metadata_from_html
 from .discovery import discover_project_metadata
 from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
 from .scanner import LiveAEOScanner
+from .framework_exporter import FrameworkExporter, AEORemediationGenerator
+from .mcp_server import MCPServer, generate_mcp_client_config
 from .presets import NICHE_PRESETS, DEFAULT_CONFIG
 
 
@@ -659,7 +662,6 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       border-bottom: none;
     }
 
-    /* Progress bar */
     .progress-bar-wrap {
       background: #e8eaed;
       border-radius: 8px;
@@ -803,7 +805,9 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     <!-- Main Panel -->
     <main class="main-panel">
       <nav class="tabs-bar">
-        <button class="tab-btn active" onclick="switchTab('tab-scanner')">🌐 Live Site Scanner</button>
+        <button class="tab-btn active" onclick="switchTab('tab-scanner')">🌐 Live Scanner</button>
+        <button class="tab-btn" onclick="switchTab('tab-frameworks')">📦 Frameworks & Code</button>
+        <button class="tab-btn" onclick="switchTab('tab-agent-hub')">🤖 AI Agent & MCP Hub</button>
         <button class="tab-btn" onclick="switchTab('tab-audit')">📊 AEO Scorecard</button>
         <button class="tab-btn" onclick="switchTab('tab-schema')">🕸️ Schema.org Graph</button>
         <button class="tab-btn" onclick="switchTab('tab-llms')">📄 llms.txt</button>
@@ -871,9 +875,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
                     Category Score Breakdown
                     <button class="btn btn-tonal btn-sm" onclick="applyScanToGenerator()">🪄 1-Click Fix with Generator</button>
                   </div>
-                  <div style="display:flex; flex-direction:column; gap:10px;" id="scanCategoryBars">
-                    <!-- Dynamic categories injected by JS -->
-                  </div>
+                  <div style="display:flex; flex-direction:column; gap:10px;" id="scanCategoryBars"></div>
                 </div>
               </div>
             </div>
@@ -948,7 +950,77 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- 1. Audit Scorecard -->
+        <!-- 1. Framework Integration & Code Exporter Tab -->
+        <div id="tab-frameworks" class="tab-pane">
+          <div class="card">
+            <div class="card-title">
+              <span>📦 Framework Integration Exporter</span>
+              <button class="btn btn-tonal btn-sm" onclick="copyCurrentFrameworkCode()">📋 Copy File Code</button>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+              Export zero-dependency, typed, copy-paste integration snippets tailored for your frontend framework:
+            </p>
+
+            <div class="preset-group" style="margin-bottom:14px;">
+              <button class="preset-pill active" onclick="selectFwTab('nextjs_app')">Next.js (App Router)</button>
+              <button class="preset-pill" onclick="selectFwTab('nextjs_pages')">Next.js (Pages)</button>
+              <button class="preset-pill" onclick="selectFwTab('astro')">Astro</button>
+              <button class="preset-pill" onclick="selectFwTab('vite_react')">Vite + React (SPA)</button>
+              <button class="preset-pill" onclick="selectFwTab('sveltekit')">SvelteKit</button>
+              <button class="preset-pill" onclick="selectFwTab('remix')">Remix</button>
+              <button class="preset-pill" onclick="selectFwTab('nuxt')">Nuxt / Vue</button>
+              <button class="preset-pill" onclick="selectFwTab('static')">Static HTML / Hugo</button>
+            </div>
+
+            <!-- Framework File Sub-tabs -->
+            <div style="display:flex; gap:6px; margin-bottom:12px; border-bottom:1px solid var(--border-divider); padding-bottom:8px; overflow-x:auto;" id="fwFilesNav"></div>
+
+            <div class="code-box" id="codeFrameworkFile">// Loading framework code...</div>
+          </div>
+        </div>
+
+        <!-- 2. AI Agent Integration & MCP Setup Hub Tab -->
+        <div id="tab-agent-hub" class="tab-pane">
+          <div class="card">
+            <div class="card-title">
+              <span>🤖 1-Click Model Context Protocol (MCP) Setup</span>
+              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeMcpConfig')">📋 Copy MCP Config</button>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+              Connect your AI assistant (Claude Desktop, Cursor, Cline, Zed, Hermes) directly to this engine to automatically optimize AEO during coding sessions:
+            </p>
+
+            <div class="preset-group" style="margin-bottom:14px;">
+              <button class="preset-pill active" onclick="selectMcpClient('claude_desktop')">Claude Desktop</button>
+              <button class="preset-pill" onclick="selectMcpClient('cursor')">Cursor (.cursor/mcp.json)</button>
+              <button class="preset-pill" onclick="selectMcpClient('cline')">Cline (VS Code)</button>
+              <button class="preset-pill" onclick="selectMcpClient('zed')">Zed Editor</button>
+              <button class="preset-pill" onclick="selectMcpClient('hermes')">Hermes Agent</button>
+            </div>
+
+            <div class="code-box" id="codeMcpConfig"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span>🧠 Specialized AI Agent System Prompts</span>
+              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeAgentPrompt')">📋 Copy Prompt</button>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+              Paste these system prompt templates into your custom GPTs, Claude Projects, or Agent Runners:
+            </p>
+
+            <div class="preset-group" style="margin-bottom:14px;">
+              <button class="preset-pill active" onclick="selectAgentPrompt('engineer')">Autonomous AEO Engineer</button>
+              <button class="preset-pill" onclick="selectAgentPrompt('auditor')">Pre-Deploy CI/CD Auditor</button>
+              <button class="preset-pill" onclick="selectAgentPrompt('strategist')">Citation & Backlink Strategist</button>
+            </div>
+
+            <div class="code-box" id="codeAgentPrompt"></div>
+          </div>
+        </div>
+
+        <!-- 3. Audit Scorecard -->
         <div id="tab-audit" class="tab-pane">
           <div class="card">
             <div class="audit-grid">
@@ -998,7 +1070,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- 2. Schema Tab -->
+        <!-- 4. Schema Tab -->
         <div id="tab-schema" class="tab-pane">
           <div class="card">
             <div class="card-title">
@@ -1009,7 +1081,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- 3. llms.txt Tab -->
+        <!-- 5. llms.txt Tab -->
         <div id="tab-llms" class="tab-pane">
           <div class="card">
             <div class="card-title">
@@ -1020,7 +1092,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- 4. llms-full.txt Tab -->
+        <!-- 6. llms-full.txt Tab -->
         <div id="tab-llms-full" class="tab-pane">
           <div class="card">
             <div class="card-title">
@@ -1031,7 +1103,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- 5. ai.txt & robots.txt Tab -->
+        <!-- 7. ai.txt & robots.txt Tab -->
         <div id="tab-ai-txt" class="tab-pane">
           <div class="card">
             <div class="card-title">AI Search Engine Bot Directives</div>
@@ -1084,7 +1156,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- 6. HTML Injector Tab -->
+        <!-- 8. HTML Injector Tab -->
         <div id="tab-injector" class="tab-pane">
           <div class="card">
             <div class="card-title">Live HTML Schema Injector</div>
@@ -1114,7 +1186,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- 7. How It Works Guide Tab -->
+        <!-- 9. How It Works Guide Tab -->
         <div id="tab-guide" class="tab-pane">
           <div class="card">
             <div class="card-title">How Answer Engine Optimization (AEO / GEO) Works</div>
@@ -1149,21 +1221,21 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- 8. API Tab -->
+        <!-- 10. API Tab -->
         <div id="tab-api" class="tab-pane">
           <div class="card">
             <div class="card-title">CLI Quickstart</div>
             <div class="code-box"># 1. Live crawl and audit any website
 aeo scan https://example.com --max-pages 5
 
-# 2. Synthesize from natural language prompt
+# 2. Run Model Context Protocol (MCP) server
+aeo mcp
+
+# 3. Export framework code
+aeo framework nextjs_app --output-dir app/
+
+# 4. Synthesize from natural language prompt
 aeo prompt "An AI resume builder called CVForge on cvforge.app" --output-dir dist/
-
-# 3. Extract metadata from existing HTML
-aeo extract dist/index.html
-
-# 4. Validate existing site directory
-aeo --validate dist/ --format json
 
 # 5. Start interactive local Studio
 aeo serve --port 8080</div>
@@ -1173,6 +1245,8 @@ aeo serve --port 8080</div>
             <div class="card-title">Python Programmatic Library Usage</div>
             <div class="code-box">from aeo_graph_engine import (
     LiveAEOScanner,
+    FrameworkExporter,
+    MCPServer,
     synthesize_config_from_prompt,
     write_aeo_bundle,
     validate_aeo_bundle
@@ -1183,11 +1257,10 @@ scanner = LiveAEOScanner("https://example.com", max_pages=5)
 results = scanner.compute_audit_scores()
 print(f"Overall AEO Score: {results['overall_aeo_score']}/100")
 
-# 2. Synthesize and generate in 3 lines
-config = synthesize_config_from_prompt("My SaaS on mysaas.com")
-write_aeo_bundle("./dist", config=config, inject_html_files=["./dist/index.html"])
-report = validate_aeo_bundle("./dist")
-print(f"Bundle Score: {report.score}/100")</div>
+# 2. Export Framework Integration Files
+exporter = FrameworkExporter({"site_name": "Apex", "domain": "apex.dev"})
+next_files = exporter.export("nextjs_app")
+print(f"Generated {len(next_files)} Next.js integration files.")</div>
           </div>
         </div>
       </div>
@@ -1198,6 +1271,38 @@ print(f"Bundle Score: {report.score}/100")</div>
     const PRESETS = """ + json.dumps(NICHE_PRESETS) + """;
     let currentNiche = 'developer_tools';
     let lastScanData = null;
+    let currentFw = 'nextjs_app';
+    let currentFwFiles = {};
+    let currentActiveFile = '';
+
+    const AGENT_PROMPTS = {
+      "engineer": `You are an Autonomous Answer Engine Optimization (AEO / GEO) Engineer.
+Your goal is to inspect any website project, audit its machine discovery readiness, and generate/inject complete Schema.org @graph, llms.txt, ai.txt, and AI crawler directives.
+
+When working in this repository:
+1. Always run 'aeo scan <url>' or 'aeo --validate <dir>' to benchmark baseline scores.
+2. Inject connected Schema.org @graph (Organization, WebSite, SoftwareApplication/Service, FAQPage) into the HTML head.
+3. Generate standard llms.txt and deep research llms-full.txt files.
+4. Ensure robots.txt explicitly allows GPTBot, PerplexityBot, ClaudeBot, Applebot-Extended, and Google-Extended.
+5. Re-validate to ensure the 0-100 score is >= 90.0 before completing.`,
+      "auditor": `You are a Pre-Deploy CI/CD AEO Quality Gate Auditor.
+Your responsibility is to strictly evaluate built web artifacts before production release.
+
+Checklist:
+- Ensure schema-graph.json exists with valid @context and @graph array.
+- Verify llms.txt conforms to the llmstxt.org specification with valid blockquotes.
+- Confirm robots.txt grants access to modern AI search agents.
+- Check that index.html contains an idempotent JSON-LD script tag.
+- Assert that 'aeo --validate' exits with status 0 and score >= 85.0.`,
+      "strategist": `You are an AI Citation & Knowledge Graph Strategist.
+Your mission is to map out Co-Citation networks, high-authority backlink anchors, and knowledge graph entities that maximize visibility in Perplexity AI, ChatGPT Search, Claude, and Google AI Overviews.
+
+Focus on:
+1. Wikidata & Wikipedia entity linking and disambiguation.
+2. Official GitHub repository documentation and README quality.
+3. Submission to the official llmstxt.org directory.
+4. Structuring FAQ entities to capture direct LLM answer citations.`
+    };
 
     function selectPreset(nicheKey) {
       currentNiche = nicheKey;
@@ -1219,6 +1324,13 @@ print(f"Bundle Score: {report.score}/100")</div>
 
       event.target.classList.add('active');
       document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'tab-frameworks') {
+        loadFrameworkCode(currentFw);
+      } else if (tabId === 'tab-agent-hub') {
+        selectMcpClient('claude_desktop');
+        selectAgentPrompt('engineer');
+      }
     }
 
     function copyCode(elemId) {
@@ -1297,6 +1409,92 @@ print(f"Bundle Score: {report.score}/100")</div>
       } catch (err) {
         console.error("Failed to generate from API", err);
       }
+    }
+
+    /* Framework Code Exporter */
+    async function selectFwTab(fwName) {
+      currentFw = fwName;
+      document.querySelectorAll('#tab-frameworks .preset-pill').forEach(el => el.classList.remove('active'));
+      event.target.classList.add('active');
+      await loadFrameworkCode(fwName);
+    }
+
+    async function loadFrameworkCode(fwName) {
+      const payload = {
+        framework: fwName,
+        niche: currentNiche,
+        config: {
+          site_name: document.getElementById('inpSiteName').value,
+          domain: document.getElementById('inpDomain').value,
+          description: document.getElementById('inpDescription').value
+        }
+      };
+
+      try {
+        const res = await fetch('/api/export-framework', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        currentFwFiles = data.files || {};
+        renderFrameworkFileTabs();
+      } catch (e) {
+        console.error("Framework load error", e);
+      }
+    }
+
+    function renderFrameworkFileTabs() {
+      const nav = document.getElementById('fwFilesNav');
+      nav.innerHTML = '';
+      const files = Object.keys(currentFwFiles);
+      if (files.length === 0) {
+        document.getElementById('codeFrameworkFile').innerText = '// No files generated';
+        return;
+      }
+
+      currentActiveFile = files[0];
+      files.forEach((file, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `preset-pill ${idx === 0 ? 'active' : ''}`;
+        btn.innerText = file;
+        btn.onclick = () => {
+          document.querySelectorAll('#fwFilesNav .preset-pill').forEach(el => el.classList.remove('active'));
+          btn.classList.add('active');
+          currentActiveFile = file;
+          document.getElementById('codeFrameworkFile').innerText = currentFwFiles[file];
+        };
+        nav.appendChild(btn);
+      });
+
+      document.getElementById('codeFrameworkFile').innerText = currentFwFiles[currentActiveFile];
+    }
+
+    function copyCurrentFrameworkCode() {
+      const code = document.getElementById('codeFrameworkFile').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        alert(`Copied ${currentActiveFile} code to clipboard!`);
+      });
+    }
+
+    /* MCP and Agent Hub */
+    async function selectMcpClient(clientKey) {
+      document.querySelectorAll('#tab-agent-hub .preset-pill').forEach(el => {
+        if (el.innerText.toLowerCase().includes(clientKey.replace('_', ' '))) el.classList.add('active');
+      });
+
+      try {
+        const res = await fetch('/api/mcp/config?client=' + clientKey);
+        const data = await res.json();
+        document.getElementById('codeMcpConfig').innerText = JSON.stringify(data, null, 2);
+      } catch (e) {
+        console.error("MCP config error", e);
+      }
+    }
+
+    function selectAgentPrompt(promptKey) {
+      const prompt = AGENT_PROMPTS[promptKey] || '';
+      document.getElementById('codeAgentPrompt').innerText = prompt;
     }
 
     async function performHtmlInjection() {
@@ -1555,6 +1753,8 @@ print(f"Bundle Score: {report.score}/100")</div>
 
     window.addEventListener('DOMContentLoaded', () => {
       regenerateAll();
+      selectMcpClient('claude_desktop');
+      selectAgentPrompt('engineer');
     });
   </script>
 </body>
@@ -1612,6 +1812,11 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
         if path == "/api/schema":
             return self._send_json(get_agent_json_schema())
 
+        if path == "/api/mcp/config":
+            query = urllib.parse.parse_qs(parsed.query)
+            client = query.get("client", ["claude_desktop"])[0]
+            return self._send_json(generate_mcp_client_config(client))
+
         if path == "/api/discover":
             meta = discover_project_metadata(".")
             return self._send_json(meta)
@@ -1659,6 +1864,25 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
                 payload = json.loads(body.decode("utf-8"))
             except Exception:
                 pass
+
+        if path == "/api/export-framework":
+            fw_name = payload.get("framework", "nextjs_app")
+            niche = payload.get("niche", "developer_tools")
+            cfg = resolve_config(payload.get("config", {}), niche=niche)
+            exporter = FrameworkExporter(cfg)
+            bundle = exporter.export(fw_name)
+            return self._send_json({"framework": fw_name, "files": bundle})
+
+        if path == "/api/remediate":
+            target_url = payload.get("url", "")
+            target_fw = payload.get("framework", "nextjs_app")
+            audit_data = payload.get("audit_data")
+            if not audit_data and target_url:
+                scanner = LiveAEOScanner(target_url, max_pages=3)
+                audit_data = scanner.compute_audit_scores()
+            remediator = AEORemediationGenerator(audit_data or {}, target_framework=target_fw)
+            plan = remediator.generate_remediations()
+            return self._send_json(plan)
 
         if path == "/api/scan":
             target_url = payload.get("url", "").strip()

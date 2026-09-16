@@ -1,7 +1,8 @@
 """
 AEO Graph Engine
 Answer Engine Optimization (AEO/GEO), Schema.org Graph & llms.txt Generator Engine.
-Includes Google-designed AEO Studio interactive dashboard, HTML extractor, and audit scorer.
+Includes Google-designed AEO Studio interactive dashboard, Model Context Protocol (MCP) server,
+framework exporter, HTML extractor, and live multi-page audit crawler.
 """
 
 __version__ = "1.0.0"
@@ -23,6 +24,13 @@ from .extractor import extract_metadata_from_html, extract_from_file
 from .discovery import discover_project_metadata
 from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
 from .scanner import LiveAEOScanner
+from .framework_exporter import (
+    FrameworkExporter,
+    AEORemediationGenerator,
+    get_supported_frameworks,
+    normalize_framework_name,
+)
+from .mcp_server import MCPServer, generate_mcp_client_config, run_stdio_server
 from .ui_server import start_ui_server
 from .presets import DEFAULT_CONFIG, NICHE_PRESETS
 
@@ -45,6 +53,13 @@ __all__ = [
     "synthesize_config_from_prompt",
     "get_agent_json_schema",
     "LiveAEOScanner",
+    "FrameworkExporter",
+    "AEORemediationGenerator",
+    "get_supported_frameworks",
+    "normalize_framework_name",
+    "MCPServer",
+    "generate_mcp_client_config",
+    "run_stdio_server",
     "start_ui_server",
     "DEFAULT_CONFIG",
     "NICHE_PRESETS",

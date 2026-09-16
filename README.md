@@ -5,22 +5,21 @@
 ### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & Google-Grade UI Workbench*
 
 [![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-00f0ff?style=for-the-badge&logo=pypi&logoColor=white)](https://github.com/1nc0gn30/aeo-graph-engine)
-[![Tests](https://img.shields.io/badge/tests-29%2F29%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-73%2F73%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![MCP Protocol](https://img.shields.io/badge/MCP-JSON--RPC%202.0-8b5cf6?style=for-the-badge&logo=anthropic&logoColor=white)](docs/MCP_GUIDE.md)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-fbbf24?style=for-the-badge&logo=python&logoColor=black)](pyproject.toml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-a855f7?style=for-the-badge&logo=open-source-initiative&logoColor=white)](LICENSE)
 [![Zero-Dependencies](https://img.shields.io/badge/dependencies-Zero%20Runtime%20Deps-4ade80?style=for-the-badge&logo=checkmarx&logoColor=white)](src/aeo_graph_engine/)
 
 <br>
 
 <p align="center">
   <a href="#-google-designed-aeo-studio-workbench">Google AEO Studio UI</a> •
+  <a href="#-model-context-protocol-mcp-server--ai-agent-hub">MCP & AI Agents</a> •
+  <a href="#-framework-code-exporters--auto-remediation">Framework Exporters</a> •
   <a href="#-live-site-scanner--ai-readiness-crawler">Live Site Crawler</a> •
   <a href="#-quick-start">Quick Start</a> •
-  <a href="#-why-aeo--geo-matters-in-2026">Why AEO Matters</a> •
   <a href="#%EF%B8%8F-cli-reference">CLI Reference</a> •
-  <a href="#-python-library-api">Python API</a> •
-  <a href="#-ai-crawler-compatibility--backlink-intelligence">AI Bot Matrix & Backlinks</a> •
-  <a href="#-ci--post-build-automation">CI/CD Automation</a>
+  <a href="#-python-library-api">Python API</a>
 </p>
 
 </div>
@@ -70,6 +69,8 @@ open public/index.html
 #### Studio Workbench Capabilities:
 - 🌐 **Live Website Scanner & Multi-Page Crawler**: Enter any live URL (or localhost) to audit real sitemaps, robots.txt, subpages, and calculate live AEO scores.
 - 🪄 **AI Prompt Synthesizer**: Type a 1-sentence prompt (e.g. *"DeFi lending on Solana called SolarYield"*) to auto-generate full Schema, `llms.txt`, and metadata.
+- 🤖 **AI Agent & MCP Hub**: Direct copy-paste configs for Claude Desktop, Cursor, Cline, Zed, and agent system prompt templates.
+- 📦 **Framework Exporter**: One-click production code for Next.js App Router, Astro, Vite + React, SvelteKit, Remix, Nuxt, and Hugo/Jekyll.
 - 📊 **Real-time 0–100 AEO Readiness Meter**: Real weighted scores across 5 core dimensions (Schema, llms.txt, AI bots, content, technical SEO).
 - 🕸️ **Visual Entity Graph & Schema Preview**: Live syntax-highlighted `@graph` JSON-LD generator with canonical `@id` linking.
 - 📄 **`llms.txt` & `llms-full.txt` Compiler**: llmstxt.org-compliant machine index with structured markdown links.
@@ -77,6 +78,68 @@ open public/index.html
 - 💉 **Live HTML Schema Injector**: Paste raw HTML to test idempotent script embedding.
 - 🏛️ **AEO Backlink & Citation Playbook**: Actionable high-authority citation targets and niche distribution strategy.
 - 📥 **One-Click `.zip` Export**: Download all generated files in a single clean archive.
+
+---
+
+## 🤖 Model Context Protocol (MCP) Server & AI Agent Hub
+
+`aeo-graph-engine` exposes a **zero-dependency JSON-RPC 2.0 Model Context Protocol (MCP)** server over stdio. Connect any AI coding agent (Claude Desktop, Cursor, Cline, Zed, Hermes, OpenCode, AutoGen, CrewAI) so they can autonomously crawl URLs, generate Schema `@graphs`, and optimize your codebase.
+
+👉 **Full MCP Setup Guide & Documentation**: [`docs/MCP_GUIDE.md`](docs/MCP_GUIDE.md)  
+👉 **Agent Workflow & Autonomous Optimization**: [`docs/AI_AGENT_INTEGRATION.md`](docs/AI_AGENT_INTEGRATION.md)
+
+### Connect with Claude Desktop / Cursor in 30 Seconds:
+
+Run the config generator to get your exact configuration block:
+```bash
+aeo mcp --config claude_desktop
+# or
+aeo mcp --config cursor
+```
+
+**Add to Claude Desktop (`claude_desktop_config.json`):**
+```json
+{
+  "mcpServers": {
+    "aeo-graph-engine": {
+      "command": "python3",
+      "args": ["-m", "aeo_graph_engine.mcp_server"]
+    }
+  }
+}
+```
+
+### 6 Native MCP Tools Available to AI Agents:
+1. `aeo_scan_site`: Live URL crawler, multi-page audit, 0-100 AEO score, bot permissions.
+2. `aeo_synthesize_prompt`: Turn natural language descriptions into complete structured AEO configs.
+3. `aeo_generate_bundle`: Generate `schema-graph.json`, `llms.txt`, `ai.txt`, and `robots.txt`.
+4. `aeo_inject_html`: Embed Schema.org JSON-LD directly into HTML files.
+5. `aeo_validate`: Diagnostic audit and 0-100 readiness verification.
+6. `aeo_get_framework_snippets`: Retrieve tailored code for Next.js, Astro, Vite, SvelteKit, etc.
+
+---
+
+## 📦 Framework Code Exporters & Auto-Remediation
+
+Generate framework-native TypeScript/JavaScript code for all major stacks:
+
+```bash
+# Export Next.js App Router integration code
+aeo framework nextjs_app --output-dir ./my-next-app
+
+# Or auto-generate concrete code fixes from a live website scan
+aeo fix https://mysite.com --framework astro --output-dir ./src/
+```
+
+Supported frameworks:
+- **Next.js (App Router)**: `app/layout.tsx` (with `<script type="application/ld+json">`), `app/robots.ts`, `app/sitemap.ts`, `app/llms.txt/route.ts`
+- **Next.js (Pages Router)**: `pages/_document.tsx`
+- **Astro**: `src/components/AeoHead.astro` and `astro.config.mjs`
+- **Vite + React / SPA**: `index.html` injection and `vite-plugin-aeo.ts`
+- **SvelteKit**: `src/routes/+layout.svelte` and `src/routes/robots.txt/+server.ts`
+- **Remix**: `app/root.tsx` meta export
+- **Nuxt 3**: `nuxt.config.ts` and `app.vue` `useHead()`
+- **Static HTML / Hugo / Jekyll**: Clean HTML partials
 
 ---
 
