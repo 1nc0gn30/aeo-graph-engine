@@ -39,9 +39,6 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AEO Studio — Answer Engine & Schema Knowledge Graph Workbench</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --google-blue: #1a73e8;
@@ -62,8 +59,8 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       --text-primary: #202124;
       --text-secondary: #5f6368;
       --text-tertiary: #80868b;
-      --font-sans: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --font-mono: 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
+      --font-sans: 'Google Sans', 'Google Sans Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
