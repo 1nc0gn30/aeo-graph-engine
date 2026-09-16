@@ -134,17 +134,23 @@ def generate_schema_graph(config: Optional[Dict[str, Any]] = None, niche: str = 
             "priceCurrency": cfg.get("currency", "USD"),
             "availability": "https://schema.org/InStock",
             "description": cfg.get("license", "Open Source")
-        },
-        "downloadUrl": downloads,
-        "screenshot": cfg.get("og_image_url", f"{base_url}/og-image.jpg"),
-        "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.95",
-            "reviewCount": "128",
-            "bestRating": "5",
-            "worstRating": "1"
         }
     }
+
+    if downloads:
+        app_entity["downloadUrl"] = downloads
+
+    if cfg.get("og_image_url"):
+        app_entity["screenshot"] = cfg["og_image_url"]
+
+    if cfg.get("aggregate_rating") and isinstance(cfg["aggregate_rating"], dict):
+        app_entity["aggregateRating"] = {
+            "@type": "AggregateRating",
+            "ratingValue": str(cfg["aggregate_rating"].get("ratingValue", "5.0")),
+            "reviewCount": str(cfg["aggregate_rating"].get("reviewCount", "1")),
+            "bestRating": str(cfg["aggregate_rating"].get("bestRating", "5")),
+            "worstRating": str(cfg["aggregate_rating"].get("worstRating", "1"))
+        }
 
     # 4. FAQPage Entity
     faq_items = []

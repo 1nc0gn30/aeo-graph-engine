@@ -169,7 +169,7 @@ NICHE_PRESETS: Dict[str, Dict[str, Any]] = {
         "sub_category": "Digital Product Foundry & Creator Platform",
         "description": "Turn your workflows, code blueprints, and AI agents into high-converting digital products with interactive previews and instant licensing.",
         "faqs": [
-            {"question": "How do interactive blueprint previews work?", "answer": "Blueprints run with zero-key mocks directly in the browser so buyers can test workflows before downloading."},
+            {"question": "How do interactive blueprint previews work?", "answer": "Blueprints run with interactive live demonstrations directly in the browser so buyers can test workflows before downloading."},
             {"question": "What payment rails are supported?", "answer": "Native Stripe checkout, Solana Pay, and EVM crypto rails."}
         ]
     },
