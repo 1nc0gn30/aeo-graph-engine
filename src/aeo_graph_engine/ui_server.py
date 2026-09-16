@@ -34,6 +34,9 @@ from .scanner import LiveAEOScanner
 from .framework_exporter import FrameworkExporter, AEORemediationGenerator
 from .mcp_server import MCPServer, generate_mcp_client_config
 from .ai_gateway import AIGateway, DEFAULT_AI_GATEWAY_CONFIG
+from .bot_inspector import BotInspector, AI_BOT_REGISTRY
+from .benchmark import compare_sites, CompetitorBenchmark
+from .reporter import generate_markdown_report, generate_standalone_html_report
 from .presets import NICHE_PRESETS, DEFAULT_CONFIG
 
 
@@ -1969,6 +1972,42 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
             if isinstance(raw_schema, dict):
                 validate_schema_jsonld_dict(raw_schema, report)
             return self._send_json(report.to_dict())
+
+        if path == "/api/bot-audit":
+            target_url = payload.get("url", "").strip()
+            timeout = float(payload.get("timeout", 5.0))
+            if not target_url:
+                return self._send_json({"error": "Missing 'url' parameter"}, status=400)
+            inspector = BotInspector()
+            summary = inspector.inspect_all_bots(target_url, timeout=timeout)
+            return self._send_json(summary)
+
+        if path == "/api/compare":
+            url_a = payload.get("url_a", "").strip()
+            url_b = payload.get("url_b", "").strip()
+            max_p = int(payload.get("max_pages", 5))
+            if not url_a or not url_b:
+                return self._send_json({"error": "Missing 'url_a' or 'url_b'"}, status=400)
+            bench = compare_sites(url_a, url_b, max_pages=max_p)
+            return self._send_json(bench)
+
+        if path == "/api/report":
+            scan_data = payload.get("scan_data")
+            target_url = payload.get("url", "").strip()
+            comp_url = payload.get("competitor_url", "").strip()
+            if not scan_data and target_url:
+                scanner = LiveAEOScanner(target_url, max_pages=5)
+                scan_data = scanner.compute_audit_scores()
+            bench_data = payload.get("benchmark_data")
+            if not bench_data and comp_url and target_url:
+                bench_data = compare_sites(target_url, comp_url, scan_a=scan_data)
+            md_report = generate_markdown_report(scan_data or {}, benchmark_result=bench_data)
+            html_report = generate_standalone_html_report(scan_data or {}, benchmark_result=bench_data)
+            return self._send_json({
+                "markdown": md_report,
+                "html": html_report,
+                "target_url": target_url or (scan_data or {}).get("url", "https://example.com")
+            })
 
         self.send_error(404, "Endpoint not found")
 

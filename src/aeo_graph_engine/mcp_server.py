@@ -497,7 +497,7 @@ def generate_mcp_client_config(
     if project_root:
         abs_root = str(Path(project_root).resolve())
         src_dir = str(Path(project_root).resolve() / "src")
-        env_vars["PYTHONPATH"] = f"{src_dir}:{abs_root}"
+        env_vars["PYTHONPATH"] = f"{src_dir}{os.pathsep}{abs_root}"
 
     server_key = "aeo-graph-engine"
 

@@ -1,0 +1,51 @@
+name: AEO Quality & CI/CD Audit Gate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      min_score:
+        description: "Minimum required AEO readiness score (0-100)"
+        required: false
+        default: "80"
+      fail_on_missing_llms:
+        description: "Fail if llms.txt is missing"
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  aeo-audit-gate:
+    name: AEO Quality Gate Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies & AEO Engine
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run AEO Quality Gate Audit
+        id: aeo-gate
+        run: |
+          python3 -m aeo_graph_engine.cli check . \
+            --min-score ${{ github.event.inputs.min_score || 80 }} \
+            --fail-on-missing-llms \
+            --format github

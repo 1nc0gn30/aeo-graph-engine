@@ -1,0 +1,135 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://nexusflow.cloud/#organization",
+      "name": "NexusFlow Technologies Inc.",
+      "legalName": "NexusFlow Technologies Inc.",
+      "url": "https://nexusflow.cloud",
+      "logo": {
+        "@type": "ImageObject",
+        "@id": "https://nexusflow.cloud/#logo",
+        "url": "https://nexusflow.cloud/assets/logo.svg",
+        "caption": "NexusFlow Cloud Logo"
+      },
+      "sameAs": [
+        "https://github.com/nexusflow-cloud",
+        "https://x.com/nexusflow_ai",
+        "https://linkedin.com/company/nexusflow-technologies"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "email": "enterprise@nexusflow.cloud",
+        "url": "https://nexusflow.cloud/contact"
+      },
+      "knowsAbout": [
+        "Multi-Agent Workflow Orchestration",
+        "Deterministic LLM Arbitration",
+        "Zero-Trust Enterprise Data Mesh",
+        "Model Context Protocol (MCP) Infrastructure",
+        "High-Throughput Streaming Event Processing"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://nexusflow.cloud/#website",
+      "url": "https://nexusflow.cloud",
+      "name": "NexusFlow Cloud",
+      "description": "Autonomous Enterprise AI Workflow Mesh & Multi-Agent Orchestration.",
+      "publisher": {
+        "@id": "https://nexusflow.cloud/#organization"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://nexusflow.cloud/docs?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://nexusflow.cloud/#application",
+      "name": "NexusFlow Cloud Platform",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Linux, macOS, Windows, Cloud Edge",
+      "description": "NexusFlow Cloud is the enterprise standard for deterministic multi-agent workflow automation, low-latency LLM routing, and strict zero-trust data governance.",
+      "softwareVersion": "2.4.0",
+      "datePublished": "2026-09-16",
+      "url": "https://nexusflow.cloud",
+      "provider": {
+        "@id": "https://nexusflow.cloud/#organization"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "79.00",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/OnlineOnly"
+      },
+      "featureList": [
+        "Deterministic Multi-Agent Consensus Routing",
+        "Sub-15ms Global Edge Model Gateway",
+        "Enterprise Zero-Data Retention & Air-Gapped VPC Deployment",
+        "Visual Low-Code Flow Builder with TypeScript SDK"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://nexusflow.cloud/#faq",
+      "name": "NexusFlow Cloud Frequently Asked Questions",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is NexusFlow Cloud?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "NexusFlow Cloud is an enterprise SaaS platform that allows engineering teams to design, test, deploy, and monitor distributed multi-agent workflows with guaranteed deterministic execution."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does NexusFlow ensure enterprise data security?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "NexusFlow employs a zero-data-retention architecture where prompt payloads and model responses are processed ephemerally in encrypted memory and never persisted on disk."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can NexusFlow connect to proprietary on-premises models?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Through the NexusFlow Hybrid Agent connector, organizations can securely integrate local vLLM, Ollama, or custom private model endpoints behind corporate firewalls."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://nexusflow.cloud/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://nexusflow.cloud/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Workflows",
+          "item": "https://nexusflow.cloud/workflows"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Documentation",
+          "item": "https://nexusflow.cloud/docs"
+        }
+      ]
+    }
+  ]
+}

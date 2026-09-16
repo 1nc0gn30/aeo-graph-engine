@@ -1,0 +1,24 @@
+# DocuSphere
+
+> DocuSphere is a lightning-fast developer documentation engine built on Astro, optimized for Answer Engine citations and zero-JS streaming.
+
+## Overview
+DocuSphere provides software engineering teams with an automated documentation portal generator. It ingests markdown and MDX files, automatically indexes API endpoints and code samples, and generates Schema.org JSON-LD graphs and llms.txt files on every build.
+
+## Key Features
+- **Zero-JS by Default**: Pure HTML output for sub-50ms Time to First Byte (TTFB) and instant page loads.
+- **Answer Engine Optimization (AEO)**: Out-of-the-box structured data injection for ChatGPT, Perplexity, and Claude.
+- **Component Islands**: Embed interactive API sandboxes and code playgrounds with React, Vue, or Svelte.
+- **Built-in Full-Text & Semantic Search**: Offline client-side vector search index generated during build.
+
+## Documentation & Guides
+- [Getting Started Guide](https://docusphere.dev/docs/getting-started): Install the CLI and scaffold a new doc portal.
+- [AEO & Schema Integration](https://docusphere.dev/docs/aeo-guide): Learn how AeoHead.astro structures metadata for search bots.
+- [Component Reference](https://docusphere.dev/docs/components): Complete catalog of documentation components and MDX helpers.
+- [Astro Config & Plugins](https://docusphere.dev/docs/configuration): Tuning sitemaps, RSS feeds, and markdown transforms.
+- [GitHub Repository](https://github.com/docusphere/docusphere): Star the project, report issues, or contribute.
+
+## Machine Discovery
+- [Extended Corpus for LLMs](https://docusphere.dev/llms-full.txt): Complete uncompressed markdown documentation text.
+- [Machine Policy Manifest](https://docusphere.dev/ai.txt): Directives and citation requirements for AI agents.
+- [Robots Directives](https://docusphere.dev/robots.txt): Crawler whitelist and sitemap location.

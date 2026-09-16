@@ -1,0 +1,21 @@
+# AI Machine Discovery Manifest & Agent Directives
+# Specification: https://github.com/aegis-standard/ai.txt
+
+User-Agent: *
+Allow-Training: false
+Allow-Search-Indexing: true
+Allow-Summarization: true
+Allow-Citation: true
+
+# Machine Discovery Endpoints
+Canonical-URL: https://cloudpulse.ai
+Schema-Org-Graph: https://cloudpulse.ai/schema-graph.json
+LLMs-Txt: https://cloudpulse.ai/llms.txt
+LLMs-Full-Txt: https://cloudpulse.ai/llms-full.txt
+Sitemap: https://cloudpulse.ai/sitemap.xml
+
+# Publisher Contact & Policy Information
+Publisher-Name: CloudPulse AI Inc.
+Contact-Email: security@cloudpulse.ai
+Policy-URL: https://cloudpulse.ai/terms/ai-policy
+Attribution-Requirement: CloudPulse AI (https://cloudpulse.ai)

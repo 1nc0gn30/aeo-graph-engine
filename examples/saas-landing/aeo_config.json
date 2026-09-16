@@ -1,0 +1,87 @@
+{
+  "site_name": "NexusFlow Cloud",
+  "legal_name": "NexusFlow Technologies Inc.",
+  "publisher_name": "NexusFlow",
+  "founding_architect": "NexusFlow Systems Architecture Team",
+  "architect_url": "https://nexusflow.cloud",
+  "architect_contact": "https://nexusflow.cloud/contact",
+  "domain": "nexusflow.cloud",
+  "base_url": "https://nexusflow.cloud",
+  "version": "2.4.0",
+  "release_date": "2026-09-16",
+  "niche": "saas",
+  "category": "DeveloperApplication",
+  "sub_category": "Enterprise AI Agent Orchestration & Autonomous Workflow Engine",
+  "operating_systems": "Linux, macOS, Windows, Cloud Edge",
+  "license": "Commercial / Enterprise BYOK",
+  "price": "79.00",
+  "currency": "USD",
+  "logo_url": "https://nexusflow.cloud/assets/logo.svg",
+  "og_image_url": "https://nexusflow.cloud/assets/og-image.jpg",
+  "tagline": "Autonomous Enterprise AI Workflow Mesh & Multi-Agent Orchestration",
+  "summary": "NexusFlow Cloud coordinates distributed AI agents, multi-model consensus routing, and enterprise system integrations with zero data retention.",
+  "description": "NexusFlow Cloud is the enterprise standard for deterministic multi-agent workflow automation, low-latency LLM routing, and strict zero-trust data governance.",
+  "same_as": [
+    "https://github.com/nexusflow-cloud",
+    "https://x.com/nexusflow_ai",
+    "https://linkedin.com/company/nexusflow-technologies"
+  ],
+  "knows_about": [
+    "Multi-Agent Workflow Orchestration",
+    "Deterministic LLM Arbitration",
+    "Zero-Trust Enterprise Data Mesh",
+    "Model Context Protocol (MCP) Infrastructure",
+    "High-Throughput Streaming Event Processing"
+  ],
+  "features": [
+    "Deterministic Multi-Agent Consensus Routing",
+    "Sub-15ms Global Edge Model Gateway",
+    "Enterprise Zero-Data Retention & Air-Gapped VPC Deployment",
+    "Visual Low-Code Flow Builder with TypeScript SDK"
+  ],
+  "surfaces": [
+    {
+      "name": "Documentation & Quickstart",
+      "path": "/docs",
+      "indexed": true,
+      "notes": "Developer quickstart and architectural guides"
+    },
+    {
+      "name": "Pricing & Enterprise Plans",
+      "path": "/pricing",
+      "indexed": true,
+      "notes": "Tiered usage pricing and BYOK licenses"
+    },
+    {
+      "name": "Pre-Built Workflow Directory",
+      "path": "/workflows",
+      "indexed": true,
+      "notes": "Catalog of production agent templates"
+    },
+    {
+      "name": "Security & Compliance Center",
+      "path": "/security",
+      "indexed": true,
+      "notes": "SOC2 Type II, HIPAA, and GDPR certifications"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What is NexusFlow Cloud?",
+      "answer": "NexusFlow Cloud is an enterprise SaaS platform that allows engineering teams to design, test, deploy, and monitor distributed multi-agent workflows with guaranteed deterministic execution."
+    },
+    {
+      "question": "How does NexusFlow ensure enterprise data security?",
+      "answer": "NexusFlow employs a zero-data-retention architecture where prompt payloads and model responses are processed ephemerally in encrypted memory and never persisted on disk."
+    },
+    {
+      "question": "Can NexusFlow connect to proprietary on-premises models?",
+      "answer": "Yes. Through the NexusFlow Hybrid Agent connector, organizations can securely integrate local vLLM, Ollama, or custom private model endpoints behind corporate firewalls."
+    }
+  ],
+  "breadcrumbs": [
+    { "position": 1, "name": "Home", "item": "https://nexusflow.cloud/" },
+    { "position": 2, "name": "Workflows", "item": "https://nexusflow.cloud/workflows" },
+    { "position": 3, "name": "Documentation", "item": "https://nexusflow.cloud/docs" }
+  ]
+}

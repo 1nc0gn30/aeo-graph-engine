@@ -46,7 +46,11 @@ from .compat import (
     resolve_path,
 )
 from .ai_gateway import AIGateway, DEFAULT_AI_GATEWAY_CONFIG
-from .ui_server import start_ui_server
+from .bot_inspector import BotInspector, AI_BOT_REGISTRY
+from .benchmark import compare_sites, CompetitorBenchmark
+from .reporter import generate_markdown_report, generate_standalone_html_report, save_report_to_file
+from .wizard import run_wizard, detect_framework, detect_project_profile
+from .ci_gate import run_ci_check
 from .presets import DEFAULT_CONFIG, NICHE_PRESETS
 
 __all__ = [
@@ -77,6 +81,13 @@ __all__ = [
     "run_stdio_server",
     "AIGateway",
     "DEFAULT_AI_GATEWAY_CONFIG",
+    "BotInspector",
+    "AI_BOT_REGISTRY",
+    "compare_sites",
+    "CompetitorBenchmark",
+    "generate_markdown_report",
+    "generate_standalone_html_report",
+    "save_report_to_file",
     "is_windows",
     "is_macos",
     "is_linux",
@@ -90,6 +101,10 @@ __all__ = [
     "to_posix_path",
     "resolve_path",
     "start_ui_server",
+    "run_wizard",
+    "detect_framework",
+    "detect_project_profile",
+    "run_ci_check",
     "DEFAULT_CONFIG",
     "NICHE_PRESETS",
 ]

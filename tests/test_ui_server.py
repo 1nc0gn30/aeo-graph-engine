@@ -98,6 +98,33 @@ def test_ui_server_get_html():
             assert "TestBrand" in sim_res["simulated_answer"]
             assert "testbrand.io" in sim_res["simulated_answer"]
 
+        # Test POST /api/bot-audit
+        bot_url = f"http://{host}:{port}/api/bot-audit"
+        bot_req = urllib.request.Request(
+            bot_url,
+            data=json.dumps({"url": f"http://{host}:{port}", "timeout": 2.0}).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(bot_req) as response:
+            assert response.status == 200
+            bot_res = json.loads(response.read().decode("utf-8"))
+            assert "total_bots" in bot_res
+            assert bot_res["total_bots"] == 10
+
+        # Test POST /api/report
+        report_url = f"http://{host}:{port}/api/report"
+        report_req = urllib.request.Request(
+            report_url,
+            data=json.dumps({"url": f"http://{host}:{port}"}).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(report_req) as response:
+            assert response.status == 200
+            report_res = json.loads(response.read().decode("utf-8"))
+            assert "markdown" in report_res
+            assert "html" in report_res
+            assert "AEO & Answer Engine Optimization Audit Report" in report_res["markdown"]
+
     finally:
         server.shutdown()
         server.server_close()

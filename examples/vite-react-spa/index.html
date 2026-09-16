@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Primary Metadata -->
+    <title>PromptForge Studio - Interactive LLM Prompt Engineering & Evaluation IDE</title>
+    <meta
+      name="description"
+      content="PromptForge Studio is a browser-first IDE for engineering, testing, and benchmarking LLM system prompts against multi-turn eval datasets."
+    />
+    <link rel="canonical" href="https://promptforge.dev/" />
+
+    <!-- Open Graph & Social Cards -->
+    <meta property="og:title" content="PromptForge Studio - Prompt Engineering IDE" />
+    <meta
+      property="og:description"
+      content="Build, test, and benchmark LLM prompt templates with real-time token telemetry and deterministic regression testing."
+    />
+    <meta property="og:url" content="https://promptforge.dev/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://promptforge.dev/og-image.png" />
+    <meta property="og:site_name" content="PromptForge Studio" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@promptforge_dev" />
+    <meta name="twitter:title" content="PromptForge Studio" />
+    <meta
+      name="twitter:description"
+      content="Browser-first LLM prompt engineering, evaluation, and regression testing IDE."
+    />
+    <meta name="twitter:image" content="https://promptforge.dev/og-image.png" />
+
+    <!-- Machine Discovery Links for AI Agents -->
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM Context Summary" />
+    <link rel="alternate" type="application/json" href="/schema-graph.json" title="Schema.org Graph" />
+
+    <!-- Answer Engine Optimization (AEO) Static Schema.org Graph -->
+    <!-- Injected in raw HTML so crawlers without JavaScript execution parse structured data instantly -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://promptforge.dev/#organization",
+          "name": "PromptForge Technologies",
+          "url": "https://promptforge.dev",
+          "logo": {
+            "@type": "ImageObject",
+            "@id": "https://promptforge.dev/#logo",
+            "url": "https://promptforge.dev/logo.png",
+            "caption": "PromptForge Logo"
+          },
+          "sameAs": [
+            "https://github.com/promptforge",
+            "https://x.com/promptforge_dev"
+          ],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "technical support",
+            "email": "team@promptforge.dev",
+            "url": "https://promptforge.dev/contact"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://promptforge.dev/#website",
+          "url": "https://promptforge.dev",
+          "name": "PromptForge Studio",
+          "description": "Interactive Web IDE for LLM Prompt Engineering, Eval Datasets, and Model Comparison.",
+          "publisher": {
+            "@id": "https://promptforge.dev/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://promptforge.dev/templates?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://promptforge.dev/#application",
+          "name": "PromptForge Studio Web IDE",
+          "applicationCategory": "DeveloperApplication",
+          "operatingSystem": "Web, Chrome, Firefox, Safari, Edge",
+          "description": "Browser-native prompt engineering workbench with side-by-side model diffing, token counter, and automated eval benchmarks.",
+          "url": "https://promptforge.dev",
+          "provider": {
+            "@id": "https://promptforge.dev/#organization"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "0.00",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/OnlineOnly"
+          },
+          "featureList": [
+            "Side-by-Side Multi-Model Response Comparison",
+            "Automated Eval Test Suite with Custom LLM-as-a-Judge Rubrics",
+            "Local Storage & Git-Backed Prompt Version Control",
+            "Zero-Data-Retention Direct-to-Provider API Routing"
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://promptforge.dev/#faq",
+          "name": "PromptForge Studio Frequently Asked Questions",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Are API keys stored on PromptForge servers?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. PromptForge is a client-side SPA. Your API keys are encrypted in browser local storage and calls are routed directly from your browser to model endpoints."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Which LLM providers are supported?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "PromptForge supports OpenAI, Anthropic, Google Gemini, Mistral, Groq, OpenRouter, and local Ollama instances."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I export prompt evaluations as CI/CD test assertions?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. You can export test suites as JSON, Python pytest harnesses, or GitHub Action workflow steps."
+              }
+            }
+          ]
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://promptforge.dev/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://promptforge.dev/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Studio IDE",
+              "item": "https://promptforge.dev/studio"
+            },
+            {
+              "@type": "ListItem",
+              "position": 3,
+              "name": "Evaluations",
+              "item": "https://promptforge.dev/evals"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+  </head>
+  <body class="bg-gray-950 text-gray-100 antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

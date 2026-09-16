@@ -540,10 +540,12 @@ def test_generate_mcp_client_config_all_clients():
 
 
 def test_generate_mcp_client_config_with_project_root():
-    cfg = generate_mcp_client_config("claude_desktop", project_root="/workspace/my-project")
+    proj_path = "/workspace/my-project"
+    cfg = generate_mcp_client_config("claude_desktop", project_root=proj_path)
     env = cfg["mcpServers"]["aeo-graph-engine"]["env"]
     assert "PYTHONPATH" in env
-    assert "/workspace/my-project" in env["PYTHONPATH"]
+    resolved_root = str(Path(proj_path).resolve())
+    assert resolved_root in env["PYTHONPATH"]
 
 
 def test_generate_mcp_client_config_invalid():

@@ -652,13 +652,164 @@
       color: var(--google-blue);
       margin-bottom: 4px;
     }
-    .guide-desc {
+    /* Bot Probe Styles */
+    .bot-probe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .bot-probe-card {
+      border: 1px solid var(--border-divider);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: var(--surface-bg);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: box-shadow 0.2s;
+    }
+    .bot-probe-card:hover {
+      box-shadow: 0 2px 6px rgba(60,64,67,0.1);
+    }
+    .bot-probe-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .bot-probe-name {
+      font-weight: 700;
       font-size: 13px;
+      color: var(--text-primary);
+    }
+    .bot-probe-org {
+      font-size: 11px;
       color: var(--text-secondary);
+    }
+    .bot-status-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .bot-status-tag.allowed { background: var(--google-green-surface); color: var(--google-green); }
+    .bot-status-tag.blocked { background: var(--google-red-surface); color: var(--google-red); }
+    .bot-status-tag.warning { background: var(--google-yellow-surface); color: #b06000; }
+
+    /* Competitor Benchmark Comparison Styles */
+    .benchmark-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 14px;
+    }
+    .benchmark-col {
+      background: #f8f9fa;
+      border: 1px solid var(--border-divider);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .winner-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--google-yellow-surface);
+      color: #b06000;
+      border-radius: 12px;
+      border: 1px solid rgba(249, 171, 0, 0.4);
+    }
+
+    /* SERP & AI Citation Preview Card Styles */
+    .serp-preview-box {
+      background: #ffffff;
+      border: 1px solid var(--border-divider);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(60,64,67,0.08);
+      font-family: Arial, sans-serif;
+    }
+    .serp-url-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #202124;
+      margin-bottom: 4px;
+    }
+    .serp-favicon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--google-blue-surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+    .serp-title {
+      color: #1a0dab;
+      font-size: 18px;
+      line-height: 1.3;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 400;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .serp-snippet {
+      color: #4d5156;
+      font-size: 13px;
       line-height: 1.5;
+    }
+    .serp-sitelinks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #ebebeb;
+    }
+    .perplexity-citation-card {
+      background: #1e1e24;
+      color: #f1f5f9;
+      border-radius: 12px;
+      padding: 16px;
+      font-family: var(--font-sans);
+    }
+    .perplexity-pill {
+      background: rgba(255,255,255,0.1);
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Modal for Audit Report */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
     }
 
     @media (max-width: 900px) {
+      .benchmark-split { grid-template-columns: 1fr; }
       .app-layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
       .sidebar { border-right: none; border-bottom: 1px solid var(--border-divider); height: auto; }
       .audit-grid { grid-template-columns: 1fr; }
@@ -686,6 +837,7 @@
       <div class="score-chip" id="topScoreChip">
         <span id="topScoreValue">100 / 100</span> AEO Readiness
       </div>
+      <button class="btn btn-purple btn-sm" onclick="exportFullAuditReportModal()">📄 Audit Report</button>
       <button class="btn btn-tonal btn-sm" onclick="switchTab('tab-ai-gateway')">⚡ AI Keys & Ports</button>
       <button class="btn btn-outline btn-sm" onclick="triggerAutoDetect()">🔍 Auto-Detect</button>
       <button class="btn btn-primary btn-sm" onclick="downloadZipBundle()">📥 Download .zip</button>
@@ -731,31 +883,32 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Domain Name</label>
-        <input type="text" id="inpDomain" class="form-control" value="aeo-graph.dev" oninput="regenerateAll()">
+        <label class="form-label">Primary Domain</label>
+        <input type="text" id="inpDomain" class="form-control" value="aeo-engine.dev" oninput="regenerateAll()">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Tagline</label>
-        <input type="text" id="inpTagline" class="form-control" value="Answer Engine Optimization (AEO/GEO) Graph Engine" oninput="regenerateAll()">
+        <label class="form-label">Tagline / Short Hook</label>
+        <input type="text" id="inpTagline" class="form-control" value="Answer Engine Optimization (AEO/GEO) Knowledge Graph & llms.txt Engine" oninput="regenerateAll()">
       </div>
 
       <div class="form-group">
         <label class="form-label">Description</label>
-        <textarea id="inpDescription" class="form-control" oninput="regenerateAll()">Autonomous Answer Engine Optimization engine generating Schema.org linked data, llms.txt manifests, and AI crawler governance.</textarea>
+        <textarea id="inpDescription" class="form-control" rows="3" oninput="regenerateAll()">Standalone, zero-dependency generator and validator for Schema.org linked data, llms.txt, ai.txt, and AI crawler directives.</textarea>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Publisher / Author</label>
-        <input type="text" id="inpPublisher" class="form-control" value="NullAI / 757tech Team" oninput="regenerateAll()">
+        <label class="form-label">Brand Keywords (Comma Separated)</label>
+        <input type="text" id="inpKeywords" class="form-control" value="AEO, SEO, Schema.org, llms.txt, AI Search, Perplexity, ChatGPT" oninput="regenerateAll()">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Primary Entity Type</label>
-        <select id="inpCategory" class="form-control" onchange="regenerateAll()">
+        <label class="form-label">Primary Schema @type</label>
+        <select id="selPrimaryType" class="form-control" onchange="regenerateAll()">
           <option value="SoftwareApplication" selected>SoftwareApplication</option>
-          <option value="SecurityApplication">SecurityApplication</option>
-          <option value="MultimediaApplication">MultimediaApplication</option>
+          <option value="WebApplication">WebApplication</option>
+          <option value="Organization">Organization</option>
+          <option value="Corporation">Corporation</option>
           <option value="BusinessApplication">BusinessApplication</option>
           <option value="LocalBusiness">LocalBusiness</option>
         </select>
@@ -766,6 +919,9 @@
     <main class="main-panel">
       <nav class="tabs-bar">
         <button class="tab-btn active" onclick="switchTab('tab-scanner')">🌐 Live Scanner</button>
+        <button class="tab-btn" onclick="switchTab('tab-bot-probe')">🛡️ Bot WAF Probe</button>
+        <button class="tab-btn" onclick="switchTab('tab-benchmark')">⚔️ Competitor Benchmark</button>
+        <button class="tab-btn" onclick="switchTab('tab-serp-preview')">👁️ SERP & Citation Preview</button>
         <button class="tab-btn" onclick="switchTab('tab-frameworks')">📦 Frameworks & Code</button>
         <button class="tab-btn" onclick="switchTab('tab-agent-hub')">🤖 AI Agent & MCP Hub</button>
         <button class="tab-btn" onclick="switchTab('tab-ai-gateway')">⚡ AI Keys & Ports</button>
@@ -906,6 +1062,209 @@
                   🎯 Vertical & Domain-Specific Distribution Channels
                 </div>
                 <div id="scanNicheChannelsList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 0.1 AI Bot WAF Probe Tab -->
+        <div id="tab-bot-probe" class="tab-pane">
+          <div class="scanner-hero">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
+                  🛡️ Live AI Search Bot & WAF Inspector
+                </h2>
+                <p style="font-size:13px; color:var(--text-secondary);">
+                  Probe your live production or staging website using authentic User-Agents for 10 top AI crawlers (GPTBot, ClaudeBot, PerplexityBot, Applebot, Google-Extended) to detect Cloudflare/AWS WAF challenges and restrictions.
+                </p>
+              </div>
+            </div>
+            <div class="scanner-bar" style="margin-top:14px;">
+              <input type="url" id="inpBotProbeUrl" class="form-control scanner-input" placeholder="https://your-domain.com" value="https://example.com" onkeydown="if(event.key==='Enter') executeBotProbe()">
+              <select id="selBotProbeTimeout" class="form-control" style="width:130px;">
+                <option value="5">Timeout: 5s</option>
+                <option value="8">Timeout: 8s</option>
+                <option value="12">Timeout: 12s</option>
+              </select>
+              <button class="btn btn-primary" id="btnRunBotProbe" onclick="executeBotProbe()">
+                <span>🚀 Probe 10 AI Bots</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="botProbeResultsArea" style="display:none; margin-top:16px;">
+            <!-- Summary Stats -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:16px;">
+              <div class="card" style="padding:14px;">
+                <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Bots Allowed</div>
+                <div style="font-size:24px; font-weight:700; color:var(--google-green); margin-top:4px;" id="statBotsAllowed">--</div>
+              </div>
+              <div class="card" style="padding:14px;">
+                <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Bots Blocked</div>
+                <div style="font-size:24px; font-weight:700; color:var(--google-red); margin-top:4px;" id="statBotsBlocked">--</div>
+              </div>
+              <div class="card" style="padding:14px;">
+                <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">WAF Protection</div>
+                <div style="font-size:16px; font-weight:700; color:var(--text-primary); margin-top:8px;" id="statWafDetected">None</div>
+              </div>
+              <div class="card" style="padding:14px;">
+                <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Server Header</div>
+                <div style="font-size:14px; font-weight:600; color:var(--text-primary); margin-top:8px;" id="statServerHeader">--</div>
+              </div>
+            </div>
+
+            <!-- Bot Grid -->
+            <div class="card">
+              <div class="card-title">Individual AI Crawler Probe Results</div>
+              <div class="bot-probe-grid" id="botProbeCardsGrid"></div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="card" id="botProbeRecsCard" style="margin-top:14px;">
+              <div class="card-title">Actionable AI Accessibility Recommendations</div>
+              <div id="botProbeRecsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 0.2 Competitor Benchmark Tab -->
+        <div id="tab-benchmark" class="tab-pane">
+          <div class="scanner-hero">
+            <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
+              ⚔️ Head-to-Head Competitor AEO Benchmark
+            </h2>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+              Compare your website side-by-side with any competitor to identify entity graph gaps, machine manifest advantages, and winning citation tactics.
+            </p>
+            <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:center;">
+              <input type="url" id="inpBenchSiteA" class="form-control" placeholder="https://your-site.com" value="https://example.com">
+              <input type="url" id="inpBenchSiteB" class="form-control" placeholder="https://competitor.com" value="https://google.com">
+              <button class="btn btn-primary" id="btnRunBenchmark" onclick="executeBenchmark()">
+                <span>⚔️ Run Benchmark</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="benchmarkResultsArea" style="display:none; margin-top:16px;">
+            <!-- Split Overview Cards -->
+            <div class="benchmark-split">
+              <div class="benchmark-col">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:700; font-size:15px; color:var(--google-blue);" id="benchSiteAName">Site A (Your Site)</span>
+                  <span class="score-chip" id="benchSiteAScoreChip" style="font-size:14px; padding:4px 10px;">--/100</span>
+                </div>
+                <div style="font-size:12px; color:var(--text-secondary);" id="benchSiteAUrl"></div>
+                <div style="font-size:13px; line-height:1.6;" id="benchSiteADetails"></div>
+              </div>
+              <div class="benchmark-col">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:700; font-size:15px; color:var(--google-purple);" id="benchSiteBName">Site B (Competitor)</span>
+                  <span class="score-chip" id="benchSiteBScoreChip" style="font-size:14px; padding:4px 10px;">--/100</span>
+                </div>
+                <div style="font-size:12px; color:var(--text-secondary);" id="benchSiteBUrl"></div>
+                <div style="font-size:13px; line-height:1.6;" id="benchSiteBDetails"></div>
+              </div>
+            </div>
+
+            <!-- Winner Badges Matrix -->
+            <div class="card" style="margin-top:14px;">
+              <div class="card-title">Category Winner Breakdown</div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-top:10px;" id="benchWinnersGrid"></div>
+            </div>
+
+            <!-- Strategic Takeaways -->
+            <div class="card" style="margin-top:14px;">
+              <div class="card-title">Strategic Action Items to Win in AI Search</div>
+              <div id="benchTakeawaysList" style="display:flex; flex-direction:column; gap:10px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 0.3 SERP & AI Citation Preview Tab -->
+        <div id="tab-serp-preview" class="tab-pane">
+          <div class="card">
+            <div class="card-title">
+              <span>👁️ Real-Time SERP & AI Citation Preview</span>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-tonal btn-sm" onclick="selectSerpPreview('google')">Google SERP</button>
+                <button class="btn btn-tonal btn-sm" onclick="selectSerpPreview('perplexity')">Perplexity AI</button>
+                <button class="btn btn-tonal btn-sm" onclick="selectSerpPreview('chatgpt')">ChatGPT Search</button>
+                <button class="btn btn-tonal btn-sm" onclick="selectSerpPreview('social')">Social Card (OG)</button>
+              </div>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:16px;">
+              Live visual simulation of how search engines, social crawlers, and AI answer engines render your structured knowledge graph:
+            </p>
+
+            <!-- Google SERP Card Preview -->
+            <div id="previewGoogleCard" class="serp-preview-box">
+              <div class="serp-url-row">
+                <div class="serp-favicon">🌐</div>
+                <div>
+                  <span id="prevGoogleDomain" style="font-weight:600;">aeo-engine.dev</span>
+                  <span style="color:#70757a; font-size:11px;"> › https://<span id="prevGoogleSubdomain">aeo-engine.dev</span></span>
+                </div>
+              </div>
+              <a href="#" class="serp-title" id="prevGoogleTitle">AEO Graph Engine — Answer Engine Optimization Knowledge Graph</a>
+              <div class="serp-snippet" id="prevGoogleSnippet">
+                Standalone, zero-dependency generator and validator for Schema.org linked data, llms.txt, ai.txt, and AI crawler directives.
+              </div>
+              <div class="serp-sitelinks">
+                <div>
+                  <a href="#" style="color:#1a0dab; font-size:13px; text-decoration:none; font-weight:600;">llms.txt Machine Manifest</a>
+                  <div style="color:#4d5156; font-size:11px; margin-top:2px;">Clean factual markdown documentation for LLM agents.</div>
+                </div>
+                <div>
+                  <a href="#" style="color:#1a0dab; font-size:13px; text-decoration:none; font-weight:600;">Schema.org @graph</a>
+                  <div style="color:#4d5156; font-size:11px; margin-top:2px;">Connected entity knowledge graph with Organization & WebSite.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Perplexity AI Preview -->
+            <div id="previewPerplexityCard" class="perplexity-citation-card" style="display:none;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <div style="font-weight:700; color:#38bdf8; font-size:14px;">⚡ Perplexity AI Answer Grounding</div>
+                <span class="perplexity-pill">✓ Verified Citation</span>
+              </div>
+              <div style="font-size:14px; line-height:1.6; color:#e2e8f0; margin-bottom:14px;" id="prevPerplexityAnswer">
+                According to <strong id="prevPerplexityBrand">AEO Graph Engine</strong> (<span id="prevPerplexityDomain">aeo-engine.dev</span>), the system provides automated Schema.org linked data and machine manifests designed for zero-latency token retrieval across generative answer engines.
+              </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:8px 12px; font-size:12px;">
+                  <span style="color:#94a3b8;">[1] Source:</span> <span id="prevPerplexitySource1" style="color:#38bdf8;">aeo-engine.dev/llms.txt</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:8px 12px; font-size:12px;">
+                  <span style="color:#94a3b8;">[2] Schema:</span> <span id="prevPerplexitySource2" style="color:#38bdf8;">aeo-engine.dev/#schema-graph</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ChatGPT Search Preview -->
+            <div id="previewChatGPTCard" class="card" style="display:none; background:#f7f7f8; border:1px solid #d9d9e3;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <div style="width:24px; height:24px; border-radius:50%; background:#10a37f; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">G</div>
+                <div style="font-weight:700; font-size:13px; color:#202123;">ChatGPT Search Citation Mode</div>
+              </div>
+              <div style="font-size:14px; line-height:1.6; color:#353740; margin-bottom:12px;" id="prevChatGPTAnswer">
+                <span id="prevChatGPTBrand">AEO Graph Engine</span> is an open-source answer engine optimization tool that generates linked data schemas and llms.txt context layers.
+              </div>
+              <div style="display:inline-flex; align-items:center; gap:6px; background:#ffffff; border:1px solid #e5e5e5; border-radius:16px; padding:4px 12px; font-size:12px; color:#10a37f; font-weight:600;">
+                🔗 <span id="prevChatGPTDomain">aeo-engine.dev</span>
+              </div>
+            </div>
+
+            <!-- Social Card (OG) Preview -->
+            <div id="previewSocialCard" class="card" style="display:none; max-width:540px; border:1px solid var(--border-divider); border-radius:12px; overflow:hidden; padding:0;">
+              <div style="height:160px; background:linear-gradient(135deg, #1a73e8 0%, #9334e6 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; padding:20px; text-align:center;">
+                <div style="font-size:22px; font-weight:800;" id="prevOgTitle">AEO Graph Engine</div>
+                <div style="font-size:13px; opacity:0.9; margin-top:4px;" id="prevOgTagline">Answer Engine Optimization Knowledge Graph</div>
+              </div>
+              <div style="padding:14px; background:#fff;">
+                <div style="font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:700;" id="prevOgDomain">AEO-ENGINE.DEV</div>
+                <div style="font-size:14px; font-weight:700; color:var(--text-primary); margin-top:2px;" id="prevOgHeading">AEO Graph Engine</div>
+                <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;" id="prevOgDesc">Standalone generator and validator for Schema.org linked data and llms.txt.</div>
               </div>
             </div>
           </div>
@@ -1607,15 +1966,24 @@ Focus on:
     }
 
     async function regenerateAll() {
+      const siteName = document.getElementById('inpSiteName') ? document.getElementById('inpSiteName').value : 'AEO Graph Engine';
+      const domain = document.getElementById('inpDomain') ? document.getElementById('inpDomain').value : 'aeo-engine.dev';
+      const tagline = document.getElementById('inpTagline') ? document.getElementById('inpTagline').value : 'Answer Engine Optimization Knowledge Graph';
+      const description = document.getElementById('inpDescription') ? document.getElementById('inpDescription').value : 'Standalone generator for Schema.org linked data and llms.txt.';
+      const publisher = document.getElementById('inpPublisher') ? document.getElementById('inpPublisher').value : 'NullAI / 757tech Team';
+      const category = document.getElementById('selPrimaryType') ? document.getElementById('selPrimaryType').value : (document.getElementById('inpCategory') ? document.getElementById('inpCategory').value : 'SoftwareApplication');
+
       const payload = {
-        site_name: document.getElementById('inpSiteName').value,
-        domain: document.getElementById('inpDomain').value,
-        tagline: document.getElementById('inpTagline').value,
-        description: document.getElementById('inpDescription').value,
-        publisher_name: document.getElementById('inpPublisher').value,
-        category: document.getElementById('inpCategory').value,
+        site_name: siteName,
+        domain: domain,
+        tagline: tagline,
+        description: description,
+        publisher_name: publisher,
+        category: category,
         niche: currentNiche
       };
+
+      updateSerpPreviews();
 
       try {
         const res = await fetch('/api/generate', {
@@ -2269,8 +2637,214 @@ Focus on:
       }
     }
 
+    // --- Bot WAF Inspector JS ---
+    async function executeBotProbe() {
+      const url = document.getElementById('inpBotProbeUrl').value.trim();
+      const timeout = parseFloat(document.getElementById('selBotProbeTimeout').value) || 5.0;
+      const btn = document.getElementById('btnRunBotProbe');
+      const resArea = document.getElementById('botProbeResultsArea');
+      const cardsGrid = document.getElementById('botProbeCardsGrid');
+      const recsList = document.getElementById('botProbeRecsList');
+
+      if (!url) { alert('Please enter a target URL.'); return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳ Probing 10 Bots...</span>';
+      resArea.style.display = 'block';
+      cardsGrid.innerHTML = '<div style="padding:20px; color:var(--text-secondary);">Probing 10 AI crawlers across standard user-agents and measuring live latency...</div>';
+
+      try {
+        const res = await fetch('/api/bot-audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url, timeout: timeout })
+        });
+        const data = await res.json();
+
+        document.getElementById('statBotsAllowed').innerText = `${data.allowed_count} / ${data.total_bots}`;
+        document.getElementById('statBotsBlocked').innerText = `${data.blocked_count}`;
+        document.getElementById('statWafDetected').innerText = data.waf_detected ? `${data.waf_vendor || 'WAF'} Block` : 'Clean (No Block)';
+        document.getElementById('statWafDetected').style.color = data.waf_detected ? 'var(--google-red)' : 'var(--google-green)';
+        document.getElementById('statServerHeader').innerText = data.server_header || 'Unknown';
+
+        cardsGrid.innerHTML = (data.bot_results || []).map(r => {
+          const isOk = r.status === 'allowed';
+          const isWarn = r.status === 'warning';
+          const tagClass = isOk ? 'allowed' : (isWarn ? 'warning' : 'blocked');
+          const tagText = isOk ? 'Allowed (200 OK)' : (isWarn ? 'Warning / Restricted' : `Blocked (${r.http_status || 'WAF'})`);
+
+          return `
+            <div class="bot-probe-card">
+              <div class="bot-probe-header">
+                <div>
+                  <div class="bot-probe-name">${r.bot_name}</div>
+                  <div class="bot-probe-org">${r.operator || 'AI Crawler'}</div>
+                </div>
+                <span class="bot-status-tag ${tagClass}">${tagText}</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">
+                Latency: <strong>${r.latency_ms || 0}ms</strong> • Server: <strong>${r.server || 'N/A'}</strong>
+              </div>
+              <div style="font-size:11px; color:var(--text-primary); margin-top:2px; line-height:1.4;">
+                ${r.details || ''}
+              </div>
+              ${r.x_robots_tag ? `<div style="font-size:11px; color:var(--google-purple); font-family:monospace; margin-top:2px;">X-Robots-Tag: ${r.x_robots_tag}</div>` : ''}
+            </div>
+          `;
+        }).join('');
+
+        if (data.recommendations && data.recommendations.length > 0) {
+          recsList.innerHTML = data.recommendations.map(rec => `
+            <div style="font-size:13px; color:var(--text-primary); display:flex; align-items:flex-start; gap:8px;">
+              <span>💡</span> <div>${rec}</div>
+            </div>
+          `).join('');
+          document.getElementById('botProbeRecsCard').style.display = 'block';
+        } else {
+          document.getElementById('botProbeRecsCard').style.display = 'none';
+        }
+      } catch (e) {
+        cardsGrid.innerHTML = `<div style="color:var(--google-red); padding:14px;">Error probing bots: ${e.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>🚀 Probe 10 AI Bots</span>';
+      }
+    }
+
+    // --- Competitor Benchmark JS ---
+    async function executeBenchmark() {
+      const urlA = document.getElementById('inpBenchSiteA').value.trim();
+      const urlB = document.getElementById('inpBenchSiteB').value.trim();
+      const btn = document.getElementById('btnRunBenchmark');
+      const resArea = document.getElementById('benchmarkResultsArea');
+
+      if (!urlA || !urlB) { alert('Please enter both URLs to compare.'); return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⚔️ Analyzing Both Sites...</span>';
+      resArea.style.display = 'block';
+
+      try {
+        const res = await fetch('/api/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url_a: urlA, url_b: urlB, max_pages: 5 })
+        });
+        const data = await res.json();
+
+        document.getElementById('benchSiteAName').innerText = data.site_a.url;
+        document.getElementById('benchSiteAScoreChip').innerText = `${data.site_a.score} / 100`;
+        document.getElementById('benchSiteADetails').innerHTML = `
+          • Schema Graph Nodes: <strong>${data.site_a.schema_types ? data.site_a.schema_types.length : 0} types</strong><br>
+          • AI Bots Allowed: <strong>${data.site_a.bots_allowed_count || 0} / 5</strong><br>
+          • llms.txt Present: <strong>${data.site_a.has_llms_txt ? '✅ Yes' : '❌ No'}</strong><br>
+          • Avg Word Count: <strong>${data.site_a.avg_word_count || 0} words</strong>
+        `;
+
+        document.getElementById('benchSiteBName').innerText = data.site_b.url;
+        document.getElementById('benchSiteBScoreChip').innerText = `${data.site_b.score} / 100`;
+        document.getElementById('benchSiteBDetails').innerHTML = `
+          • Schema Graph Nodes: <strong>${data.site_b.schema_types ? data.site_b.schema_types.length : 0} types</strong><br>
+          • AI Bots Allowed: <strong>${data.site_b.bots_allowed_count || 0} / 5</strong><br>
+          • llms.txt Present: <strong>${data.site_b.has_llms_txt ? '✅ Yes' : '❌ No'}</strong><br>
+          • Avg Word Count: <strong>${data.site_b.avg_word_count || 0} words</strong>
+        `;
+
+        const winnersGrid = document.getElementById('benchWinnersGrid');
+        winnersGrid.innerHTML = Object.entries(data.winners || {}).map(([cat, win]) => `
+          <div style="background:#ffffff; border:1px solid var(--border-divider); border-radius:8px; padding:10px;">
+            <div style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">${cat}</div>
+            <div style="margin-top:4px;">
+              <span class="winner-badge">🏆 ${win === 'site_a' ? 'Site A Leads' : (win === 'site_b' ? 'Competitor Leads' : 'Tied')}</span>
+            </div>
+          </div>
+        `).join('');
+
+        const takeawaysList = document.getElementById('benchTakeawaysList');
+        takeawaysList.innerHTML = (data.strategic_takeaways || []).map(t => `
+          <div style="background:#ffffff; border:1px solid var(--border-divider); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-size:13px; color:var(--google-blue);">${t.title}</strong>
+              <span class="bot-badge" style="background:${t.priority==='CRITICAL'?'var(--google-red-surface)':'var(--google-yellow-surface)'}; color:${t.priority==='CRITICAL'?'var(--google-red)':'#b06000'}; font-weight:700;">${t.priority}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary);">${t.description}</div>
+            <div style="font-size:12px; color:var(--google-green); font-weight:600; margin-top:4px;">👉 ${t.action}</div>
+          </div>
+        `).join('');
+      } catch (e) {
+        alert('Error running benchmark: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>⚔️ Run Benchmark</span>';
+      }
+    }
+
+    // --- SERP & Citation Preview JS ---
+    function selectSerpPreview(mode) {
+      ['previewGoogleCard', 'previewPerplexityCard', 'previewChatGPTCard', 'previewSocialCard'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+      if (mode === 'google') document.getElementById('previewGoogleCard').style.display = 'block';
+      if (mode === 'perplexity') document.getElementById('previewPerplexityCard').style.display = 'block';
+      if (mode === 'chatgpt') document.getElementById('previewChatGPTCard').style.display = 'block';
+      if (mode === 'social') document.getElementById('previewSocialCard').style.display = 'block';
+    }
+
+    function updateSerpPreviews() {
+      const name = document.getElementById('inpSiteName') ? document.getElementById('inpSiteName').value : 'AEO Graph Engine';
+      const domain = document.getElementById('inpDomain') ? document.getElementById('inpDomain').value : 'aeo-engine.dev';
+      const tagline = document.getElementById('inpTagline') ? document.getElementById('inpTagline').value : 'Answer Engine Optimization Knowledge Graph';
+      const desc = document.getElementById('inpDescription') ? document.getElementById('inpDescription').value : 'Standalone generator for Schema.org linked data and llms.txt.';
+
+      // Google SERP
+      if (document.getElementById('prevGoogleDomain')) document.getElementById('prevGoogleDomain').innerText = domain;
+      if (document.getElementById('prevGoogleSubdomain')) document.getElementById('prevGoogleSubdomain').innerText = domain;
+      if (document.getElementById('prevGoogleTitle')) document.getElementById('prevGoogleTitle').innerText = `${name} — ${tagline}`;
+      if (document.getElementById('prevGoogleSnippet')) document.getElementById('prevGoogleSnippet').innerText = desc;
+
+      // Perplexity
+      if (document.getElementById('prevPerplexityBrand')) document.getElementById('prevPerplexityBrand').innerText = name;
+      if (document.getElementById('prevPerplexityDomain')) document.getElementById('prevPerplexityDomain').innerText = domain;
+      if (document.getElementById('prevPerplexitySource1')) document.getElementById('prevPerplexitySource1').innerText = `${domain}/llms.txt`;
+      if (document.getElementById('prevPerplexitySource2')) document.getElementById('prevPerplexitySource2').innerText = `${domain}/#schema-graph`;
+
+      // ChatGPT
+      if (document.getElementById('prevChatGPTBrand')) document.getElementById('prevChatGPTBrand').innerText = name;
+      if (document.getElementById('prevChatGPTDomain')) document.getElementById('prevChatGPTDomain').innerText = domain;
+
+      // Social
+      if (document.getElementById('prevOgTitle')) document.getElementById('prevOgTitle').innerText = name;
+      if (document.getElementById('prevOgTagline')) document.getElementById('prevOgTagline').innerText = tagline;
+      if (document.getElementById('prevOgDomain')) document.getElementById('prevOgDomain').innerText = domain.toUpperCase();
+      if (document.getElementById('prevOgHeading')) document.getElementById('prevOgHeading').innerText = name;
+      if (document.getElementById('prevOgDesc')) document.getElementById('prevOgDesc').innerText = desc;
+    }
+
+    // --- Audit Report Exporter Modal JS ---
+    async function exportFullAuditReportModal() {
+      const url = document.getElementById('inpScannerUrl') ? document.getElementById('inpScannerUrl').value : 'https://example.com';
+      try {
+        const res = await fetch('/api/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url, scan_data: currentScanResults })
+        });
+        const data = await res.json();
+        
+        // Download markdown directly
+        const blob = new Blob([data.markdown], { type: 'text/markdown;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'AEO_AUDIT_REPORT.md';
+        a.click();
+      } catch (e) {
+        alert('Could not generate report: ' + e.message);
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       regenerateAll();
+      updateSerpPreviews();
       selectMcpClient('claude_desktop');
       selectAgentPrompt('engineer');
       loadAiGatewaySettings();

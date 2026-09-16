@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "aeo-graph-engine": {
+      "command": "python3",
+      "args": [
+        "-m",
+        "aeo_graph_engine.mcp_server"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "aeo_scan_site",
+        "aeo_validate",
+        "aeo_get_framework_snippets",
+        "aeo_synthesize_prompt"
+      ],
+      "env": {
+        "PYTHONPATH": "src:."
+      }
+    }
+  }
+}

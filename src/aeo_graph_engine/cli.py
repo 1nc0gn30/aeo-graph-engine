@@ -29,6 +29,11 @@ from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
 from .scanner import LiveAEOScanner
 from .framework_exporter import FrameworkExporter, AEORemediationGenerator
 from .mcp_server import MCPServer, generate_mcp_client_config, run_stdio_server
+from .wizard import run_wizard
+from .ci_gate import run_ci_check
+from .bot_inspector import BotInspector, AI_BOT_REGISTRY
+from .benchmark import compare_sites, CompetitorBenchmark
+from .reporter import generate_markdown_report, generate_standalone_html_report, save_report_to_file
 from .ui_server import start_ui_server
 from .presets import NICHE_PRESETS
 from .compat import (
@@ -204,6 +209,53 @@ def build_parser() -> argparse.ArgumentParser:
     # `aeo extract <file>`
     extract_parser = subparsers.add_parser("extract", help="Extract metadata from an HTML file")
     extract_parser.add_argument("file", type=str, help="Path to HTML file to extract metadata from")
+
+    # `aeo init` / `aeo wizard`
+    wizard_parser = subparsers.add_parser("init", help="Run interactive / scriptable project setup wizard")
+    wizard_parser.add_argument("project_dir", nargs="?", default=".", help="Target project directory (default: .)")
+    wizard_parser.add_argument("--non-interactive", action="store_true", help="Run wizard in non-interactive mode")
+    wizard_parser.add_argument("--framework", type=str, help="Override target framework")
+    wizard_parser.add_argument("--site-name", type=str, help="Override site/application name")
+    wizard_parser.add_argument("--domain", type=str, help="Override primary domain")
+    wizard_parser.add_argument("--niche", choices=list(NICHE_PRESETS.keys()), help="Override domain niche preset")
+    wizard_parser.add_argument("--public-dir", type=str, help="Override static/public assets directory")
+
+    wiz_alias = subparsers.add_parser("wizard", help="Alias for 'aeo init'")
+    wiz_alias.add_argument("project_dir", nargs="?", default=".", help="Target project directory (default: .)")
+    wiz_alias.add_argument("--non-interactive", action="store_true", help="Run wizard in non-interactive mode")
+    wiz_alias.add_argument("--framework", type=str, help="Override target framework")
+    wiz_alias.add_argument("--site-name", type=str, help="Override site/application name")
+    wiz_alias.add_argument("--domain", type=str, help="Override primary domain")
+    wiz_alias.add_argument("--niche", choices=list(NICHE_PRESETS.keys()), help="Override domain niche preset")
+    wiz_alias.add_argument("--public-dir", type=str, help="Override static/public assets directory")
+
+    # `aeo check <target>`
+    check_parser = subparsers.add_parser("check", help="Run AEO CI/CD quality gate check on a path or live URL")
+    check_parser.add_argument("target", nargs="?", default=".", help="Target directory, bundle path, or live URL (default: .)")
+    check_parser.add_argument("--min-score", type=int, default=80, help="Minimum AEO score required to pass (default: 80)")
+    check_parser.add_argument("--fail-on-missing-llms", action="store_true", default=True, help="Fail check if llms.txt is missing (default: True)")
+    check_parser.add_argument("--no-fail-on-missing-llms", dest="fail_on_missing_llms", action="store_false", help="Do not fail on missing llms.txt")
+    check_parser.add_argument("--format", choices=["text", "json", "github"], default="text", help="Output format (default: text)")
+
+    # `aeo bot-audit <url>` / `aeo probe-bots`
+    bot_parser = subparsers.add_parser("bot-audit", help="Probe live URL against 10 AI crawlers to detect WAF blocks & restrictions")
+    bot_parser.add_argument("url", type=str, help="Target URL to test AI crawlers against")
+    bot_parser.add_argument("--timeout", type=float, default=5.0, help="Per-crawler request timeout in seconds (default: 5.0)")
+    bot_parser.add_argument("--format", choices=["text", "json", "markdown"], default="text", help="Output format (default: text)")
+
+    # `aeo compare <url_a> <url_b>`
+    compare_parser = subparsers.add_parser("compare", help="Compare two websites head-to-head for AEO readiness and entity depth")
+    compare_parser.add_argument("url_a", type=str, help="Primary website URL")
+    compare_parser.add_argument("url_b", type=str, help="Competitor website URL")
+    compare_parser.add_argument("--max-pages", type=int, default=5, help="Maximum pages to crawl per site (default: 5)")
+    compare_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format (default: text)")
+
+    # `aeo report <url>`
+    report_parser = subparsers.add_parser("report", help="Generate comprehensive Markdown & standalone HTML AEO audit report")
+    report_parser.add_argument("url", type=str, help="Target website URL to audit")
+    report_parser.add_argument("--competitor-url", type=str, help="Optional competitor URL for benchmark delta analysis")
+    report_parser.add_argument("--output-dir", type=str, default=".", help="Directory to save generated report files (default: .)")
+    report_parser.add_argument("--format", choices=["md", "html", "both"], default="both", help="Report format to generate (default: both)")
 
     # Main root flags
     parser.add_argument("--generate-all", action="store_true", help="Generate complete AEO bundle into output directory")
@@ -417,6 +469,138 @@ def main(args: Optional[List[str]] = None) -> int:
         except Exception as e:
             print(f"❌ Error extracting metadata: {e}", file=sys.stderr)
             return 1
+
+    # Subcommand: init / wizard
+    if parsed_args.subcommand in ("init", "wizard"):
+        overrides = {}
+        if getattr(parsed_args, "framework", None):
+            overrides["framework"] = parsed_args.framework
+        if getattr(parsed_args, "site_name", None):
+            overrides["site_name"] = parsed_args.site_name
+        if getattr(parsed_args, "domain", None):
+            overrides["domain"] = parsed_args.domain
+        if getattr(parsed_args, "niche", None):
+            overrides["niche"] = parsed_args.niche
+        if getattr(parsed_args, "public_dir", None):
+            overrides["public_dir"] = parsed_args.public_dir
+
+        res = run_wizard(
+            project_dir=getattr(parsed_args, "project_dir", "."),
+            non_interactive=getattr(parsed_args, "non_interactive", False),
+            overrides=overrides
+        )
+        return 0 if res.get("success") else 1
+
+    # Subcommand: check
+    if parsed_args.subcommand == "check":
+        target = getattr(parsed_args, "target", ".")
+        min_score = getattr(parsed_args, "min_score", 80)
+        fail_missing = getattr(parsed_args, "fail_on_missing_llms", True)
+        out_fmt = getattr(parsed_args, "format", "text")
+        passed, _, formatted_output = run_ci_check(
+            target_url_or_path=target,
+            min_score=min_score,
+            fail_on_missing_llms=fail_missing,
+            output_format=out_fmt,
+        )
+        print(formatted_output)
+        return 0 if passed else 1
+
+    # Subcommand: bot-audit / probe-bots
+    if parsed_args.subcommand == "bot-audit":
+        target_url = parsed_args.url
+        timeout = getattr(parsed_args, "timeout", 5.0)
+        out_fmt = getattr(parsed_args, "format", "text")
+        print(f"🤖 Probing 10 AI Search Bots against: {target_url} (timeout: {timeout}s)...")
+        inspector = BotInspector()
+        summary = inspector.inspect_all_bots(target_url, timeout=timeout)
+
+        if out_fmt == "json":
+            print(json.dumps(summary, indent=2))
+            return 0
+        elif out_fmt == "markdown":
+            print(inspector.generate_markdown_report(summary))
+            return 0
+
+        # Formatted text output
+        print("\n" + "=" * 70)
+        print("🤖 AI SEARCH BOT & WAF INSPECTION RESULTS")
+        print("=" * 70)
+        print(f"  • Target URL:       {summary['target_url']}")
+        print(f"  • Bots Allowed:     {summary['allowed_count']} / {summary['total_bots']}")
+        print(f"  • Bots Blocked:     {summary['blocked_count']}")
+        print(f"  • Bots Restricted:  {summary['warning_count']}")
+        print(f"  • WAF Detected:     {summary['waf_detected']} ({summary.get('waf_vendor', 'None')})")
+        print(f"  • Server Header:    {summary.get('server_header', 'Unknown')}")
+        print("\nBot Probing Details:")
+        for r in summary["bot_results"]:
+            status_symbol = "✅" if r["status"] == "allowed" else ("⚠️ " if r["status"] == "warning" else "❌")
+            print(f"  {status_symbol} {r['bot_name']:28} (HTTP {r.get('http_status', 'N/A')}, {r.get('latency_ms', 0)}ms) - {r['details']}")
+
+        if summary.get("recommendations"):
+            print("\nActionable Recommendations:")
+            for rec in summary["recommendations"]:
+                print(f"  💡 {rec}")
+        print("=" * 70 + "\n")
+        return 0 if summary["blocked_count"] == 0 else 1
+
+    # Subcommand: compare
+    if parsed_args.subcommand == "compare":
+        url_a = parsed_args.url_a
+        url_b = parsed_args.url_b
+        max_p = getattr(parsed_args, "max_pages", 5)
+        out_fmt = getattr(parsed_args, "format", "text")
+        print(f"⚔️  Benchmarking: {url_a} VS {url_b} (max {max_p} pages/site)...")
+        bench = compare_sites(url_a, url_b, max_pages=max_p)
+
+        if out_fmt == "json":
+            print(json.dumps(bench, indent=2))
+            return 0
+
+        print("\n" + "=" * 70)
+        print("⚔️  HEAD-TO-HEAD AEO BENCHMARK COMPARISON")
+        print("=" * 70)
+        print(f"  • Site A: {bench['site_a']['url']} (Score: {bench['site_a']['score']}/100)")
+        print(f"  • Site B: {bench['site_b']['url']} (Score: {bench['site_b']['score']}/100)")
+        print(f"  • Delta:  {bench['score_delta']:+d} points ({'Site A Leads' if bench['score_delta'] > 0 else ('Site B Leads' if bench['score_delta'] < 0 else 'Tied')})")
+        print(f"  • Category Winners: {json.dumps(bench.get('winners', {}), indent=4)}")
+        print("\nStrategic Action Items:")
+        for tk in bench.get("strategic_takeaways", []):
+            print(f"  [{tk['priority']}] {tk['title']}: {tk['action']}")
+        print("=" * 70 + "\n")
+        return 0
+
+    # Subcommand: report
+    if parsed_args.subcommand == "report":
+        target_url = parsed_args.url
+        comp_url = getattr(parsed_args, "competitor_url", None)
+        out_dir = Path(getattr(parsed_args, "output_dir", ".")).resolve()
+        fmt = getattr(parsed_args, "format", "both")
+
+        print(f"🔍 Generating comprehensive AEO Audit Report for: {target_url}...")
+        scanner = LiveAEOScanner(target_url, max_pages=5)
+        scan_res = scanner.compute_audit_scores()
+
+        bench_res = None
+        if comp_url:
+            print(f"⚔️  Running competitor comparison against: {comp_url}...")
+            bench_res = compare_sites(target_url, comp_url, scan_a=scan_res)
+
+        out_dir.mkdir(parents=True, exist_ok=True)
+        if fmt in ("md", "both"):
+            md_content = generate_markdown_report(scan_res, benchmark_result=bench_res)
+            md_file = out_dir / "AEO_AUDIT_REPORT.md"
+            save_report_to_file(md_content, md_file)
+            print(f"  📄 Saved Markdown Report: {md_file}")
+
+        if fmt in ("html", "both"):
+            html_content = generate_standalone_html_report(scan_res, benchmark_result=bench_res)
+            html_file = out_dir / "aeo_audit_report.html"
+            save_report_to_file(html_content, html_file)
+            print(f"  🌐 Saved Standalone HTML Report: {html_file}")
+
+        print(f"\n✅ Reports generated successfully in: {out_dir}")
+        return 0
 
     # Load custom JSON config if provided
     user_config = {}

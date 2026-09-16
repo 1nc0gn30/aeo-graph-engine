@@ -1,0 +1,150 @@
+---
+export interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+  ogImage?: string;
+  type?: string;
+}
+
+const {
+  title = "DocuSphere - Modern Developer Documentation & Knowledge Platform",
+  description = "DocuSphere transforms markdown repositories into lightning-fast, AI-search-optimized developer documentation hubs with zero JavaScript by default.",
+  canonical = "https://docusphere.dev/",
+  ogImage = "https://docusphere.dev/og-image.png",
+  type = "website"
+} = Astro.props;
+
+// Unified Schema.org Linked Data Graph for Answer Engine Optimization (AEO/GEO)
+const schemaGraph = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://docusphere.dev/#organization",
+      "name": "DocuSphere Open Systems",
+      "url": "https://docusphere.dev",
+      "logo": {
+        "@type": "ImageObject",
+        "@id": "https://docusphere.dev/#logo",
+        "url": "https://docusphere.dev/logo.png",
+        "caption": "DocuSphere Logo"
+      },
+      "sameAs": [
+        "https://github.com/docusphere",
+        "https://x.com/docusphere_dev",
+        "https://discord.gg/docusphere"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "developer support",
+        "email": "hello@docusphere.dev",
+        "url": "https://docusphere.dev/support"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://docusphere.dev/#website",
+      "url": "https://docusphere.dev",
+      "name": "DocuSphere Documentation Platform",
+      "description": "Next-generation static documentation engine built with Astro and zero-JS streaming.",
+      "publisher": {
+        "@id": "https://docusphere.dev/#organization"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://docusphere.dev/search?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://docusphere.dev/#application",
+      "name": "DocuSphere Core Engine",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Cross-platform (Node.js, Deno, Bun)",
+      "description": "High-performance developer documentation generator with automated llms.txt publishing, semantic search, and Schema.org graph generation.",
+      "url": "https://docusphere.dev",
+      "provider": {
+        "@id": "https://docusphere.dev/#organization"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0.00",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/OnlineOnly"
+      },
+      "featureList": [
+        "Zero-Runtime JavaScript by Default with Astro Islands",
+        "Automated llms.txt & llms-full.txt Synthesis on Build",
+        "Integrated Schema.org Graph Injection for Answer Engines",
+        "Interactive Code Walkthroughs and Live Playground Components"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://docusphere.dev/#faq",
+      "name": "DocuSphere Frequently Asked Questions",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does DocuSphere optimize documentation for AI search engines?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "DocuSphere natively produces Schema.org JSON-LD graphs, machine-readable llms.txt files, and AI crawler permissions so LLM agents can accurately cite and summarize documentation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is DocuSphere compatible with Astro 4 and Astro 5?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, DocuSphere is built directly on Astro 4 and 5 content collections, content layer APIs, and hybrid rendering."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I host DocuSphere on static hosts like Cloudflare Pages or Netlify?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. DocuSphere outputs completely static HTML and asset files deployable to any edge CDN, Cloudflare Pages, Vercel, Netlify, or GitHub Pages."
+          }
+        }
+      ]
+    }
+  ]
+};
+---
+
+<!-- Canonical URL -->
+<link rel="canonical" href={canonical} />
+
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+
+<!-- Open Graph / Facebook / AI Search Previews -->
+<meta property="og:type" content={type} />
+<meta property="og:url" content={canonical} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:site_name" content="DocuSphere" />
+
+<!-- Twitter / X Cards -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={canonical} />
+<meta property="twitter:title" content={title} />
+<meta property="twitter:description" content={description} />
+<meta property="twitter:image" content={ogImage} />
+
+<!-- Machine Discovery Links -->
+<link rel="alternate" type="text/plain" href="/llms.txt" title="LLM Agent Summary" />
+<link rel="alternate" type="application/json" href="/schema-graph.json" title="Schema.org Knowledge Graph" />
+
+<!-- Injected Schema.org Linked Data Graph for Answer Engine Optimization (AEO/GEO) -->
+<script type="application/ld+json" set:html={JSON.stringify(schemaGraph)} />

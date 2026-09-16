@@ -1,0 +1,16 @@
+{
+  "context_servers": {
+    "aeo-graph-engine": {
+      "command": {
+        "path": "python3",
+        "args": [
+          "-m",
+          "aeo_graph_engine.mcp_server"
+        ],
+        "env": {
+          "PYTHONPATH": "src:."
+        }
+      }
+    }
+  }
+}

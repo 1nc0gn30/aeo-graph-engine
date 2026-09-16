@@ -5,7 +5,7 @@
 ### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & Google-Grade UI Workbench*
 
 [![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-00f0ff?style=for-the-badge&logo=pypi&logoColor=white)](https://github.com/1nc0gn30/aeo-graph-engine)
-[![Tests](https://img.shields.io/badge/tests-92%2F92%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-168%2F168%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Termux%20%7C%20macOS%20%7C%20Windows-38bdf8?style=for-the-badge&logo=linux&logoColor=white)](docs/PLATFORMS.md)
 [![MCP Protocol](https://img.shields.io/badge/MCP-JSON--RPC%202.0-8b5cf6?style=for-the-badge&logo=anthropic&logoColor=white)](docs/MCP_GUIDE.md)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-fbbf24?style=for-the-badge&logo=python&logoColor=black)](pyproject.toml)
@@ -15,12 +15,12 @@
 
 <p align="center">
   <a href="#-google-designed-aeo-studio-workbench">Google AEO Studio UI</a> •
-  <a href="#-ai-agent-api-keys--local-endpoints-gateway">AI Keys & Local Ports</a> •
-  <a href="#-model-context-protocol-mcp-server--ai-agent-hub">MCP & AI Agents</a> •
-  <a href="#-framework-code-exporters--auto-remediation">Framework Exporters</a> •
-  <a href="docs/PLATFORMS.md">Multi-Platform Guide</a> •
-  <a href="#-live-site-scanner--ai-readiness-crawler">Live Site Crawler</a> •
-  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-interactive-cli-wizard-aeo-init">CLI Wizard</a> •
+  <a href="#-live-ai-search-bot-inspector--waf-probe">Bot WAF Probe</a> •
+  <a href="#%EF%B8%8F-head-to-head-competitor-benchmark">Competitor Benchmark</a> •
+  <a href="#-automated-audit-reports-markdown--html">Audit Reports</a> •
+  <a href="#-cicd-quality-gate--github-actions">CI Quality Gate</a> •
+  <a href="examples/">Examples</a> •
   <a href="#%EF%B8%8F-cli-reference">CLI Reference</a>
 </p>
 
@@ -264,28 +264,32 @@ aeo --validate dist/ --format json
 usage: aeo [-h] [--generate-all] [--output-dir OUTPUT_DIR]
            [--niche {developer_tools,ai_swarm,saas,cybersecurity,spatial_3d,creator,ecommerce,local_business}]
            [--config CONFIG] [--site-name SITE_NAME] [--domain DOMAIN] [--version VERSION]
-           [--format {text,json}] [--jsonld] [--llms] [--llms-full] [--ai-txt] [--robots]
-           [--inject INJECT] [--validate VALIDATE] [--test] [--dry-run]
-           {serve,ui,extract,prompt,scan} ...
+           [--format {text,json,github}] [--jsonld] [--llms] [--llms-full] [--ai-txt] [--robots]
+           [--inject INJECT] [--validate VALIDATE] [--platform] [--test] [--dry-run]
+           {init,wizard,scan,bot-audit,compare,report,check,framework,fix,mcp,prompt,serve,ui,extract,platform} ...
 ```
 
 ### Commands & Subcommands
 
-| Command / Flag | Description |
+| Command / Subcommand | Description |
 | :--- | :--- |
-| `aeo scan <url> [--max-pages 5]` | Live multi-page crawler, sitemap & robots discovery, AEO scorecard, bot compatibility breakdown, and backlink/distribution strategy |
-| `aeo prompt "<description>"` | Synthesize configuration from natural language prompt and generate AEO bundle |
-| `aeo serve [--port 8080]` | Start the Google-styled interactive local AEO Studio UI server |
-| `aeo ui` | Alias for `aeo serve` |
+| `aeo init [dir]` / `aeo wizard` | **Interactive & Scriptable Setup Wizard**: auto-detects frontend framework, profiles repo, generates bundle & framework code |
+| `aeo scan <url> [--max-pages 5]` | **Live Multi-Page Crawler**: audits sitemaps, robots.txt, schema, word counts, and scores site across 5 AEO dimensions |
+| `aeo bot-audit <url> [--timeout 5]` | **AI Bot WAF Inspector**: probes target with authentic User-Agents for 10 AI crawlers to detect Cloudflare/AWS WAF blocks |
+| `aeo compare <url_a> <url_b>` | **Head-to-Head Competitor Benchmark**: compares two sites side-by-side on AEO scores, entity depth, and citation advantages |
+| `aeo report <url> [--format both]` | **Audit Report Exporter**: generates professional GitHub Markdown (`AEO_AUDIT_REPORT.md`) & standalone HTML audit reports |
+| `aeo check [target] [--min-score 80]` | **CI/CD Quality Gate**: enforces minimum AEO score on PRs and builds with GitHub Action annotations |
+| `aeo framework <name> [--output-dir]` | Export typed integration code for Next.js (App/Pages), Astro, Vite, SvelteKit, Remix, Nuxt, Hugo/Jekyll |
+| `aeo fix <url> --framework <name>` | Automatically generate concrete code fixes and remediation plan for missing AEO assets |
+| `aeo mcp [--tools] [--config <client>]` | Start stdio Model Context Protocol (MCP) server or generate JSON config for Claude/Cursor/Cline/Zed |
+| `aeo prompt "<description>"` | Synthesize full AEO configuration and linked data from a natural language description |
+| `aeo serve [--port 8080]` | Start Google Material 3 Light Mode interactive AEO Studio UI Workbench |
+| `aeo platform` | Inspect multi-platform environment details (Linux, Termux Android, macOS, Windows) |
 | `aeo extract <file>` | Extract metadata from an existing HTML file into JSON |
 | `--generate-all` | Generate complete AEO bundle (`schema-graph.json`, `llms.txt`, `llms-full.txt`, `ai.txt`, `robots.txt`) |
-| `--output-dir <dir>` | Target output directory (default: `dist`) |
-| `--niche <preset>` | Select domain preset (`developer_tools`, `saas`, `ai_swarm`, `cybersecurity`, etc.) |
-| `--config <path>` | Path to a custom JSON configuration file |
+| `--validate <path>` | Audit bundle or schema and compute 0–100 AEO Readiness Score |
 | `--inject <file>` | Inject or update Schema.org JSON-LD in target HTML document |
-| `--validate <path>` | Audit and compute 0–100 AEO Readiness Score |
-| `--format {text,json}` | Format validation output as human text or machine JSON (ideal for CI) |
-| `--test` | Run built-in unit tests and zero-drift verification |
+| `--test` | Run built-in unit test suite (168 tests) with zero-drift verification |
 
 ---
 
@@ -403,19 +407,68 @@ jobs:
 
 ---
 
+## 📂 Real-World Reference Examples
+
+Explore production-ready starter implementations in the [`examples/`](examples/) directory:
+
+- ⚛️ **[`examples/nextjs-app-router/`](examples/nextjs-app-router/)**: Complete Next.js 14/15 App Router project with `layout.tsx` Schema.org injection, dynamic `app/robots.ts`, `app/sitemap.ts`, and `app/llms.txt/route.ts`.
+- 🚀 **[`examples/astro-site/`](examples/astro-site/)**: Astro 4/5 integration with reusable `<AeoHead />` component, robots.txt, and llms.txt.
+- ⚡ **[`examples/vite-react-spa/`](examples/vite-react-spa/)**: Vite React single-page app with custom `vite-plugin-aeo` that automatically emits machine manifests during `vite build`.
+- ☁️ **[`examples/saas-landing/`](examples/saas-landing/)**: Production B2B SaaS configuration preset for multi-agent cloud orchestration.
+- 🤖 **[`examples/mcp-clients/`](examples/mcp-clients/)**: Pre-built MCP integration configs for Claude Desktop, Cursor IDE, Cline, and Zed editor.
+
+See the complete guide in [`examples/README.md`](examples/README.md).
+
+---
+
+## 🚦 CI/CD Quality Gate & GitHub Actions
+
+Enforce minimum AEO Readiness scores on pull requests and deployments to prevent SEO/AEO regressions:
+
+```bash
+# Check local bundle or live URL (fails with exit code 1 if score < 85 or llms.txt missing)
+aeo check . --min-score 85 --fail-on-missing-llms
+
+# Output GitHub Actions formatted annotations (::error::, ::warning::)
+aeo check https://mysite.com --format github
+```
+
+### Add to `.github/workflows/aeo-audit.yml`:
+
+```yaml
+name: AEO Quality Gate
+
+on: [push, pull_request]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install & Audit AEO
+        run: |
+          pip install -e .
+          python3 -m aeo_graph_engine.cli check . --min-score 80 --fail-on-missing-llms --format github
+```
+
+---
+
 ## 🧪 Testing & Multi-Platform Verification
 
 Run the full automated test suite:
 
 ```bash
-# Run 86 unit tests across engine, injector, validator, crawler, MCP server, framework exporter, and compat
+# Run 168 unit tests across engine, crawler, WAF probe, benchmark, reporter, wizard, MCP server, framework exporter, and compat
 pytest tests/ -v
 
 # Or run the built-in zero-drift engine test
 aeo --test
 
 # Verify your current platform compatibility & environment info
-aeo --platform
+aeo platform
 ```
 
 ---
@@ -423,7 +476,7 @@ aeo --platform
 ## 🚀 Automated Release Pipeline
 
 Every push to the `main` branch or tag creation (`v*`) triggers the automated release pipeline in `.github/workflows/release.yml`:
-1. Runs full test matrix verification across Linux, macOS, and Windows.
+1. Runs full test matrix verification across Linux, macOS, and Windows across Python 3.9–3.13.
 2. Builds distribution wheel (`.whl`) and source archive (`.tar.gz`).
 3. Computes cryptographic SHA-256 checksums (`dist/SHA256SUMS.txt`).
 4. Generates changelog and creates a published GitHub Release with attached assets.
@@ -433,4 +486,5 @@ Every push to the `main` branch or tag creation (`v*`) triggers the automated re
 ## 📄 License
 
 Licensed under the [MIT License](LICENSE). Extracted and modularized from the [Zoth Studio](https://github.com/NullAITech/zoth-studio) open architecture.
+
 

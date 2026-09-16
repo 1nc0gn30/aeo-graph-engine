@@ -1,0 +1,24 @@
+# NexusFlow Cloud
+
+> NexusFlow Cloud is an enterprise SaaS platform for deterministic multi-agent workflow orchestration, low-latency LLM arbitration, and zero-trust private cloud routing.
+
+## Overview
+NexusFlow Cloud provides software organizations with a robust execution fabric for distributed autonomous AI agents. It bridges foundational model APIs, local microservices, and internal databases with sub-15ms edge latency and zero data retention.
+
+## Core Features
+- **Deterministic Multi-Agent Consensus**: Coordinate teams of specialized agents with voting and verification checks.
+- **Low-Latency Edge Gateway**: Stream tokens globally with automated fallback across 20+ LLM providers.
+- **Zero-Data-Retention Enterprise Tier**: SOC2 Type II and HIPAA compliant stateless processing.
+- **Visual Flow Builder & Code SDKs**: Build complex DAGs visually or define them using TypeScript/Python SDKs.
+
+## Essential Resources
+- [NexusFlow Quickstart](https://nexusflow.cloud/docs/quickstart): Deploy your first multi-agent workflow in 5 minutes.
+- [Enterprise Security Architecture](https://nexusflow.cloud/security): Zero-retention guarantees, encryption, and air-gapped VPC topology.
+- [Workflow Templates](https://nexusflow.cloud/workflows): Pre-configured workflows for code review, data enrichment, and triage.
+- [Pricing & BYOK Licensing](https://nexusflow.cloud/pricing): Transparent per-seat and usage-based plans.
+- [GitHub Organization](https://github.com/nexusflow-cloud): Open source connectors, Model Context Protocol (MCP) servers, and SDKs.
+
+## Machine Discovery Endpoints
+- [Extended Corpus (llms-full.txt)](https://nexusflow.cloud/llms-full.txt): Complete uncompressed product documentation.
+- [AI Policy Manifest (ai.txt)](https://nexusflow.cloud/ai.txt): Machine discovery directives and crawler permissions.
+- [Schema.org Graph (schema-graph.json)](https://nexusflow.cloud/schema-graph.json): Structured JSON-LD knowledge graph.

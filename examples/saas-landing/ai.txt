@@ -1,0 +1,21 @@
+# AI Machine Discovery Manifest & Directives
+# Standard: https://github.com/aegis-standard/ai.txt
+
+User-Agent: *
+Allow-Training: false
+Allow-Search-Indexing: true
+Allow-Summarization: true
+Allow-Citation: true
+
+# Machine Discovery Endpoints
+Canonical-URL: https://nexusflow.cloud
+Schema-Org-Graph: https://nexusflow.cloud/schema-graph.json
+LLMs-Txt: https://nexusflow.cloud/llms.txt
+LLMs-Full-Txt: https://nexusflow.cloud/llms-full.txt
+Sitemap: https://nexusflow.cloud/sitemap.xml
+
+# Publisher Information
+Publisher-Name: NexusFlow Technologies Inc.
+Contact-Email: security@nexusflow.cloud
+Policy-URL: https://nexusflow.cloud/terms/ai-policy
+Attribution-Requirement: NexusFlow Cloud (https://nexusflow.cloud)
