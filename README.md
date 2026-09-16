@@ -5,7 +5,7 @@
 ### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & Google-Grade UI Workbench*
 
 [![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-00f0ff?style=for-the-badge&logo=pypi&logoColor=white)](https://github.com/1nc0gn30/aeo-graph-engine)
-[![Tests](https://img.shields.io/badge/tests-86%2F86%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-92%2F92%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Termux%20%7C%20macOS%20%7C%20Windows-38bdf8?style=for-the-badge&logo=linux&logoColor=white)](docs/PLATFORMS.md)
 [![MCP Protocol](https://img.shields.io/badge/MCP-JSON--RPC%202.0-8b5cf6?style=for-the-badge&logo=anthropic&logoColor=white)](docs/MCP_GUIDE.md)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-fbbf24?style=for-the-badge&logo=python&logoColor=black)](pyproject.toml)
@@ -15,13 +15,13 @@
 
 <p align="center">
   <a href="#-google-designed-aeo-studio-workbench">Google AEO Studio UI</a> •
+  <a href="#-ai-agent-api-keys--local-endpoints-gateway">AI Keys & Local Ports</a> •
   <a href="#-model-context-protocol-mcp-server--ai-agent-hub">MCP & AI Agents</a> •
   <a href="#-framework-code-exporters--auto-remediation">Framework Exporters</a> •
   <a href="docs/PLATFORMS.md">Multi-Platform Guide</a> •
   <a href="#-live-site-scanner--ai-readiness-crawler">Live Site Crawler</a> •
   <a href="#-quick-start">Quick Start</a> •
-  <a href="#%EF%B8%8F-cli-reference">CLI Reference</a> •
-  <a href="#-python-library-api">Python API</a>
+  <a href="#%EF%B8%8F-cli-reference">CLI Reference</a>
 </p>
 
 </div>
@@ -70,6 +70,7 @@ open public/index.html
 
 #### Studio Workbench Capabilities:
 - 🌐 **Live Website Scanner & Multi-Page Crawler**: Enter any live URL (or localhost) to audit real sitemaps, robots.txt, subpages, and calculate live AEO scores.
+- ⚡ **AI Keys & Local Ports Gateway**: Configure API keys for OpenAI, Claude, Groq, Perplexity or connect free local models (Ollama, LM Studio, vLLM) on custom ports.
 - 🪄 **AI Prompt Synthesizer**: Type a 1-sentence prompt (e.g. *"DeFi lending on Solana called SolarYield"*) to auto-generate full Schema, `llms.txt`, and metadata.
 - 🤖 **AI Agent & MCP Hub**: Direct copy-paste configs for Claude Desktop, Cursor, Cline, Zed, and agent system prompt templates.
 - 📦 **Framework Exporter**: One-click production code for Next.js App Router, Astro, Vite + React, SvelteKit, Remix, Nuxt, and Hugo/Jekyll.
@@ -80,6 +81,28 @@ open public/index.html
 - 💉 **Live HTML Schema Injector**: Paste raw HTML to test idempotent script embedding.
 - 🏛️ **AEO Backlink & Citation Playbook**: Actionable high-authority citation targets and niche distribution strategy.
 - 📥 **One-Click `.zip` Export**: Download all generated files in a single clean archive.
+
+---
+
+## ⚡ AI Agent API Keys & Local Endpoints / Port Gateway
+
+`AEO Studio` includes a built-in **AI Provider & Custom Port Management Gateway** accessible directly from the UI or via REST API:
+
+- 🔑 **Cloud AI Provider API Keys**:
+  - **OpenAI** (`OPENAI_API_KEY`): GPT-4o, GPT-4o-mini, o1, o3-mini
+  - **Anthropic** (`ANTHROPIC_API_KEY`): Claude 3.7 Sonnet, Claude 3.5 Sonnet, Claude 3.5 Haiku
+  - **Perplexity AI** (`PERPLEXITY_API_KEY`): Sonar Pro, Sonar Reasoning
+  - **Groq** (`GROQ_API_KEY`): Llama-3.3 70B, DeepSeek R1 Distill (ultra low-latency)
+  - **OpenRouter** (`OPENROUTER_API_KEY`): Access 200+ frontier models with one key
+  - **DeepSeek** (`DEEPSEEK_API_KEY`): DeepSeek V3 & R1
+- 🔌 **Local LLM Endpoints & Ports (100% Free & Private)**:
+  - **Ollama**: Default `http://127.0.0.1:11434` (Port 11434)
+  - **LM Studio**: Default `http://127.0.0.1:1234/v1` (Port 1234)
+  - **vLLM / llama.cpp**: Default `http://127.0.0.1:8000/v1` (Port 8000)
+  - **Hermes Agent / Zoth Memory Daemon**: Default `http://127.0.0.1:8788/v1` (Port 8788)
+  - **AEO MCP Gateway Port**: Port 8091
+- ⚡ **Live Endpoint Latency & Connection Tester**: Ping any endpoint with 1 click to verify available models and response times.
+- 🔮 **Live Answer Engine Perception Simulator**: Query simulated ChatGPT Search & Perplexity engines to verify how AI answer engines perceive and cite your domain.
 
 ---
 

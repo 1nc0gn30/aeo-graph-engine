@@ -686,6 +686,7 @@
       <div class="score-chip" id="topScoreChip">
         <span id="topScoreValue">100 / 100</span> AEO Readiness
       </div>
+      <button class="btn btn-tonal btn-sm" onclick="switchTab('tab-ai-gateway')">⚡ AI Keys & Ports</button>
       <button class="btn btn-outline btn-sm" onclick="triggerAutoDetect()">🔍 Auto-Detect</button>
       <button class="btn btn-primary btn-sm" onclick="downloadZipBundle()">📥 Download .zip</button>
     </div>
@@ -710,52 +711,49 @@
         </div>
       </div>
 
-      <div>
-        <div class="section-header">
-          <span class="section-title">Domain Niche Preset</span>
-        </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label">Domain Presets</label>
         <div class="preset-group">
-          <button class="preset-pill active" onclick="selectPreset('developer_tools')">Developer Tools</button>
-          <button class="preset-pill" onclick="selectPreset('saas')">SaaS</button>
+          <button class="preset-pill active" onclick="selectPreset('developer_tools')">DevTools</button>
           <button class="preset-pill" onclick="selectPreset('ai_swarm')">AI Swarm</button>
+          <button class="preset-pill" onclick="selectPreset('saas')">SaaS</button>
           <button class="preset-pill" onclick="selectPreset('cybersecurity')">Security</button>
-          <button class="preset-pill" onclick="selectPreset('spatial_3d')">3D Spatial</button>
+          <button class="preset-pill" onclick="selectPreset('spatial_3d')">3D / Spatial</button>
           <button class="preset-pill" onclick="selectPreset('creator')">Creator</button>
           <button class="preset-pill" onclick="selectPreset('ecommerce')">E-Commerce</button>
-          <button class="preset-pill" onclick="selectPreset('local_business')">Local Business</button>
+          <button class="preset-pill" onclick="selectPreset('local_business')">Local Biz</button>
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Site / Brand Name</label>
-        <input type="text" class="form-control" id="inpSiteName" value="AEO Graph Engine" oninput="regenerateAll()">
+        <label class="form-label">Site Name</label>
+        <input type="text" id="inpSiteName" class="form-control" value="AEO Graph Engine" oninput="regenerateAll()">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Canonical Domain Name</label>
-        <input type="text" class="form-control" id="inpDomain" value="aeo.nullai.tech" oninput="regenerateAll()">
+        <label class="form-label">Domain Name</label>
+        <input type="text" id="inpDomain" class="form-control" value="aeo-graph.dev" oninput="regenerateAll()">
       </div>
 
       <div class="form-group">
         <label class="form-label">Tagline</label>
-        <input type="text" class="form-control" id="inpTagline" value="Answer Engine Optimization (AEO/GEO) Knowledge Graph & llms.txt Engine" oninput="regenerateAll()">
+        <input type="text" id="inpTagline" class="form-control" value="Answer Engine Optimization (AEO/GEO) Graph Engine" oninput="regenerateAll()">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Description (AI Knowledge Base)</label>
-        <textarea class="form-control" id="inpDescription" oninput="regenerateAll()">Standalone, zero-dependency generator and validator for Schema.org linked data, llms.txt, ai.txt, and AI crawler directives.</textarea>
+        <label class="form-label">Description</label>
+        <textarea id="inpDescription" class="form-control" oninput="regenerateAll()">Autonomous Answer Engine Optimization engine generating Schema.org linked data, llms.txt manifests, and AI crawler governance.</textarea>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Publisher / Organization</label>
-        <input type="text" class="form-control" id="inpPublisher" value="NullAI" oninput="regenerateAll()">
+        <label class="form-label">Publisher / Author</label>
+        <input type="text" id="inpPublisher" class="form-control" value="NullAI / 757tech Team" oninput="regenerateAll()">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Category</label>
-        <select class="form-control" id="inpCategory" onchange="regenerateAll()">
-          <option value="DeveloperApplication">DeveloperApplication</option>
-          <option value="SoftwareApplication">SoftwareApplication</option>
+        <label class="form-label">Primary Entity Type</label>
+        <select id="inpCategory" class="form-control" onchange="regenerateAll()">
+          <option value="SoftwareApplication" selected>SoftwareApplication</option>
           <option value="SecurityApplication">SecurityApplication</option>
           <option value="MultimediaApplication">MultimediaApplication</option>
           <option value="BusinessApplication">BusinessApplication</option>
@@ -770,6 +768,7 @@
         <button class="tab-btn active" onclick="switchTab('tab-scanner')">🌐 Live Scanner</button>
         <button class="tab-btn" onclick="switchTab('tab-frameworks')">📦 Frameworks & Code</button>
         <button class="tab-btn" onclick="switchTab('tab-agent-hub')">🤖 AI Agent & MCP Hub</button>
+        <button class="tab-btn" onclick="switchTab('tab-ai-gateway')">⚡ AI Keys & Ports</button>
         <button class="tab-btn" onclick="switchTab('tab-audit')">📊 AEO Scorecard</button>
         <button class="tab-btn" onclick="switchTab('tab-schema')">🕸️ Schema.org Graph</button>
         <button class="tab-btn" onclick="switchTab('tab-llms')">📄 llms.txt</button>
@@ -979,6 +978,230 @@
             </div>
 
             <div class="code-box" id="codeAgentPrompt"></div>
+          </div>
+        </div>
+
+        <!-- 2.5 AI Keys & Gateway Ports Tab -->
+        <div id="tab-ai-gateway" class="tab-pane">
+          <!-- Hero Banner -->
+          <div class="scanner-hero" style="background:linear-gradient(135deg, #e8f0fe 0%, #f3e8fd 100%);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h2 style="font-size:18px; font-weight:700; color:var(--google-blue); margin-bottom:4px;">
+                  ⚡ AI Agent Keys, Local Endpoints & Gateway Ports
+                </h2>
+                <p style="font-size:13px; color:var(--text-secondary);">
+                  Configure API keys for frontier cloud models (OpenAI, Anthropic, Groq, Perplexity) or connect free private local models (Ollama, LM Studio, vLLM) on custom ports.
+                </p>
+              </div>
+              <span class="brand-badge" style="background:#ffffff; color:var(--google-purple);">Universal Gateway</span>
+            </div>
+          </div>
+
+          <!-- Active Routing & Connection Tester Card -->
+          <div class="card">
+            <div class="card-title">
+              <span>🚀 Active Model Routing & Connection Ping</span>
+              <span class="bot-badge" id="aiActiveEngineBadge">Built-in Offline Engine</span>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+              Select which AI engine handles knowledge graph synthesis and answer engine simulation:
+            </p>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:16px;">
+              <div class="form-group">
+                <label class="form-label">Active Provider Engine</label>
+                <select id="selAiProvider" class="form-control" onchange="onAiProviderChanged()">
+                  <option value="heuristic" selected>⚡ Built-in Rule Engine (100% Offline & Free)</option>
+                  <option value="ollama">🦙 Ollama (Local LLM - Port 11434)</option>
+                  <option value="lm_studio">🔮 LM Studio (Local LLM - Port 1234)</option>
+                  <option value="vllm">🚀 vLLM / llama.cpp (Local - Port 8000)</option>
+                  <option value="openai">🤖 OpenAI (GPT-4o / o3-mini)</option>
+                  <option value="anthropic">🧠 Anthropic (Claude 3.7 / 3.5 Sonnet)</option>
+                  <option value="perplexity">🔍 Perplexity AI (Sonar Pro / Reasoning)</option>
+                  <option value="groq">⚡ Groq (Llama-3.3 70B - Fast Inference)</option>
+                  <option value="openrouter">🌐 OpenRouter (Multi-Model Gateway)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Model Identifier</label>
+                <input type="text" id="inpAiModel" class="form-control" placeholder="default / llama3.2 / gpt-4o / claude-3-5-sonnet">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Creativity / Temperature</label>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <input type="range" id="rngAiTemp" min="0.0" max="1.0" step="0.05" value="0.3" class="form-control" style="padding:0; height:32px;" oninput="document.getElementById('lblAiTemp').innerText = this.value">
+                  <span id="lblAiTemp" style="font-weight:700; font-size:13px; min-width:32px;">0.3</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+              <button class="btn btn-primary" onclick="testCurrentAiConnection()">⚡ Test Connection / Ping Endpoint</button>
+              <button class="btn btn-tonal" onclick="saveAiGatewaySettings()">💾 Save Settings (LocalStorage)</button>
+              <button class="btn btn-outline" onclick="syncAiGatewayToBackend()">📁 Sync to aeo_ai_config.json & .env</button>
+            </div>
+
+            <!-- Ping Result Box -->
+            <div id="aiTestResultBox" style="display:none; padding:12px 16px; border-radius:8px; font-size:13px; margin-top:8px;"></div>
+          </div>
+
+          <!-- Provider API Keys Card -->
+          <div class="card">
+            <div class="card-title">
+              <span>🔑 Frontier AI Cloud Provider API Keys</span>
+              <button class="btn btn-outline btn-sm" onclick="clearAllAiKeys()">🧹 Clear All Keys</button>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+              Keys are stored securely in local browser storage (and optionally synced to your local `.env`):
+            </p>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:14px;">
+              <!-- OpenAI -->
+              <div class="form-group">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label class="form-label">OpenAI API Key (ChatGPT / GPT-4o)</label>
+                  <span class="bot-badge" id="badgeKeyOpenAI">○ Not Set</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <input type="password" id="keyOpenAI" class="form-control" placeholder="sk-proj-..." oninput="updateKeyStatusBadge('OpenAI', this.value)">
+                  <button class="btn btn-outline btn-sm" onclick="toggleKeyVisibility('keyOpenAI')">👁️</button>
+                </div>
+              </div>
+
+              <!-- Anthropic -->
+              <div class="form-group">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label class="form-label">Anthropic API Key (Claude 3.7 / 3.5)</label>
+                  <span class="bot-badge" id="badgeKeyAnthropic">○ Not Set</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <input type="password" id="keyAnthropic" class="form-control" placeholder="sk-ant-api03-..." oninput="updateKeyStatusBadge('Anthropic', this.value)">
+                  <button class="btn btn-outline btn-sm" onclick="toggleKeyVisibility('keyAnthropic')">👁️</button>
+                </div>
+              </div>
+
+              <!-- Perplexity -->
+              <div class="form-group">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label class="form-label">Perplexity API Key (Sonar Pro / Search)</label>
+                  <span class="bot-badge" id="badgeKeyPerplexity">○ Not Set</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <input type="password" id="keyPerplexity" class="form-control" placeholder="pplx-..." oninput="updateKeyStatusBadge('Perplexity', this.value)">
+                  <button class="btn btn-outline btn-sm" onclick="toggleKeyVisibility('keyPerplexity')">👁️</button>
+                </div>
+              </div>
+
+              <!-- Groq -->
+              <div class="form-group">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label class="form-label">Groq API Key (Llama-3.3 / Fast Tokens)</label>
+                  <span class="bot-badge" id="badgeKeyGroq">○ Not Set</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <input type="password" id="keyGroq" class="form-control" placeholder="gsk_..." oninput="updateKeyStatusBadge('Groq', this.value)">
+                  <button class="btn btn-outline btn-sm" onclick="toggleKeyVisibility('keyGroq')">👁️</button>
+                </div>
+              </div>
+
+              <!-- OpenRouter -->
+              <div class="form-group">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label class="form-label">OpenRouter API Key (200+ Models)</label>
+                  <span class="bot-badge" id="badgeKeyOpenRouter">○ Not Set</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <input type="password" id="keyOpenRouter" class="form-control" placeholder="sk-or-v1-..." oninput="updateKeyStatusBadge('OpenRouter', this.value)">
+                  <button class="btn btn-outline btn-sm" onclick="toggleKeyVisibility('keyOpenRouter')">👁️</button>
+                </div>
+              </div>
+
+              <!-- DeepSeek -->
+              <div class="form-group">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label class="form-label">DeepSeek API Key (V3 / R1)</label>
+                  <span class="bot-badge" id="badgeKeyDeepSeek">○ Not Set</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <input type="password" id="keyDeepSeek" class="form-control" placeholder="sk-..." oninput="updateKeyStatusBadge('DeepSeek', this.value)">
+                  <button class="btn btn-outline btn-sm" onclick="toggleKeyVisibility('keyDeepSeek')">👁️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Local Endpoints & Ports Configuration Card -->
+          <div class="card">
+            <div class="card-title">
+              <span>🔌 Local AI Endpoints & Ports (100% Free & Private)</span>
+              <span class="brand-badge" style="background:var(--google-green-surface); color:var(--google-green);">Local GPU / CPU</span>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+              Configure custom ports and endpoints for local LLM inference engines and agent servers:
+            </p>
+
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px;">
+              <div class="form-group">
+                <label class="form-label">Ollama Host & Port (Default: 11434)</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="endpointOllama" class="form-control" value="http://127.0.0.1:11434">
+                  <button class="btn btn-outline btn-sm" onclick="document.getElementById('endpointOllama').value='http://127.0.0.1:11434'">Reset</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">LM Studio Server URL & Port (Default: 1234)</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="endpointLMStudio" class="form-control" value="http://127.0.0.1:1234/v1">
+                  <button class="btn btn-outline btn-sm" onclick="document.getElementById('endpointLMStudio').value='http://127.0.0.1:1234/v1'">Reset</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">vLLM / llama.cpp Server (Default: 8000)</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="endpointVllm" class="form-control" value="http://127.0.0.1:8000/v1">
+                  <button class="btn btn-outline btn-sm" onclick="document.getElementById('endpointVllm').value='http://127.0.0.1:8000/v1'">Reset</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Hermes / Zoth Memory Daemon (Default: 8788)</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="endpointHermesZoth" class="form-control" value="http://127.0.0.1:8788/v1">
+                  <button class="btn btn-outline btn-sm" onclick="document.getElementById('endpointHermesZoth').value='http://127.0.0.1:8788/v1'">Reset</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">AEO MCP Gateway Port (Default: 8091)</label>
+                <input type="number" id="portMcpGateway" class="form-control" value="8091">
+              </div>
+            </div>
+          </div>
+
+          <!-- Answer Engine Perception Simulator Card -->
+          <div class="card">
+            <div class="card-title">
+              <span>🔮 Live Answer Engine Perception Simulator</span>
+              <button class="btn btn-purple btn-sm" onclick="runAnswerEngineSimulation()">🚀 Simulate Perception</button>
+            </div>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
+              Simulate how modern conversational answer engines (ChatGPT Search, Perplexity AI, Claude) perceive, summarize, and cite your project:
+            </p>
+
+            <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
+              <input type="text" id="simBrandName" class="form-control" style="flex:1; min-width:180px;" placeholder="Brand Name (e.g. SolarYield)">
+              <input type="text" id="simDomain" class="form-control" style="flex:1; min-width:180px;" placeholder="Domain (e.g. solaryield.fi)">
+              <button class="btn btn-primary" onclick="runAnswerEngineSimulation()">Ask Answer Engine</button>
+            </div>
+
+            <div id="simOutputBox" style="background:#ffffff; border:1px solid var(--border-divider); border-radius:8px; padding:16px; font-size:13px; line-height:1.6; color:var(--text-primary); min-height:100px;">
+              <span style="color:var(--text-secondary);">Click "Simulate Perception" to generate real-time Answer Engine query output...</span>
+            </div>
           </div>
         </div>
 
@@ -1766,10 +1989,291 @@ Focus on:
       alert("Scanned site metadata successfully loaded into AEO Generator!");
     }
 
+    /* =========================================================================
+       AI Gateway, Provider Keys & Local Port Management
+       ========================================================================= */
+
+    function toggleKeyVisibility(inputId) {
+      const input = document.getElementById(inputId);
+      if (input.type === 'password') {
+        input.type = 'text';
+      } else {
+        input.type = 'password';
+      }
+    }
+
+    function updateKeyStatusBadge(provider, value) {
+      const badge = document.getElementById('badgeKey' + provider);
+      if (!badge) return;
+      if (value && value.trim().length > 0) {
+        badge.innerText = '● Configured';
+        badge.className = 'bot-badge';
+        badge.style.background = 'var(--google-green-surface)';
+        badge.style.color = 'var(--google-green)';
+        badge.style.borderColor = 'rgba(30,142,62,0.3)';
+      } else {
+        badge.innerText = '○ Not Set';
+        badge.className = 'bot-badge';
+        badge.style.background = '';
+        badge.style.color = '';
+        badge.style.borderColor = '';
+      }
+    }
+
+    function onAiProviderChanged() {
+      const provider = document.getElementById('selAiProvider').value;
+      const badge = document.getElementById('aiActiveEngineBadge');
+      const modelInp = document.getElementById('inpAiModel');
+
+      const defaultModels = {
+        'heuristic': 'rule-heuristic-v1',
+        'ollama': 'llama3.2:latest',
+        'lm_studio': 'default',
+        'vllm': 'default',
+        'openai': 'gpt-4o-mini',
+        'anthropic': 'claude-3-5-haiku-20241022',
+        'perplexity': 'sonar-pro',
+        'groq': 'llama-3.3-70b-versatile',
+        'openrouter': 'meta-llama/llama-3.3-70b-instruct'
+      };
+
+      if (!modelInp.value || modelInp.value === 'default' || Object.values(defaultModels).includes(modelInp.value)) {
+        modelInp.value = defaultModels[provider] || 'default';
+      }
+
+      badge.innerText = provider === 'heuristic' ? 'Built-in Offline Engine' : provider.toUpperCase() + ' Engine Active';
+      badge.style.background = provider === 'heuristic' ? 'var(--google-blue-surface)' : 'var(--google-purple-surface)';
+      badge.style.color = provider === 'heuristic' ? 'var(--google-blue)' : 'var(--google-purple)';
+    }
+
+    async function testCurrentAiConnection() {
+      const provider = document.getElementById('selAiProvider').value;
+      const model = document.getElementById('inpAiModel').value;
+      const resBox = document.getElementById('aiTestResultBox');
+
+      resBox.style.display = 'block';
+      resBox.style.background = '#f8f9fa';
+      resBox.style.border = '1px solid var(--border-divider)';
+      resBox.style.color = 'var(--text-primary)';
+      resBox.innerHTML = `<span>⏳ Testing connection to <strong>${provider.toUpperCase()}</strong>...</span>`;
+
+      let endpoint = '';
+      let apiKey = '';
+
+      if (provider === 'ollama') endpoint = document.getElementById('endpointOllama').value;
+      else if (provider === 'lm_studio') endpoint = document.getElementById('endpointLMStudio').value;
+      else if (provider === 'vllm') endpoint = document.getElementById('endpointVllm').value;
+      else if (provider === 'openai') apiKey = document.getElementById('keyOpenAI').value;
+      else if (provider === 'anthropic') apiKey = document.getElementById('keyAnthropic').value;
+      else if (provider === 'perplexity') apiKey = document.getElementById('keyPerplexity').value;
+      else if (provider === 'groq') apiKey = document.getElementById('keyGroq').value;
+      else if (provider === 'openrouter') apiKey = document.getElementById('keyOpenRouter').value;
+
+      try {
+        const res = await fetch('/api/ai/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider: provider,
+            endpoint: endpoint,
+            api_key: apiKey,
+            model: model
+          })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          resBox.style.background = 'var(--google-green-surface)';
+          resBox.style.border = '1px solid rgba(30,142,62,0.3)';
+          resBox.style.color = 'var(--google-green)';
+          resBox.innerHTML = `
+            <strong>${data.message}</strong><br>
+            <span style="font-size:12px; color:var(--text-secondary);">Latency: ${data.latency_ms}ms ${data.models ? '• Available Models: ' + data.models.slice(0, 5).join(', ') : ''}</span>
+          `;
+        } else {
+          resBox.style.background = 'var(--google-red-surface)';
+          resBox.style.border = '1px solid rgba(217,48,37,0.3)';
+          resBox.style.color = 'var(--google-red)';
+          resBox.innerHTML = `<strong>${data.message || 'Connection test failed'}</strong>`;
+        }
+      } catch (e) {
+        resBox.style.background = 'var(--google-red-surface)';
+        resBox.style.border = '1px solid rgba(217,48,37,0.3)';
+        resBox.style.color = 'var(--google-red)';
+        resBox.innerHTML = `<strong>❌ Request error: Could not reach backend server.</strong>`;
+      }
+    }
+
+    function saveAiGatewaySettings() {
+      const settings = {
+        active_provider: document.getElementById('selAiProvider').value,
+        active_model: document.getElementById('inpAiModel').value,
+        temperature: parseFloat(document.getElementById('rngAiTemp').value) || 0.3,
+        endpoints: {
+          ollama: document.getElementById('endpointOllama').value,
+          lm_studio: document.getElementById('endpointLMStudio').value,
+          vllm: document.getElementById('endpointVllm').value,
+          hermes_zoth: document.getElementById('endpointHermesZoth').value
+        },
+        mcp_gateway_port: parseInt(document.getElementById('portMcpGateway').value) || 8091,
+        keys: {
+          openai: document.getElementById('keyOpenAI').value,
+          anthropic: document.getElementById('keyAnthropic').value,
+          perplexity: document.getElementById('keyPerplexity').value,
+          groq: document.getElementById('keyGroq').value,
+          openrouter: document.getElementById('keyOpenRouter').value,
+          deepseek: document.getElementById('keyDeepSeek').value
+        }
+      };
+
+      localStorage.setItem('aeo_ai_gateway_settings', JSON.stringify(settings));
+      alert("✅ AI Gateway keys and ports saved to local browser storage!");
+    }
+
+    async function syncAiGatewayToBackend() {
+      const settings = {
+        active_provider: document.getElementById('selAiProvider').value,
+        active_model: document.getElementById('inpAiModel').value,
+        temperature: parseFloat(document.getElementById('rngAiTemp').value) || 0.3,
+        endpoints: {
+          ollama: document.getElementById('endpointOllama').value,
+          lm_studio: document.getElementById('endpointLMStudio').value,
+          vllm: document.getElementById('endpointVllm').value,
+          hermes_zoth: document.getElementById('endpointHermesZoth').value
+        },
+        mcp_gateway_port: parseInt(document.getElementById('portMcpGateway').value) || 8091,
+        keys: {
+          openai: document.getElementById('keyOpenAI').value,
+          anthropic: document.getElementById('keyAnthropic').value,
+          perplexity: document.getElementById('keyPerplexity').value,
+          groq: document.getElementById('keyGroq').value,
+          openrouter: document.getElementById('keyOpenRouter').value,
+          deepseek: document.getElementById('keyDeepSeek').value
+        }
+      };
+
+      try {
+        const res = await fetch('/api/ai/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(settings)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("✅ Settings successfully synced to backend aeo_ai_config.json!");
+        }
+      } catch (e) {
+        alert("Saved to localStorage (Backend offline/static mode)");
+      }
+    }
+
+    async function loadAiGatewaySettings() {
+      // 1. Try backend
+      try {
+        const res = await fetch('/api/ai/settings');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.active_provider) document.getElementById('selAiProvider').value = data.active_provider;
+          if (data.active_model && data.active_model !== 'default') document.getElementById('inpAiModel').value = data.active_model;
+          if (data.temperature) {
+            document.getElementById('rngAiTemp').value = data.temperature;
+            document.getElementById('lblAiTemp').innerText = data.temperature;
+          }
+          if (data.endpoints) {
+            if (data.endpoints.ollama) document.getElementById('endpointOllama').value = data.endpoints.ollama;
+            if (data.endpoints.lm_studio) document.getElementById('endpointLMStudio').value = data.endpoints.lm_studio;
+            if (data.endpoints.vllm) document.getElementById('endpointVllm').value = data.endpoints.vllm;
+            if (data.endpoints.hermes_zoth) document.getElementById('endpointHermesZoth').value = data.endpoints.hermes_zoth;
+          }
+          if (data.mcp_gateway_port) document.getElementById('portMcpGateway').value = data.mcp_gateway_port;
+          if (data.keys_status) {
+            updateKeyStatusBadge('OpenAI', data.keys_status.openai ? 'set' : '');
+            updateKeyStatusBadge('Anthropic', data.keys_status.anthropic ? 'set' : '');
+            updateKeyStatusBadge('Perplexity', data.keys_status.perplexity ? 'set' : '');
+            updateKeyStatusBadge('Groq', data.keys_status.groq ? 'set' : '');
+            updateKeyStatusBadge('OpenRouter', data.keys_status.openrouter ? 'set' : '');
+            updateKeyStatusBadge('DeepSeek', data.keys_status.deepseek ? 'set' : '');
+          }
+          onAiProviderChanged();
+          return;
+        }
+      } catch (e) {}
+
+      // 2. Fallback to localStorage
+      const local = localStorage.getItem('aeo_ai_gateway_settings');
+      if (local) {
+        try {
+          const cfg = JSON.parse(local);
+          if (cfg.active_provider) document.getElementById('selAiProvider').value = cfg.active_provider;
+          if (cfg.active_model) document.getElementById('inpAiModel').value = cfg.active_model;
+          if (cfg.endpoints) {
+            if (cfg.endpoints.ollama) document.getElementById('endpointOllama').value = cfg.endpoints.ollama;
+            if (cfg.endpoints.lm_studio) document.getElementById('endpointLMStudio').value = cfg.endpoints.lm_studio;
+            if (cfg.endpoints.vllm) document.getElementById('endpointVllm').value = cfg.endpoints.vllm;
+            if (cfg.endpoints.hermes_zoth) document.getElementById('endpointHermesZoth').value = cfg.endpoints.hermes_zoth;
+          }
+          if (cfg.keys) {
+            if (cfg.keys.openai) { document.getElementById('keyOpenAI').value = cfg.keys.openai; updateKeyStatusBadge('OpenAI', cfg.keys.openai); }
+            if (cfg.keys.anthropic) { document.getElementById('keyAnthropic').value = cfg.keys.anthropic; updateKeyStatusBadge('Anthropic', cfg.keys.anthropic); }
+            if (cfg.keys.perplexity) { document.getElementById('keyPerplexity').value = cfg.keys.perplexity; updateKeyStatusBadge('Perplexity', cfg.keys.perplexity); }
+            if (cfg.keys.groq) { document.getElementById('keyGroq').value = cfg.keys.groq; updateKeyStatusBadge('Groq', cfg.keys.groq); }
+            if (cfg.keys.openrouter) { document.getElementById('keyOpenRouter').value = cfg.keys.openrouter; updateKeyStatusBadge('OpenRouter', cfg.keys.openrouter); }
+            if (cfg.keys.deepseek) { document.getElementById('keyDeepSeek').value = cfg.keys.deepseek; updateKeyStatusBadge('DeepSeek', cfg.keys.deepseek); }
+          }
+          onAiProviderChanged();
+        } catch (err) {}
+      }
+    }
+
+    function clearAllAiKeys() {
+      if (!confirm("Are you sure you want to clear all stored API keys?")) return;
+      ['keyOpenAI', 'keyAnthropic', 'keyPerplexity', 'keyGroq', 'keyOpenRouter', 'keyDeepSeek'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      ['OpenAI', 'Anthropic', 'Perplexity', 'Groq', 'OpenRouter', 'DeepSeek'].forEach(name => {
+        updateKeyStatusBadge(name, '');
+      });
+      saveAiGatewaySettings();
+    }
+
+    async function runAnswerEngineSimulation() {
+      const brand = document.getElementById('simBrandName').value.trim() || document.getElementById('inpSiteName').value;
+      const domain = document.getElementById('simDomain').value.trim() || document.getElementById('inpDomain').value;
+      const outBox = document.getElementById('simOutputBox');
+
+      outBox.innerHTML = `<span>⏳ Simulating Perplexity & ChatGPT Search Knowledge Graph Query for <strong>${brand}</strong>...</span>`;
+
+      try {
+        const res = await fetch('/api/ai/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brand_name: brand, domain: domain })
+        });
+        const data = await res.json();
+
+        outBox.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--border-divider); padding-bottom:8px;">
+            <div style="font-weight:700; color:var(--google-blue); font-size:14px;">🔍 Query: "${data.query}"</div>
+            <span class="bot-badge" style="background:var(--google-green-surface); color:var(--google-green);">Citation Confidence: ${data.citation_confidence}</span>
+          </div>
+          <div style="white-space:pre-wrap; margin-bottom:12px;">${data.simulated_answer}</div>
+          <div style="font-size:12px; color:var(--text-secondary); border-top:1px dashed var(--border-divider); padding-top:8px;">
+            <strong>📚 Sources Grounded & Cited:</strong>
+            <ul style="margin-left:20px; margin-top:4px;">
+              ${(data.top_sources_cited || []).map(s => `<li><a href="${s}" target="_blank" style="color:var(--google-blue);">${s}</a></li>`).join('')}
+            </ul>
+          </div>
+        `;
+      } catch (e) {
+        outBox.innerHTML = `<span style="color:var(--google-red);">❌ Could not run simulation: Backend endpoint unreachable.</span>`;
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       regenerateAll();
       selectMcpClient('claude_desktop');
       selectAgentPrompt('engineer');
+      loadAiGatewaySettings();
     });
   </script>
 </body>

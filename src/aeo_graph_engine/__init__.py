@@ -45,6 +45,7 @@ from .compat import (
     to_posix_path,
     resolve_path,
 )
+from .ai_gateway import AIGateway, DEFAULT_AI_GATEWAY_CONFIG
 from .ui_server import start_ui_server
 from .presets import DEFAULT_CONFIG, NICHE_PRESETS
 
@@ -74,6 +75,8 @@ __all__ = [
     "MCPServer",
     "generate_mcp_client_config",
     "run_stdio_server",
+    "AIGateway",
+    "DEFAULT_AI_GATEWAY_CONFIG",
     "is_windows",
     "is_macos",
     "is_linux",

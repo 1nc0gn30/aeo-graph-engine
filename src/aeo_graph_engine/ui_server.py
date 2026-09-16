@@ -33,6 +33,7 @@ from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
 from .scanner import LiveAEOScanner
 from .framework_exporter import FrameworkExporter, AEORemediationGenerator
 from .mcp_server import MCPServer, generate_mcp_client_config
+from .ai_gateway import AIGateway, DEFAULT_AI_GATEWAY_CONFIG
 from .presets import NICHE_PRESETS, DEFAULT_CONFIG
 
 
@@ -1804,6 +1805,18 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
         path = parsed.path
 
         if path in ("/", "/index.html", "/ui", "/ui/"):
+            # Check local public/index.html for live development, fallback to embedded template
+            for candidate in [
+                Path("public/index.html"),
+                Path(__file__).parent.parent.parent / "public" / "index.html",
+                Path(__file__).parent / "public" / "index.html",
+            ]:
+                if candidate.exists():
+                    try:
+                        with open(candidate, "r", encoding="utf-8") as f:
+                            return self._send_html(f.read())
+                    except Exception:
+                        pass
             return self._send_html(STUDIO_HTML_TEMPLATE)
 
         if path == "/api/status":
@@ -1850,6 +1863,10 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.write(zip_bytes)
             return
 
+        if path == "/api/ai/settings":
+            gateway = AIGateway()
+            return self._send_json(gateway.get_public_status())
+
         self.send_error(404, "Endpoint not found")
 
     def do_POST(self):
@@ -1864,6 +1881,28 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
                 payload = json.loads(body.decode("utf-8"))
             except Exception:
                 pass
+
+        if path == "/api/ai/settings":
+            gateway = AIGateway()
+            saved = gateway.save_config(payload)
+            return self._send_json({"success": saved, "status": gateway.get_public_status()})
+
+        if path == "/api/ai/test":
+            gateway = AIGateway()
+            provider = payload.get("provider", "heuristic")
+            endpoint = payload.get("endpoint")
+            api_key = payload.get("api_key")
+            model = payload.get("model")
+            res = gateway.test_connection(provider, endpoint=endpoint, api_key=api_key, model=model)
+            return self._send_json(res)
+
+        if path == "/api/ai/simulate":
+            gateway = AIGateway()
+            brand_name = payload.get("brand_name", "My App")
+            domain = payload.get("domain", "example.com")
+            query = payload.get("query")
+            res = gateway.simulate_answer_engine_perception(brand_name, domain, query=query)
+            return self._send_json(res)
 
         if path == "/api/export-framework":
             fw_name = payload.get("framework", "nextjs_app")

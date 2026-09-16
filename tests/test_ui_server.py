@@ -65,6 +65,39 @@ def test_ui_server_get_html():
             assert "ai_engine_compatibility" in scan_res
             assert "backlink_and_distribution_intelligence" in scan_res
 
+        # Test GET /api/ai/settings
+        ai_set_url = f"http://{host}:{port}/api/ai/settings"
+        with urllib.request.urlopen(ai_set_url) as response:
+            assert response.status == 200
+            ai_data = json.loads(response.read().decode("utf-8"))
+            assert "active_provider" in ai_data
+            assert "endpoints" in ai_data
+
+        # Test POST /api/ai/test
+        ai_test_url = f"http://{host}:{port}/api/ai/test"
+        ai_test_req = urllib.request.Request(
+            ai_test_url,
+            data=json.dumps({"provider": "heuristic"}).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(ai_test_req) as response:
+            assert response.status == 200
+            test_res = json.loads(response.read().decode("utf-8"))
+            assert test_res["success"] is True
+
+        # Test POST /api/ai/simulate
+        sim_url = f"http://{host}:{port}/api/ai/simulate"
+        sim_req = urllib.request.Request(
+            sim_url,
+            data=json.dumps({"brand_name": "TestBrand", "domain": "testbrand.io"}).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(sim_req) as response:
+            assert response.status == 200
+            sim_res = json.loads(response.read().decode("utf-8"))
+            assert "TestBrand" in sim_res["simulated_answer"]
+            assert "testbrand.io" in sim_res["simulated_answer"]
+
     finally:
         server.shutdown()
         server.server_close()
