@@ -122,8 +122,11 @@ def build_parser() -> argparse.ArgumentParser:
     prompt_parser.add_argument("--niche", choices=list(NICHE_PRESETS.keys()), help="Optional base domain niche")
     prompt_parser.add_argument("--dry-run", action="store_true", help="Preview synthesized JSON without writing files")
 
-    # `aeo schema`
-    subparsers.add_parser("schema", help="Output JSON-Schema definition for AI agent tool calling")
+    # `aeo scan <url>`
+    scan_parser = subparsers.add_parser("scan", help="Crawl a live website and compute real AEO scores and backlink intelligence")
+    scan_parser.add_argument("url", type=str, help="Target live website URL (e.g. https://example.com)")
+    scan_parser.add_argument("--max-pages", type=int, default=5, help="Maximum internal pages to crawl (default: 5)")
+    scan_parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format (default: text)")
 
     # `aeo extract <file>`
     extract_parser = subparsers.add_parser("extract", help="Extract metadata from an HTML file")
@@ -171,6 +174,56 @@ def main(args: Optional[List[str]] = None) -> int:
     # Subcommand: schema
     if parsed_args.subcommand == "schema":
         print(json.dumps(get_agent_json_schema(), indent=2))
+        return 0
+
+    # Subcommand: scan
+    if parsed_args.subcommand == "scan":
+        from .scanner import LiveAEOScanner
+        target_url = parsed_args.url
+        max_pages = getattr(parsed_args, "max_pages", 5)
+        print(f"🚀 Scanning live website: {target_url} (Crawl limit: {max_pages} pages)...")
+        scanner = LiveAEOScanner(target_url, max_pages=max_pages)
+        report = scanner.compute_audit_scores()
+
+        if parsed_args.format == "json":
+            print(json.dumps(report, indent=2, ensure_ascii=False))
+            return 0
+
+        # Formatted human text report
+        print("\n" + "=" * 70)
+        print(f"🌐 LIVE AEO AUDIT REPORT: {report['target_url']}")
+        print("=" * 70)
+        print(f"📊 Overall AEO Readiness Score: {report['overall_aeo_score']} / 100 ({report['status']})")
+        print(f"📄 Pages Audited: {report['pages_audited_count']}")
+
+        print("\n--- [1] Category Score Breakdown ---")
+        for cat_name, cat_data in report["category_scores"].items():
+            readable_name = cat_name.replace("_", " ").title()
+            print(f"  • {readable_name:30}: {cat_data['score']:4.1f} / {cat_data['max']:4.1f}")
+
+        print("\n--- [2] Root Machine Discovery Assets ---")
+        for asset_name, asset_info in report["root_assets"].items():
+            status_icon = "✅ Found" if asset_info["exists"] else f"❌ Missing ({asset_info['status']})"
+            print(f"  • {asset_name:22}: {status_icon}")
+
+        print("\n--- [3] AI Engine Compatibility Matrix ---")
+        for bot_name, bot_info in report["ai_engine_compatibility"].items():
+            status_str = "✅ Allowed" if bot_info.get("allowed") else "❌ Blocked / Restricted"
+            print(f"  🤖 {bot_name:36}: {status_str}")
+
+        if report.get("action_items"):
+            print("\n--- [4] Prioritized Action Items ---")
+            for item in report["action_items"]:
+                print(f"  [{item['priority']}] {item['category']}: {item['issue']}")
+                print(f"        -> Fix: {item['fix']}")
+
+        strategy = report.get("backlink_and_distribution_intelligence", {})
+        if strategy.get("high_authority_citation_hubs"):
+            print("\n--- [5] High-Authority Backlink & AI Citation Targets ---")
+            for hub in strategy["high_authority_citation_hubs"][:3]:
+                print(f"  🔗 {hub['platform']}: {hub['action']}")
+
+        print("=" * 70 + "\n")
         return 0
 
     # Subcommand: prompt

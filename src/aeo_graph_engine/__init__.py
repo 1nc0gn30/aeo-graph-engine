@@ -21,6 +21,8 @@ from .injector import inject_jsonld_into_html, inject_file
 from .validator import validate_aeo_bundle, AEODiagnosticReport
 from .extractor import extract_metadata_from_html, extract_from_file
 from .discovery import discover_project_metadata
+from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
+from .scanner import LiveAEOScanner
 from .ui_server import start_ui_server
 from .presets import DEFAULT_CONFIG, NICHE_PRESETS
 
@@ -40,6 +42,9 @@ __all__ = [
     "extract_metadata_from_html",
     "extract_from_file",
     "discover_project_metadata",
+    "synthesize_config_from_prompt",
+    "get_agent_json_schema",
+    "LiveAEOScanner",
     "start_ui_server",
     "DEFAULT_CONFIG",
     "NICHE_PRESETS",

@@ -23,6 +23,7 @@ def test_ui_server_get_html():
             assert "AEO Studio" in html
             assert "Google Sans" in html
             assert "google-dots" in html
+            assert "Live Multi-Page AEO &amp; AI Readiness Crawler" in html or "Live Multi-Page AEO & AI Readiness Crawler" in html
 
         # Test API Status
         status_url = f"http://{host}:{port}/api/status"
@@ -51,6 +52,18 @@ def test_ui_server_get_html():
             assert response.status == 200
             inj_res = json.loads(response.read().decode("utf-8"))
             assert "<script type=\"application/ld+json\">" in inj_res["injected_html"]
+
+        # Test API Live Scan endpoint on self
+        scan_url = f"http://{host}:{port}/api/scan"
+        scan_data = json.dumps({"url": f"http://{host}:{port}", "max_pages": 1}).encode("utf-8")
+        scan_req = urllib.request.Request(scan_url, data=scan_data, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(scan_req) as response:
+            assert response.status == 200
+            scan_res = json.loads(response.read().decode("utf-8"))
+            assert "overall_aeo_score" in scan_res
+            assert "category_scores" in scan_res
+            assert "ai_engine_compatibility" in scan_res
+            assert "backlink_and_distribution_intelligence" in scan_res
 
     finally:
         server.shutdown()

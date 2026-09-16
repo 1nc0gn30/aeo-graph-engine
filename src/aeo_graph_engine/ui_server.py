@@ -2,7 +2,7 @@
 Interactive Web UI & REST API Server for AEO Graph Engine.
 Delivers a Google-designed light mode AEO Studio dashboard with real-time
 Schema.org visualization, llms.txt compiler, HTML injector, AI prompt synthesizer,
-and AEO audit scoring. Zero external runtime dependencies.
+live multi-page website crawler & audit scoring. Zero external runtime dependencies.
 """
 
 import sys
@@ -29,6 +29,7 @@ from .validator import validate_aeo_bundle, validate_schema_jsonld_dict, AEODiag
 from .extractor import extract_metadata_from_html
 from .discovery import discover_project_metadata
 from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
+from .scanner import LiveAEOScanner
 from .presets import NICHE_PRESETS, DEFAULT_CONFIG
 
 
@@ -477,6 +478,8 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     }
     .status-icon { font-size: 15px; }
     .status-pass { color: var(--google-green); }
+    .status-warn { color: var(--google-yellow); }
+    .status-fail { color: var(--google-red); }
 
     /* Code Viewers */
     .code-box {
@@ -529,26 +532,149 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     /* Bot Crawler Matrix */
     .bot-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
     }
     .bot-card {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px 14px;
       background: #ffffff;
       border: 1px solid var(--border-divider);
       border-radius: 8px;
     }
-    .bot-name { font-weight: 600; font-size: 13px; }
+    .bot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .bot-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
     .bot-badge {
       font-size: 11px;
       font-weight: 700;
-      padding: 2px 7px;
+      padding: 2px 8px;
       border-radius: 12px;
       background: var(--google-green-surface);
       color: var(--google-green);
+    }
+    .bot-badge-warn {
+      background: var(--google-yellow-surface);
+      color: var(--google-yellow);
+    }
+    .bot-badge-fail {
+      background: var(--google-red-surface);
+      color: var(--google-red);
+    }
+    .bot-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* Scanner Specific Styles */
+    .scanner-hero {
+      background: linear-gradient(135deg, #e8f0fe 0%, #f1f3f4 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .scanner-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .scanner-input {
+      flex: 1;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      padding: 10px 16px;
+      border-radius: 24px;
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(60,64,67,0.1);
+    }
+    .scanner-input:focus {
+      outline: none;
+      border-color: var(--google-blue);
+      box-shadow: 0 0 0 3px var(--google-blue-surface);
+    }
+
+    .badge-pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .asset-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #f1f3f4;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-divider);
+    }
+    .asset-badge.found {
+      background: var(--google-green-surface);
+      color: var(--google-green);
+      border-color: rgba(30,142,62,0.3);
+    }
+    .asset-badge.missing {
+      background: var(--google-red-surface);
+      color: var(--google-red);
+      border-color: rgba(217,48,37,0.3);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border-divider);
+      border-radius: 8px;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    table.data-table th {
+      background: #f8f9fa;
+      padding: 10px 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-divider);
+      white-space: nowrap;
+    }
+    table.data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-divider);
+      color: var(--text-primary);
+      vertical-align: top;
+    }
+    table.data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Progress bar */
+    .progress-bar-wrap {
+      background: #e8eaed;
+      border-radius: 8px;
+      height: 8px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--google-blue);
+      border-radius: 8px;
+      transition: width 0.4s ease;
     }
 
     /* Guide Section Cards */
@@ -575,6 +701,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       .app-layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
       .sidebar { border-right: none; border-bottom: 1px solid var(--border-divider); height: auto; }
       .audit-grid { grid-template-columns: 1fr; }
+      .scanner-bar { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
@@ -679,7 +806,8 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     <!-- Main Panel -->
     <main class="main-panel">
       <nav class="tabs-bar">
-        <button class="tab-btn active" onclick="switchTab('tab-audit')">📊 AEO Scorecard</button>
+        <button class="tab-btn active" onclick="switchTab('tab-scanner')">🌐 Live Site Scanner</button>
+        <button class="tab-btn" onclick="switchTab('tab-audit')">📊 AEO Scorecard</button>
         <button class="tab-btn" onclick="switchTab('tab-schema')">🕸️ Schema.org Graph</button>
         <button class="tab-btn" onclick="switchTab('tab-llms')">📄 llms.txt</button>
         <button class="tab-btn" onclick="switchTab('tab-llms-full')">📚 llms-full.txt</button>
@@ -690,8 +818,141 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       </nav>
 
       <div class="tab-content-area">
+
+        <!-- 0. Live Site Scanner Tab -->
+        <div id="tab-scanner" class="tab-pane active">
+          <div class="scanner-hero">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
+                  🌐 Live Multi-Page AEO & AI Readiness Crawler
+                </h2>
+                <p style="font-size:13px; color:var(--text-secondary);">
+                  Crawl any live URL, inspect sitemaps, audit robots.txt & llms.txt, test AI search bot policies, and get actionable citation & backlink intelligence.
+                </p>
+              </div>
+              <span class="brand-badge">Real Time</span>
+            </div>
+
+            <div class="scanner-bar">
+              <input type="url" id="inpScanUrl" class="scanner-input" placeholder="https://example.com (or http://127.0.0.1:8090)" value="http://127.0.0.1:8090" onkeydown="if(event.key==='Enter') executeLiveScan()">
+              <select id="selScanMaxPages" class="form-control" style="width:130px; border-radius:20px; font-weight:500;">
+                <option value="1">1 Page (Root)</option>
+                <option value="3">3 Pages</option>
+                <option value="5" selected>5 Pages</option>
+                <option value="10">10 Pages</option>
+              </select>
+              <button id="btnRunScan" class="btn btn-primary" onclick="executeLiveScan()">🚀 Scan Website</button>
+            </div>
+
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <span style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Quick Tests:</span>
+              <button class="btn btn-outline btn-sm" onclick="quickScan('http://127.0.0.1:8090')">Localhost (8090)</button>
+              <button class="btn btn-outline btn-sm" onclick="quickScan('https://python.org')">python.org</button>
+              <button class="btn btn-outline btn-sm" onclick="quickScan('https://schema.org')">schema.org</button>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div id="scanLoadingState" style="display:none; text-align:center; padding:40px 20px;">
+            <div style="font-size:32px; animation:spin 1s linear infinite; display:inline-block;">⚡</div>
+            <div style="font-weight:600; margin-top:12px; font-size:16px;">Crawling live domain & auditing machine discovery layers...</div>
+            <div style="color:var(--text-secondary); font-size:13px; margin-top:4px;">Inspecting robots.txt, llms.txt, schema graphs, internal subpages & AI crawler policies...</div>
+          </div>
+
+          <!-- Scan Results Area -->
+          <div id="scanResultsArea" style="display:none;">
+            <!-- Overall Score & Category Breakdown -->
+            <div class="card">
+              <div class="audit-grid">
+                <div class="gauge-container" id="scanScoreGauge">
+                  <div class="gauge-num" id="scanScoreNum">--</div>
+                  <div class="gauge-label" id="scanScoreLabel">AEO READINESS</div>
+                </div>
+                <div>
+                  <div class="card-title" style="margin-bottom:10px;">
+                    Category Score Breakdown
+                    <button class="btn btn-tonal btn-sm" onclick="applyScanToGenerator()">🪄 1-Click Fix with Generator</button>
+                  </div>
+                  <div style="display:flex; flex-direction:column; gap:10px;" id="scanCategoryBars">
+                    <!-- Dynamic categories injected by JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Root Assets Found -->
+            <div class="card">
+              <div class="card-title">Root Machine Discovery Manifests</div>
+              <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">
+                Direct verification of standardized root files queried by modern LLM retrieval agents:
+              </p>
+              <div class="badge-pill-group" id="scanRootAssetsBadges"></div>
+            </div>
+
+            <!-- AI Engine Compatibility Matrix -->
+            <div class="card">
+              <div class="card-title">AI Search Engine Bot Access & Compatibility</div>
+              <p style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">
+                How top AI search crawlers access and ingest your content based on live robots.txt and schema structures:
+              </p>
+              <div class="bot-grid" id="scanBotGrid"></div>
+            </div>
+
+            <!-- Actionable Optimization Items -->
+            <div class="card">
+              <div class="card-title">Priority Action Items for Answer Engine Ranking</div>
+              <div id="scanActionItemsList" style="display:flex; flex-direction:column; gap:10px;"></div>
+            </div>
+
+            <!-- Crawled Pages Table -->
+            <div class="card">
+              <div class="card-title">
+                <span>Crawled Pages Breakdown (<span id="scanPagesCount">0</span>)</span>
+              </div>
+              <div class="table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Page URL</th>
+                      <th>Status</th>
+                      <th>Title & H1</th>
+                      <th>Word Count</th>
+                      <th>Schema Entities</th>
+                      <th>Links (In/Ext)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="scanPagesTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Backlinks & AI Citation Distribution Strategy -->
+            <div class="card">
+              <div class="card-title">AEO Backlinks & High-Authority Citation Strategy</div>
+              <p style="font-size:12px; color:var(--text-secondary); margin-bottom:14px;">
+                AI answer engines (Perplexity, ChatGPT, Claude) build factual confidence through Co-Citation graphs across high-authority domains.
+              </p>
+              
+              <div style="margin-bottom:16px;">
+                <div style="font-size:13px; font-weight:700; color:var(--google-blue); margin-bottom:8px;">
+                  🏛️ Primary Knowledge Graph Anchors & LLM Indexing Hubs
+                </div>
+                <div id="scanCitationHubsList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px;"></div>
+              </div>
+
+              <div>
+                <div style="font-size:13px; font-weight:700; color:var(--google-purple); margin-bottom:8px;">
+                  🎯 Vertical & Domain-Specific Distribution Channels
+                </div>
+                <div id="scanNicheChannelsList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 1. Audit Scorecard -->
-        <div id="tab-audit" class="tab-pane active">
+        <div id="tab-audit" class="tab-pane">
           <div class="card">
             <div class="audit-grid">
               <div class="gauge-container">
@@ -779,20 +1040,32 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="card-title">AI Search Engine Bot Directives</div>
             <div class="bot-grid">
               <div class="bot-card">
-                <span class="bot-name">ChatGPT (GPTBot)</span>
-                <span class="bot-badge">Allowed</span>
+                <div class="bot-header">
+                  <span class="bot-name">ChatGPT (GPTBot)</span>
+                  <span class="bot-badge">Allowed</span>
+                </div>
+                <div class="bot-desc">Direct search indexer for OpenAI ChatGPT search retrieval.</div>
               </div>
               <div class="bot-card">
-                <span class="bot-name">Perplexity (PerplexityBot)</span>
-                <span class="bot-badge">Allowed</span>
+                <div class="bot-header">
+                  <span class="bot-name">Perplexity (PerplexityBot)</span>
+                  <span class="bot-badge">Allowed</span>
+                </div>
+                <div class="bot-desc">Real-time web search crawler for Perplexity answer citations.</div>
               </div>
               <div class="bot-card">
-                <span class="bot-name">Claude (ClaudeBot)</span>
-                <span class="bot-badge">Allowed</span>
+                <div class="bot-header">
+                  <span class="bot-name">Claude (ClaudeBot)</span>
+                  <span class="bot-badge">Allowed</span>
+                </div>
+                <div class="bot-desc">Anthropic retrieval agent for Claude artifacts & knowledge.</div>
               </div>
               <div class="bot-card">
-                <span class="bot-name">Apple (Applebot-Ext)</span>
-                <span class="bot-badge">Allowed</span>
+                <div class="bot-header">
+                  <span class="bot-name">Apple (Applebot-Ext)</span>
+                  <span class="bot-badge">Allowed</span>
+                </div>
+                <div class="bot-desc">Apple Intelligence indexing for Siri & Spotlight answers.</div>
               </div>
             </div>
           </div>
@@ -871,9 +1144,9 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
 
             <div class="guide-box">
-              <div class="guide-title">4. Automated HTML Injection</div>
+              <div class="guide-title">4. Live Multi-Page Crawler & Verification</div>
               <div class="guide-desc">
-                The engine includes an idempotent injection harness that replaces or embeds <code>&lt;script type="application/ld+json"&gt;</code> tags into built HTML files during your build step (Vite, Next.js, Astro) with zero drift.
+                The engine includes a live URL scanner that crawls your internal pages, verifies robots.txt and sitemaps, inspects JSON-LD tags, and scores your site across 5 critical AEO dimensions.
               </div>
             </div>
           </div>
@@ -883,32 +1156,41 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
         <div id="tab-api" class="tab-pane">
           <div class="card">
             <div class="card-title">CLI Quickstart</div>
-            <div class="code-box"># 1. Synthesize from natural language prompt
+            <div class="code-box"># 1. Live crawl and audit any website
+aeo scan https://example.com --max-pages 5
+
+# 2. Synthesize from natural language prompt
 aeo prompt "An AI resume builder called CVForge on cvforge.app" --output-dir dist/
 
-# 2. Extract metadata from existing HTML
+# 3. Extract metadata from existing HTML
 aeo extract dist/index.html
 
-# 3. Validate existing site
+# 4. Validate existing site directory
 aeo --validate dist/ --format json
 
-# 4. Start interactive local Studio
+# 5. Start interactive local Studio
 aeo serve --port 8080</div>
           </div>
 
           <div class="card">
             <div class="card-title">Python Programmatic Library Usage</div>
             <div class="code-box">from aeo_graph_engine import (
+    LiveAEOScanner,
     synthesize_config_from_prompt,
     write_aeo_bundle,
     validate_aeo_bundle
 )
 
-# Synthesize and generate in 3 lines
+# 1. Crawl & Audit Live Website
+scanner = LiveAEOScanner("https://example.com", max_pages=5)
+results = scanner.compute_audit_scores()
+print(f"Overall AEO Score: {results['overall_aeo_score']}/100")
+
+# 2. Synthesize and generate in 3 lines
 config = synthesize_config_from_prompt("My SaaS on mysaas.com")
 write_aeo_bundle("./dist", config=config, inject_html_files=["./dist/index.html"])
 report = validate_aeo_bundle("./dist")
-print(f"Score: {report.score}/100")</div>
+print(f"Bundle Score: {report.score}/100")</div>
           </div>
         </div>
       </div>
@@ -918,6 +1200,7 @@ print(f"Score: {report.score}/100")</div>
   <script>
     const PRESETS = """ + json.dumps(NICHE_PRESETS) + """;
     let currentNiche = 'developer_tools';
+    let lastScanData = null;
 
     function selectPreset(nicheKey) {
       currentNiche = nicheKey;
@@ -1060,6 +1343,219 @@ print(f"Score: {report.score}/100")</div>
       }
     }
 
+    /* Live Scanner Functions */
+    function quickScan(url) {
+      document.getElementById('inpScanUrl').value = url;
+      executeLiveScan();
+    }
+
+    async function executeLiveScan() {
+      const targetUrl = document.getElementById('inpScanUrl').value.trim();
+      const maxPages = document.getElementById('selScanMaxPages').value;
+      if (!targetUrl) {
+        alert("Please enter a valid website URL to scan.");
+        return;
+      }
+
+      const btn = document.getElementById('btnRunScan');
+      const loader = document.getElementById('scanLoadingState');
+      const results = document.getElementById('scanResultsArea');
+
+      btn.disabled = true;
+      btn.innerText = "Scanning...";
+      loader.style.display = 'block';
+      results.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: targetUrl, max_pages: parseInt(maxPages) })
+        });
+        const data = await res.json();
+        if (data.error) {
+          alert("Scan Error: " + data.error);
+          return;
+        }
+
+        lastScanData = data;
+        renderScanResults(data);
+        results.style.display = 'block';
+      } catch (e) {
+        alert("Failed to scan: " + e);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "🚀 Scan Website";
+        loader.style.display = 'none';
+      }
+    }
+
+    function renderScanResults(data) {
+      // 1. Overall Score
+      const score = data.overall_aeo_score || 0;
+      document.getElementById('scanScoreNum').innerText = score;
+      document.getElementById('scanScoreLabel').innerText = (data.status || 'AEO AUDIT').replace('_', ' ');
+
+      const gauge = document.getElementById('scanScoreGauge');
+      if (score >= 80) {
+        gauge.style.background = 'var(--google-green-surface)';
+        gauge.style.borderColor = 'rgba(30,142,62,0.3)';
+        document.getElementById('scanScoreNum').style.color = 'var(--google-green)';
+      } else if (score >= 50) {
+        gauge.style.background = 'var(--google-yellow-surface)';
+        gauge.style.borderColor = 'rgba(249,171,0,0.3)';
+        document.getElementById('scanScoreNum').style.color = 'var(--google-yellow)';
+      } else {
+        gauge.style.background = 'var(--google-red-surface)';
+        gauge.style.borderColor = 'rgba(217,48,37,0.3)';
+        document.getElementById('scanScoreNum').style.color = 'var(--google-red)';
+      }
+
+      // 2. Category Bars
+      const barsContainer = document.getElementById('scanCategoryBars');
+      barsContainer.innerHTML = '';
+      for (const [key, cat] of Object.entries(data.category_scores || {})) {
+        const pct = Math.round((cat.score / cat.max) * 100);
+        const name = key.replace(/_/g, ' ').toUpperCase();
+        const row = document.createElement('div');
+        row.innerHTML = `
+          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600;">
+            <span>${name}</span>
+            <span>${cat.score} / ${cat.max} pts (${pct}%)</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${pct}%; background:${pct >= 75 ? 'var(--google-green)' : pct >= 40 ? 'var(--google-yellow)' : 'var(--google-red)'};"></div>
+          </div>
+        `;
+        barsContainer.appendChild(row);
+      }
+
+      // 3. Root Assets Badges
+      const assetBadges = document.getElementById('scanRootAssetsBadges');
+      assetBadges.innerHTML = '';
+      for (const [key, asset] of Object.entries(data.root_assets || {})) {
+        const badge = document.createElement('span');
+        badge.className = `asset-badge ${asset.exists ? 'found' : 'missing'}`;
+        badge.innerHTML = `<span>${asset.exists ? '✔' : '✖'}</span> ${key.replace('_', '.')}`;
+        assetBadges.appendChild(badge);
+      }
+
+      // 4. Bot Grid
+      const botGrid = document.getElementById('scanBotGrid');
+      botGrid.innerHTML = '';
+      for (const [botName, botInfo] of Object.entries(data.ai_engine_compatibility || {})) {
+        const allowed = botInfo.allowed;
+        const card = document.createElement('div');
+        card.className = 'bot-card';
+        card.innerHTML = `
+          <div class="bot-header">
+            <span class="bot-name">${botName}</span>
+            <span class="bot-badge ${allowed ? '' : 'bot-badge-fail'}">${allowed ? 'Allowed' : 'Blocked'}</span>
+          </div>
+          <div class="bot-desc">
+            ${botInfo.indexed_via_llms ? '✔ llms.txt index found. ' : ''}
+            ${botInfo.has_qa_schema ? '✔ FAQ schema found. ' : ''}
+            ${botInfo.has_graph ? '✔ @graph connected. ' : ''}
+            ${botInfo.has_ai_policy ? '✔ ai.txt present. ' : ''}
+          </div>
+        `;
+        botGrid.appendChild(card);
+      }
+
+      // 5. Action Items
+      const actionsList = document.getElementById('scanActionItemsList');
+      actionsList.innerHTML = '';
+      if (!data.action_items || data.action_items.length === 0) {
+        actionsList.innerHTML = '<div style="color:var(--google-green); font-size:13px; font-weight:600;">✨ Zero critical issues detected! Your site is fully AEO optimized.</div>';
+      } else {
+        data.action_items.forEach(item => {
+          const isCrit = item.priority === 'CRITICAL';
+          const isHigh = item.priority === 'HIGH';
+          const card = document.createElement('div');
+          card.style.borderLeft = `4px solid ${isCrit ? 'var(--google-red)' : isHigh ? 'var(--google-yellow)' : 'var(--google-blue)'}`;
+          card.style.background = '#f8f9fa';
+          card.style.padding = '12px 14px';
+          card.style.borderRadius = '0 8px 8px 0';
+          card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-weight:700; font-size:13px; color:var(--text-primary);">${item.issue}</span>
+              <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:10px; background:${isCrit ? 'var(--google-red-surface)' : isHigh ? 'var(--google-yellow-surface)' : 'var(--google-blue-surface)'}; color:${isCrit ? 'var(--google-red)' : isHigh ? 'var(--google-yellow)' : 'var(--google-blue)'};">${item.priority}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-secondary); line-height:1.4;">${item.fix}</div>
+          `;
+          actionsList.appendChild(card);
+        });
+      }
+
+      // 6. Crawled Pages Table
+      document.getElementById('scanPagesCount').innerText = data.pages_audited_count || (data.pages || []).length;
+      const tbody = document.getElementById('scanPagesTableBody');
+      tbody.innerHTML = '';
+      (data.pages || []).forEach(p => {
+        const tr = document.createElement('tr');
+        const schemaTypes = (p.schemas || []).map(s => s['@type'] || 'Schema').join(', ') || 'None';
+        tr.innerHTML = `
+          <td style="font-family:var(--font-mono); font-size:11px; word-break:break-all;"><a href="${p.url}" target="_blank" style="color:var(--google-blue); text-decoration:none;">${p.url}</a></td>
+          <td><span class="bot-badge ${p.status === 200 ? '' : 'bot-badge-warn'}">${p.status}</span></td>
+          <td><strong>${p.title || 'No Title'}</strong><br><span style="color:var(--text-secondary); font-size:11px;">H1: ${p.h1 || 'None'}</span></td>
+          <td>${p.word_count || 0}</td>
+          <td><span style="font-weight:600; color:var(--google-blue);">${p.schema_count || 0}</span> (${schemaTypes})</td>
+          <td>${p.internal_links_count || 0} in / ${p.external_links_count || 0} out</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // 7. Backlinks & Distribution Strategy
+      const dist = data.backlink_and_distribution_intelligence || {};
+      const hubsList = document.getElementById('scanCitationHubsList');
+      hubsList.innerHTML = '';
+      (dist.high_authority_citation_hubs || []).forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'guide-box';
+        item.style.marginBottom = '0';
+        item.innerHTML = `
+          <div class="guide-title">${h.platform}</div>
+          <div style="font-size:11px; font-weight:700; color:var(--google-blue); text-transform:uppercase; margin-bottom:4px;">${h.role}</div>
+          <div class="guide-desc">${h.action}</div>
+        `;
+        hubsList.appendChild(item);
+      });
+
+      const nicheList = document.getElementById('scanNicheChannelsList');
+      nicheList.innerHTML = '';
+      (dist.vertical_specific_distribution || []).forEach(n => {
+        const item = document.createElement('div');
+        item.className = 'guide-box';
+        item.style.borderLeftColor = 'var(--google-purple)';
+        item.style.marginBottom = '0';
+        item.innerHTML = `
+          <div class="guide-title" style="color:var(--google-purple);">${n.platform}</div>
+          <div class="guide-desc">${n.action}</div>
+        `;
+        nicheList.appendChild(item);
+      });
+    }
+
+    function applyScanToGenerator() {
+      if (!lastScanData) return;
+      const pages = lastScanData.pages || [];
+      const rootPage = pages[0] || {};
+
+      if (rootPage.title) {
+        document.getElementById('inpSiteName').value = rootPage.title.split(' - ')[0].split(' | ')[0].trim();
+      }
+      if (lastScanData.origin) {
+        const cleanHost = lastScanData.origin.replace(/^https?:[/][/]/, '');
+        document.getElementById('inpDomain').value = cleanHost;
+      }
+      if (rootPage.description) {
+        document.getElementById('inpDescription').value = rootPage.description;
+      }
+      regenerateAll();
+      switchTab('tab-schema');
+      alert("Scanned site metadata successfully loaded into AEO Generator!");
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       regenerateAll();
     });
@@ -1166,6 +1662,15 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
                 payload = json.loads(body.decode("utf-8"))
             except Exception:
                 pass
+
+        if path == "/api/scan":
+            target_url = payload.get("url", "").strip()
+            max_pages = int(payload.get("max_pages", 5))
+            if not target_url:
+                return self._send_json({"error": "Missing 'url' parameter"}, status=400)
+            scanner = LiveAEOScanner(target_url, max_pages=max_pages)
+            results = scanner.compute_audit_scores()
+            return self._send_json(results)
 
         if path == "/api/agent/synthesize":
             prompt = payload.get("prompt", "")
