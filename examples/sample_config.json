@@ -1,0 +1,75 @@
+{
+  "site_name": "HyperScale AI",
+  "legal_name": "HyperScale AI Inc.",
+  "publisher_name": "HyperScale",
+  "founding_architect": "Engineering Team",
+  "architect_url": "https://hyperscale.ai",
+  "architect_contact": "https://hyperscale.ai/contact",
+  "domain": "hyperscale.ai",
+  "base_url": "https://hyperscale.ai",
+  "version": "1.0.0",
+  "release_date": "2026-09-16",
+  "niche": "saas",
+  "category": "DeveloperApplication",
+  "sub_category": "Enterprise AI Inference & Workflow Engine",
+  "operating_systems": "Linux, macOS, Windows",
+  "license": "Commercial / BYOK",
+  "price": "49.00",
+  "currency": "USD",
+  "logo_url": "https://hyperscale.ai/assets/logo.svg",
+  "og_image_url": "https://hyperscale.ai/assets/og-image.jpg",
+  "tagline": "Next-Generation Autonomous Workflow & Model Routing Mesh",
+  "summary": "HyperScale AI orchestrates multi-model inference pipelines with sub-millisecond edge latency.",
+  "description": "HyperScale AI provides enterprise-grade agent orchestration, deterministic routing, and private data isolation for modern cloud software.",
+  "same_as": [
+    "https://github.com/hyperscale-ai",
+    "https://x.com/hyperscale_ai"
+  ],
+  "knows_about": [
+    "Autonomous Multi-Agent Systems",
+    "Model Arbitration & Consensus",
+    "High-Throughput Token Routing",
+    "Zero-Trust Secret Containment"
+  ],
+  "features": [
+    "Sub-10ms Global Edge Routing Mesh",
+    "Multi-Model Consensus Arbitration",
+    "Zero-Data Retention Enterprise Privacy Tier",
+    "Visual Node Workflow Playbook Builder"
+  ],
+  "surfaces": [
+    {
+      "name": "Documentation",
+      "path": "/docs/",
+      "indexed": true,
+      "notes": "API reference and quickstart guides"
+    },
+    {
+      "name": "Pricing",
+      "path": "/pricing/",
+      "indexed": true,
+      "notes": "Subscription tiers and BYOK plans"
+    },
+    {
+      "name": "Playbook Foundry",
+      "path": "/playbooks/",
+      "indexed": true,
+      "notes": "Pre-built workflow templates"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "What is HyperScale AI?",
+      "answer": "HyperScale AI is a high-throughput AI routing and multi-agent workflow mesh designed for mission-critical applications."
+    },
+    {
+      "question": "How does BYOK (Bring Your Own Key) work?",
+      "answer": "You can connect your own OpenAI, Anthropic, or local Ollama credentials directly with zero intermediary markups."
+    }
+  ],
+  "breadcrumbs": [
+    { "position": 1, "name": "Home", "item": "https://hyperscale.ai/" },
+    { "position": 2, "name": "Documentation", "item": "https://hyperscale.ai/docs/" },
+    { "position": 3, "name": "Playbooks", "item": "https://hyperscale.ai/playbooks/" }
+  ]
+}
