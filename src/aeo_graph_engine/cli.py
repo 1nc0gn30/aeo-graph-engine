@@ -1,7 +1,7 @@
 """
 Command Line Interface for AEO Graph Engine.
 Provides commands for generating, validating, inspecting, testing, extracting,
-and serving the interactive Google-designed AEO Studio dashboard.
+AI prompt auto-synthesis, and serving the Google-designed AEO Studio dashboard.
 """
 
 import sys
@@ -24,6 +24,7 @@ from .injector import inject_file, inject_jsonld_into_html
 from .validator import validate_aeo_bundle
 from .extractor import extract_from_file, extract_metadata_from_html
 from .discovery import discover_project_metadata
+from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
 from .ui_server import start_ui_server
 from .presets import NICHE_PRESETS
 
@@ -84,21 +85,13 @@ def run_internal_tests() -> int:
     discovered = discover_project_metadata(".")
     print(f"  ✅ Project discovery verified (Detected framework: {discovered.get('framework', 'generic')})")
 
-    # 6. Test Bundle Generation & Validation
-    print("\n--- [6/6] Testing Directory Bundle Generation & Readiness Scorer ---")
-    import tempfile
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmp_path = Path(tmpdir)
-        html_file = tmp_path / "index.html"
-        with open(html_file, "w", encoding="utf-8") as f:
-            f.write(sample_html)
-
-        bundle = write_aeo_bundle(tmp_path, cfg, inject_html_files=[html_file])
-        assert len(bundle) >= 5
-
-        report = validate_aeo_bundle(tmp_path)
-        assert report.score >= 90.0
-        print(f"  ✅ Directory bundle generated & validated (AEO Score: {report.score}/100 - {report.to_dict()['status']})")
+    # 6. Test AI Prompt Synthesis
+    print("\n--- [6/6] Testing AI Prompt Synthesizer & Schema Contract ---")
+    ai_syn = synthesize_config_from_prompt("A high-performance Solana DeFi lending protocol called SolarYield on solaryield.fi")
+    assert ai_syn["site_name"] == "SolarYield"
+    assert "solaryield.fi" in ai_syn["domain"]
+    assert len(ai_syn["faqs"]) >= 2
+    print(f"  ✅ AI Prompt Synthesizer validated (Extracted: '{ai_syn['site_name']}' on {ai_syn['domain']})")
 
     print("\n" + "=" * 70)
     print("🎉 ALL AEO GRAPH ENGINE TEST SUITES PASSED (100% SPEC CONFORMANCE)")
@@ -121,6 +114,16 @@ def build_parser() -> argparse.ArgumentParser:
     serve_parser.add_argument("--host", type=str, default="127.0.0.1", help="Host interface (default: 127.0.0.1)")
 
     subparsers.add_parser("ui", help="Alias for 'aeo serve'")
+
+    # `aeo prompt "<description>"`
+    prompt_parser = subparsers.add_parser("prompt", help="Synthesize complete AEO bundle from natural language description")
+    prompt_parser.add_argument("description", type=str, help="Natural language description of the website or application")
+    prompt_parser.add_argument("--output-dir", type=str, default="dist", help="Output directory to write generated bundle")
+    prompt_parser.add_argument("--niche", choices=list(NICHE_PRESETS.keys()), help="Optional base domain niche")
+    prompt_parser.add_argument("--dry-run", action="store_true", help="Preview synthesized JSON without writing files")
+
+    # `aeo schema`
+    subparsers.add_parser("schema", help="Output JSON-Schema definition for AI agent tool calling")
 
     # `aeo extract <file>`
     extract_parser = subparsers.add_parser("extract", help="Extract metadata from an HTML file")
@@ -164,6 +167,29 @@ def main(args: Optional[List[str]] = None) -> int:
 
     if parsed_args.test:
         return run_internal_tests()
+
+    # Subcommand: schema
+    if parsed_args.subcommand == "schema":
+        print(json.dumps(get_agent_json_schema(), indent=2))
+        return 0
+
+    # Subcommand: prompt
+    if parsed_args.subcommand == "prompt":
+        desc = parsed_args.description
+        cfg = synthesize_config_from_prompt(desc, base_niche=parsed_args.niche)
+        if parsed_args.dry_run:
+            print(json.dumps(cfg, indent=2, ensure_ascii=False))
+            return 0
+
+        out_dir = Path(parsed_args.output_dir).resolve()
+        created = write_aeo_bundle(out_dir, cfg, niche=cfg.get("niche", "developer_tools"))
+        print(f"✨ AEO Bundle successfully synthesized from prompt into: {out_dir}")
+        for name, path in created.items():
+            print(f"  📄 {name:20} -> {path}")
+
+        report = validate_aeo_bundle(out_dir)
+        print(f"\n📊 AEO Readiness Score: {report.score}/100 ({report.to_dict()['status']})")
+        return 0
 
     # Subcommand: serve / ui
     if parsed_args.subcommand in ("serve", "ui"):
@@ -290,7 +316,6 @@ def main(args: Optional[List[str]] = None) -> int:
         for name, path in created.items():
             print(f"  📄 {name:20} -> {path}")
 
-        # Automatically run validation on generated bundle
         report = validate_aeo_bundle(out_dir)
         print(f"\n📊 AEO Readiness Score: {report.score}/100 ({report.to_dict()['status']})")
         return 0

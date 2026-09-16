@@ -1,8 +1,8 @@
 """
 Interactive Web UI & REST API Server for AEO Graph Engine.
 Delivers a Google-designed light mode AEO Studio dashboard with real-time
-Schema.org visualization, llms.txt compiler, HTML injector, and AEO audit scoring.
-Zero external runtime dependencies (built with Python standard library http.server).
+Schema.org visualization, llms.txt compiler, HTML injector, AI prompt synthesizer,
+and AEO audit scoring. Zero external runtime dependencies.
 """
 
 import sys
@@ -28,6 +28,7 @@ from .injector import inject_jsonld_into_html
 from .validator import validate_aeo_bundle, validate_schema_jsonld_dict, AEODiagnosticReport
 from .extractor import extract_metadata_from_html
 from .discovery import discover_project_metadata
+from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
 from .presets import NICHE_PRESETS, DEFAULT_CONFIG
 
 
@@ -51,16 +52,15 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       --google-yellow-surface: #fef7e0;
       --google-red: #d93025;
       --google-red-surface: #fce8e6;
+      --google-purple: #9334e6;
+      --google-purple-surface: #f3e8fd;
       --canvas-bg: #f8f9fa;
       --surface-bg: #ffffff;
-      --surface-elevated: #ffffff;
       --border-subtle: #dadce0;
       --border-divider: #e8eaed;
       --text-primary: #202124;
       --text-secondary: #5f6368;
       --text-tertiary: #80868b;
-      --shadow-1: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-      --shadow-2: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
       --font-sans: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --font-mono: 'Roboto Mono', Menlo, Monaco, Consolas, monospace;
     }
@@ -99,11 +99,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       display: flex;
       gap: 3px;
     }
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
     .dot-blue { background: #4285f4; }
     .dot-red { background: #ea4335; }
     .dot-yellow { background: #fbbc04; }
@@ -177,6 +173,14 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     .btn-tonal:hover {
       background: #d2e3fc;
     }
+    .btn-purple {
+      background: var(--google-purple-surface);
+      color: var(--google-purple);
+      border-color: rgba(147, 52, 230, 0.2);
+    }
+    .btn-purple:hover {
+      background: #ebd8fc;
+    }
     .btn-outline {
       background: transparent;
       border-color: var(--border-subtle);
@@ -192,16 +196,16 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       border-radius: 16px;
     }
 
-    /* Main App Layout */
+    /* Layout */
     .app-layout {
       display: grid;
-      grid-template-columns: 380px 1fr;
+      grid-template-columns: 390px 1fr;
       flex: 1;
       height: calc(100vh - 64px);
       overflow: hidden;
     }
 
-    /* Sidebar Form */
+    /* Sidebar */
     .sidebar {
       background: var(--surface-bg);
       border-right: 1px solid var(--border-divider);
@@ -209,33 +213,89 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       padding: 20px 20px 40px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
+
+    /* AI Prompt Hero Box */
+    .ai-hero-box {
+      background: linear-gradient(135deg, #f3e8fd 0%, #e8f0fe 100%);
+      border: 1px solid rgba(147, 52, 230, 0.25);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ai-hero-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--google-purple);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .ai-prompt-input {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(147, 52, 230, 0.3);
+      background: #ffffff;
+      color: var(--text-primary);
+      width: 100%;
+    }
+    .ai-prompt-input:focus {
+      outline: none;
+      border-color: var(--google-purple);
+      box-shadow: 0 0 0 2px rgba(147, 52, 230, 0.2);
+    }
+    .ai-quick-samples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .sample-pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(147, 52, 230, 0.2);
+      color: var(--google-purple);
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .sample-pill:hover {
+      background: #ffffff;
+      border-color: var(--google-purple);
+    }
+
     .section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .section-title {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    /* Niche Presets Pills */
+    /* Preset Pills */
     .preset-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 5px;
       margin-bottom: 4px;
     }
     .preset-pill {
       font-size: 12px;
-      padding: 5px 12px;
-      border-radius: 16px;
+      padding: 4px 10px;
+      border-radius: 14px;
       border: 1px solid var(--border-subtle);
       background: var(--surface-bg);
       color: var(--text-secondary);
@@ -254,17 +314,19 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
     .form-label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
     .form-control {
       font-family: var(--font-sans);
-      font-size: 14px;
-      padding: 10px 14px;
+      font-size: 13px;
+      padding: 8px 12px;
       border-radius: 8px;
       border: 1px solid var(--border-subtle);
       background: #ffffff;
@@ -279,10 +341,10 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     }
     textarea.form-control {
       resize: vertical;
-      min-height: 70px;
+      min-height: 60px;
     }
 
-    /* Main Panel & Tabs */
+    /* Main Area */
     .main-panel {
       display: flex;
       flex-direction: column;
@@ -300,9 +362,9 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     }
     .tab-btn {
       font-family: var(--font-sans);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
-      padding: 14px 18px;
+      padding: 13px 16px;
       color: var(--text-secondary);
       background: transparent;
       border: none;
@@ -312,7 +374,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       white-space: nowrap;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     .tab-btn:hover {
       color: var(--google-blue);
@@ -346,15 +408,15 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       background: var(--surface-bg);
       border: 1px solid var(--border-divider);
       border-radius: 12px;
-      padding: 24px;
+      padding: 22px;
       box-shadow: 0 1px 2px rgba(60,64,67,0.06);
       margin-bottom: 20px;
     }
     .card-title {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       color: var(--text-primary);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -363,8 +425,8 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     /* Score Gauge Grid */
     .audit-grid {
       display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 24px;
+      grid-template-columns: 260px 1fr;
+      gap: 20px;
       align-items: center;
     }
     .gauge-container {
@@ -372,20 +434,20 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 20px;
       background: var(--google-green-surface);
       border-radius: 16px;
       border: 1px solid rgba(30, 142, 62, 0.2);
     }
     .gauge-num {
-      font-size: 56px;
+      font-size: 52px;
       font-weight: 700;
       color: var(--google-green);
       line-height: 1;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .gauge-label {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -395,13 +457,13 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     .audit-items {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
     .audit-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
+      padding: 10px 14px;
       background: #ffffff;
       border: 1px solid var(--border-divider);
       border-radius: 8px;
@@ -409,15 +471,12 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     .audit-row-left {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 14px;
+      gap: 10px;
+      font-size: 13px;
       font-weight: 500;
     }
-    .status-icon {
-      font-size: 16px;
-    }
+    .status-icon { font-size: 15px; }
     .status-pass { color: var(--google-green); }
-    .status-warn { color: var(--google-yellow); }
 
     /* Code Viewers */
     .code-box {
@@ -425,9 +484,9 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       border: 1px solid var(--border-divider);
       border-radius: 8px;
       font-family: var(--font-mono);
-      font-size: 13px;
+      font-size: 12px;
       line-height: 1.5;
-      padding: 16px;
+      padding: 14px;
       color: #24292e;
       overflow-x: auto;
       max-height: 520px;
@@ -437,8 +496,8 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     /* Entity Cards Grid */
     .entity-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
       margin-bottom: 20px;
     }
     .entity-card {
@@ -446,23 +505,23 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       border: 1px solid var(--border-divider);
       border-left: 4px solid var(--google-blue);
       border-radius: 8px;
-      padding: 16px;
+      padding: 14px;
     }
     .entity-type {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       color: var(--google-blue);
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .entity-name {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
       color: var(--text-primary);
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .entity-desc {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-secondary);
       line-height: 1.4;
     }
@@ -470,32 +529,48 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
     /* Bot Crawler Matrix */
     .bot-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
     }
     .bot-card {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
+      padding: 10px 14px;
       background: #ffffff;
       border: 1px solid var(--border-divider);
       border-radius: 8px;
     }
-    .bot-name {
-      font-weight: 600;
-      font-size: 14px;
-    }
+    .bot-name { font-weight: 600; font-size: 13px; }
     .bot-badge {
       font-size: 11px;
       font-weight: 700;
-      padding: 3px 8px;
+      padding: 2px 7px;
       border-radius: 12px;
       background: var(--google-green-surface);
       color: var(--google-green);
     }
 
-    /* Responsive */
+    /* Guide Section Cards */
+    .guide-box {
+      border-left: 4px solid var(--google-blue);
+      padding: 14px 18px;
+      background: #f8f9fa;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 14px;
+    }
+    .guide-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--google-blue);
+      margin-bottom: 4px;
+    }
+    .guide-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
     @media (max-width: 900px) {
       .app-layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
       .sidebar { border-right: none; border-bottom: 1px solid var(--border-divider); height: auto; }
@@ -505,7 +580,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
 </head>
 <body>
 
-  <!-- Google App Bar -->
+  <!-- Google-Style Header -->
   <header class="app-bar">
     <div class="brand-section">
       <div class="google-dots">
@@ -529,15 +604,31 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
   </header>
 
   <div class="app-layout">
-    <!-- Left Sidebar Settings -->
+    <!-- Sidebar -->
     <aside class="sidebar">
+      <!-- AI Agent Auto-Config Hero -->
+      <div class="ai-hero-box">
+        <div class="ai-hero-title">
+          <span>🪄</span> AI Prompt Synthesizer
+        </div>
+        <input type="text" class="ai-prompt-input" id="inpAiPrompt" placeholder="Describe your app in 1 sentence..." onkeydown="if(event.key==='Enter') executeAiPrompt()">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="btn btn-purple btn-sm" onclick="executeAiPrompt()">⚡ Synthesize</button>
+          <div class="ai-quick-samples">
+            <span class="sample-pill" onclick="fillPrompt('DeFi lending on Solana called SolarYield on solaryield.fi')">DeFi</span>
+            <span class="sample-pill" onclick="fillPrompt('AI resume builder called CVForge on cvforge.app')">AI SaaS</span>
+            <span class="sample-pill" onclick="fillPrompt('Local plumbing service called QuickFlow Plumbing in Seattle')">Plumbing</span>
+          </div>
+        </div>
+      </div>
+
       <div>
         <div class="section-header">
           <span class="section-title">Domain Niche Preset</span>
         </div>
-        <div class="preset-group" id="presetGroup">
+        <div class="preset-group">
           <button class="preset-pill active" onclick="selectPreset('developer_tools')">Developer Tools</button>
-          <button class="preset-pill" onclick="selectPreset('saas')">SaaS Platform</button>
+          <button class="preset-pill" onclick="selectPreset('saas')">SaaS</button>
           <button class="preset-pill" onclick="selectPreset('ai_swarm')">AI Swarm</button>
           <button class="preset-pill" onclick="selectPreset('cybersecurity')">Security</button>
           <button class="preset-pill" onclick="selectPreset('spatial_3d')">3D Spatial</button>
@@ -563,7 +654,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Summary / Description (Used by Perplexity & ChatGPT)</label>
+        <label class="form-label">Description (AI Knowledge Base)</label>
         <textarea class="form-control" id="inpDescription" oninput="regenerateAll()">Standalone, zero-dependency generator and validator for Schema.org linked data, llms.txt, ai.txt, and AI crawler directives.</textarea>
       </div>
 
@@ -585,7 +676,7 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
       </div>
     </aside>
 
-    <!-- Main Workspace -->
+    <!-- Main Panel -->
     <main class="main-panel">
       <nav class="tabs-bar">
         <button class="tab-btn active" onclick="switchTab('tab-audit')">📊 AEO Scorecard</button>
@@ -594,17 +685,18 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
         <button class="tab-btn" onclick="switchTab('tab-llms-full')">📚 llms-full.txt</button>
         <button class="tab-btn" onclick="switchTab('tab-ai-txt')">🤖 ai.txt & robots.txt</button>
         <button class="tab-btn" onclick="switchTab('tab-injector')">💉 HTML Injector</button>
+        <button class="tab-btn" onclick="switchTab('tab-guide')">📖 How It Works</button>
         <button class="tab-btn" onclick="switchTab('tab-api')">🔌 CLI & Python API</button>
       </nav>
 
       <div class="tab-content-area">
-        <!-- 1. Audit Scorecard Tab -->
+        <!-- 1. Audit Scorecard -->
         <div id="tab-audit" class="tab-pane active">
           <div class="card">
             <div class="audit-grid">
               <div class="gauge-container">
-                <div class="gauge-num" id="auditScoreVal">100</div>
-                <div class="gauge-label" id="auditStatusLabel">EXCELLENT AEO</div>
+                <div class="gauge-num">100</div>
+                <div class="gauge-label">EXCELLENT AEO</div>
               </div>
               <div class="audit-items">
                 <div class="audit-row">
@@ -635,13 +727,6 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
                   </div>
                   <span class="bot-badge">Optimized</span>
                 </div>
-                <div class="audit-row">
-                  <div class="audit-row-left">
-                    <span class="status-icon status-pass">✔</span>
-                    <span>Zero Runtime Dependency Guarantee</span>
-                  </div>
-                  <span class="bot-badge">Pure Python</span>
-                </div>
               </div>
             </div>
           </div>
@@ -651,13 +736,11 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
               Connected Schema Entities
               <button class="btn btn-tonal btn-sm" onclick="switchTab('tab-schema')">View Raw JSON-LD</button>
             </div>
-            <div class="entity-grid" id="entityGridPreview">
-              <!-- Rendered dynamically -->
-            </div>
+            <div class="entity-grid" id="entityGridPreview"></div>
           </div>
         </div>
 
-        <!-- 2. Schema Graph Tab -->
+        <!-- 2. Schema Tab -->
         <div id="tab-schema" class="tab-pane">
           <div class="card">
             <div class="card-title">
@@ -711,14 +794,6 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
                 <span class="bot-name">Apple (Applebot-Ext)</span>
                 <span class="bot-badge">Allowed</span>
               </div>
-              <div class="bot-card">
-                <span class="bot-name">Google (Google-Ext)</span>
-                <span class="bot-badge">Allowed</span>
-              </div>
-              <div class="bot-card">
-                <span class="bot-name">Cohere (cohere-ai)</span>
-                <span class="bot-badge">Allowed</span>
-              </div>
             </div>
           </div>
 
@@ -743,11 +818,11 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
         <div id="tab-injector" class="tab-pane">
           <div class="card">
             <div class="card-title">Live HTML Schema Injector</div>
-            <p style="font-size:14px; color:var(--text-secondary); margin-bottom:16px;">
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
               Paste any raw HTML document below and click <strong>Inject Schema</strong> to embed the synthesized JSON-LD tag into the &lt;head&gt; element idempotently.
             </p>
             <div class="form-group" style="margin-bottom:12px;">
-              <textarea class="form-control" id="inpRawHtml" style="min-height:140px; font-family:var(--font-mono); font-size:12px;"><!DOCTYPE html>
+              <textarea class="form-control" id="inpRawHtml" style="min-height:120px; font-family:var(--font-mono); font-size:12px;"><!DOCTYPE html>
 <html>
 <head>
   <title>My Website</title>
@@ -759,48 +834,79 @@ STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
             <button class="btn btn-primary btn-sm" onclick="performHtmlInjection()">💉 Inject Schema</button>
 
-            <div style="margin-top:20px;">
+            <div style="margin-top:16px;">
               <div class="card-title">
                 Injected HTML Result
-                <button class="btn btn-tonal btn-sm" onclick="copyCode('codeInjectedHtml')">📋 Copy Injected HTML</button>
+                <button class="btn btn-tonal btn-sm" onclick="copyCode('codeInjectedHtml')">📋 Copy Result</button>
               </div>
-              <div class="code-box" id="codeInjectedHtml">Click 'Inject Schema' above to generate result...</div>
+              <div class="code-box" id="codeInjectedHtml">Click 'Inject Schema' above...</div>
             </div>
           </div>
         </div>
 
-        <!-- 7. API & CLI Tab -->
+        <!-- 7. How It Works Guide Tab -->
+        <div id="tab-guide" class="tab-pane">
+          <div class="card">
+            <div class="card-title">How Answer Engine Optimization (AEO / GEO) Works</div>
+            
+            <div class="guide-box">
+              <div class="guide-title">1. What is AEO vs SEO?</div>
+              <div class="guide-desc">
+                Classic SEO aimed to rank on 10 blue links on Google. Modern <strong>AEO</strong> structures your data so AI answer engines (Perplexity, ChatGPT Search, Claude, Google AI Overviews) can directly read, synthesize, and cite your website during conversational answers.
+              </div>
+            </div>
+
+            <div class="guide-box">
+              <div class="guide-title">2. Why Connected Schema.org @graph Matters</div>
+              <div class="guide-desc">
+                Isolated schema tags leave ambiguity. A connected <strong>@graph</strong> links your Organization, WebSite, Software/Product, FAQPage, and BreadcrumbList into a unified entity network with canonical @id URIs, giving AI models 100% confidence in factual claims.
+              </div>
+            </div>
+
+            <div class="guide-box">
+              <div class="guide-title">3. llms.txt & llms-full.txt (The Machine Index)</div>
+              <div class="guide-desc">
+                LLMs have strict token limits during live search queries. <strong>llms.txt</strong> provides an ultra-concise summary index with structured markdown links so AI crawlers can retrieve your core documentation in sub-50 tokens.
+              </div>
+            </div>
+
+            <div class="guide-box">
+              <div class="guide-title">4. Automated HTML Injection</div>
+              <div class="guide-desc">
+                The engine includes an idempotent injection harness that replaces or embeds <code>&lt;script type="application/ld+json"&gt;</code> tags into built HTML files during your build step (Vite, Next.js, Astro) with zero drift.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. API Tab -->
         <div id="tab-api" class="tab-pane">
           <div class="card">
-            <div class="card-title">CLI Command Execution</div>
-            <div class="code-box" id="codeCli"># Generate complete AEO bundle into dist/
-aeo --generate-all --output-dir dist/ --niche saas
+            <div class="card-title">CLI Quickstart</div>
+            <div class="code-box"># 1. Synthesize from natural language prompt
+aeo prompt "An AI resume builder called CVForge on cvforge.app" --output-dir dist/
 
-# Validate existing site
-aeo --validate dist/
+# 2. Extract metadata from existing HTML
+aeo extract dist/index.html
 
-# Inject into HTML file
-aeo --inject dist/index.html</div>
+# 3. Validate existing site
+aeo --validate dist/ --format json
+
+# 4. Start interactive local Studio
+aeo serve --port 8080</div>
           </div>
 
           <div class="card">
             <div class="card-title">Python Programmatic Library Usage</div>
-            <div class="code-box" id="codePy">from aeo_graph_engine import (
-    generate_schema_graph,
-    generate_llms_txt,
+            <div class="code-box">from aeo_graph_engine import (
+    synthesize_config_from_prompt,
     write_aeo_bundle,
     validate_aeo_bundle
 )
 
-config = {
-    "site_name": "My Platform",
-    "domain": "example.com"
-}
-
-# Generate and write all files
-write_aeo_bundle("./dist", config=config, niche="developer_tools")
-
-# Audit readiness
+# Synthesize and generate in 3 lines
+config = synthesize_config_from_prompt("My SaaS on mysaas.com")
+write_aeo_bundle("./dist", config=config, inject_html_files=["./dist/index.html"])
 report = validate_aeo_bundle("./dist")
 print(f"Score: {report.score}/100")</div>
           </div>
@@ -842,6 +948,34 @@ print(f"Score: {report.score}/100")</div>
       });
     }
 
+    function fillPrompt(text) {
+      document.getElementById('inpAiPrompt').value = text;
+      executeAiPrompt();
+    }
+
+    async function executeAiPrompt() {
+      const prompt = document.getElementById('inpAiPrompt').value.trim();
+      if (!prompt) return;
+
+      try {
+        const res = await fetch('/api/agent/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: prompt })
+        });
+        const data = await res.json();
+        if (data.site_name) document.getElementById('inpSiteName').value = data.site_name;
+        if (data.domain) document.getElementById('inpDomain').value = data.domain;
+        if (data.tagline) document.getElementById('inpTagline').value = data.tagline;
+        if (data.description) document.getElementById('inpDescription').value = data.description;
+        if (data.niche) currentNiche = data.niche;
+
+        regenerateAll();
+      } catch (e) {
+        alert("AI Synthesis error: " + e);
+      }
+    }
+
     async function regenerateAll() {
       const payload = {
         site_name: document.getElementById('inpSiteName').value,
@@ -861,14 +995,12 @@ print(f"Score: {report.score}/100")</div>
         });
         const data = await res.json();
 
-        // Update Code Viewers
         document.getElementById('codeSchema').innerText = JSON.stringify(data.schema, null, 2);
         document.getElementById('codeLlms').innerText = data.llms_txt;
         document.getElementById('codeLlmsFull').innerText = data.llms_full_txt;
         document.getElementById('codeAiTxt').innerText = data.ai_txt;
         document.getElementById('codeRobots').innerText = data.robots_txt;
 
-        // Render Entity Cards
         const grid = document.getElementById('entityGridPreview');
         grid.innerHTML = '';
         (data.schema['@graph'] || []).forEach(e => {
@@ -883,7 +1015,7 @@ print(f"Score: {report.score}/100")</div>
         });
 
       } catch (err) {
-        console.error("Failed to generate from API, falling back to local synthesizer", err);
+        console.error("Failed to generate from API", err);
       }
     }
 
@@ -928,7 +1060,6 @@ print(f"Score: {report.score}/100")</div>
       }
     }
 
-    // Initial render on load
     window.addEventListener('DOMContentLoaded', () => {
       regenerateAll();
     });
@@ -942,7 +1073,6 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
     """Custom HTTP handler serving AEO Studio UI and REST endpoints."""
 
     def log_message(self, format, *args):
-        # Silence routine request logging to keep console clean
         pass
 
     def _send_json(self, data: Any, status: int = 200):
@@ -959,6 +1089,7 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(body)
 
@@ -985,12 +1116,14 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
         if path == "/api/status":
             return self._send_json({"status": "healthy", "engine": "aeo-graph-engine", "version": "1.0.0"})
 
+        if path == "/api/schema":
+            return self._send_json(get_agent_json_schema())
+
         if path == "/api/discover":
             meta = discover_project_metadata(".")
             return self._send_json(meta)
 
         if path == "/api/export-zip":
-            # Generate zip archive in-memory and stream
             query = urllib.parse.parse_qs(parsed.query)
             niche = query.get("niche", ["developer_tools"])[0]
             site_name = query.get("site_name", ["AEO Graph Engine"])[0]
@@ -1033,6 +1166,12 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
                 payload = json.loads(body.decode("utf-8"))
             except Exception:
                 pass
+
+        if path == "/api/agent/synthesize":
+            prompt = payload.get("prompt", "")
+            base_niche = payload.get("niche")
+            cfg = synthesize_config_from_prompt(prompt, base_niche=base_niche)
+            return self._send_json(cfg)
 
         if path == "/api/generate":
             niche = payload.get("niche", "developer_tools")

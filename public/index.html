@@ -19,6 +19,8 @@
       --google-yellow-surface: #fef7e0;
       --google-red: #d93025;
       --google-red-surface: #fce8e6;
+      --google-purple: #9334e6;
+      --google-purple-surface: #f3e8fd;
       --canvas-bg: #f8f9fa;
       --surface-bg: #ffffff;
       --border-subtle: #dadce0;
@@ -138,6 +140,14 @@
     .btn-tonal:hover {
       background: #d2e3fc;
     }
+    .btn-purple {
+      background: var(--google-purple-surface);
+      color: var(--google-purple);
+      border-color: rgba(147, 52, 230, 0.2);
+    }
+    .btn-purple:hover {
+      background: #ebd8fc;
+    }
     .btn-outline {
       background: transparent;
       border-color: var(--border-subtle);
@@ -156,7 +166,7 @@
     /* Layout */
     .app-layout {
       display: grid;
-      grid-template-columns: 380px 1fr;
+      grid-template-columns: 390px 1fr;
       flex: 1;
       height: calc(100vh - 64px);
       overflow: hidden;
@@ -170,13 +180,69 @@
       padding: 20px 20px 40px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
+
+    /* AI Prompt Hero Box */
+    .ai-hero-box {
+      background: linear-gradient(135deg, #f3e8fd 0%, #e8f0fe 100%);
+      border: 1px solid rgba(147, 52, 230, 0.25);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ai-hero-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--google-purple);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .ai-prompt-input {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(147, 52, 230, 0.3);
+      background: #ffffff;
+      color: var(--text-primary);
+      width: 100%;
+    }
+    .ai-prompt-input:focus {
+      outline: none;
+      border-color: var(--google-purple);
+      box-shadow: 0 0 0 2px rgba(147, 52, 230, 0.2);
+    }
+    .ai-quick-samples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .sample-pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(147, 52, 230, 0.2);
+      color: var(--google-purple);
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .sample-pill:hover {
+      background: #ffffff;
+      border-color: var(--google-purple);
+    }
+
     .section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .section-title {
       font-size: 12px;
@@ -190,13 +256,13 @@
     .preset-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 5px;
       margin-bottom: 4px;
     }
     .preset-pill {
       font-size: 12px;
-      padding: 5px 12px;
-      border-radius: 16px;
+      padding: 4px 10px;
+      border-radius: 14px;
       border: 1px solid var(--border-subtle);
       background: var(--surface-bg);
       color: var(--text-secondary);
@@ -215,17 +281,19 @@
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
     .form-label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
     .form-control {
       font-family: var(--font-sans);
-      font-size: 14px;
-      padding: 10px 14px;
+      font-size: 13px;
+      padding: 8px 12px;
       border-radius: 8px;
       border: 1px solid var(--border-subtle);
       background: #ffffff;
@@ -240,7 +308,7 @@
     }
     textarea.form-control {
       resize: vertical;
-      min-height: 70px;
+      min-height: 60px;
     }
 
     /* Main Area */
@@ -261,9 +329,9 @@
     }
     .tab-btn {
       font-family: var(--font-sans);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
-      padding: 14px 18px;
+      padding: 13px 16px;
       color: var(--text-secondary);
       background: transparent;
       border: none;
@@ -273,7 +341,7 @@
       white-space: nowrap;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     .tab-btn:hover {
       color: var(--google-blue);
@@ -307,15 +375,15 @@
       background: var(--surface-bg);
       border: 1px solid var(--border-divider);
       border-radius: 12px;
-      padding: 24px;
+      padding: 22px;
       box-shadow: 0 1px 2px rgba(60,64,67,0.06);
       margin-bottom: 20px;
     }
     .card-title {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       color: var(--text-primary);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -324,8 +392,8 @@
     /* Score Gauge Grid */
     .audit-grid {
       display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 24px;
+      grid-template-columns: 260px 1fr;
+      gap: 20px;
       align-items: center;
     }
     .gauge-container {
@@ -333,20 +401,20 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      padding: 20px;
       background: var(--google-green-surface);
       border-radius: 16px;
       border: 1px solid rgba(30, 142, 62, 0.2);
     }
     .gauge-num {
-      font-size: 56px;
+      font-size: 52px;
       font-weight: 700;
       color: var(--google-green);
       line-height: 1;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .gauge-label {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -356,13 +424,13 @@
     .audit-items {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
     .audit-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
+      padding: 10px 14px;
       background: #ffffff;
       border: 1px solid var(--border-divider);
       border-radius: 8px;
@@ -370,11 +438,11 @@
     .audit-row-left {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 14px;
+      gap: 10px;
+      font-size: 13px;
       font-weight: 500;
     }
-    .status-icon { font-size: 16px; }
+    .status-icon { font-size: 15px; }
     .status-pass { color: var(--google-green); }
 
     /* Code Viewers */
@@ -383,9 +451,9 @@
       border: 1px solid var(--border-divider);
       border-radius: 8px;
       font-family: var(--font-mono);
-      font-size: 13px;
+      font-size: 12px;
       line-height: 1.5;
-      padding: 16px;
+      padding: 14px;
       color: #24292e;
       overflow-x: auto;
       max-height: 520px;
@@ -395,8 +463,8 @@
     /* Entity Cards Grid */
     .entity-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
       margin-bottom: 20px;
     }
     .entity-card {
@@ -404,23 +472,23 @@
       border: 1px solid var(--border-divider);
       border-left: 4px solid var(--google-blue);
       border-radius: 8px;
-      padding: 16px;
+      padding: 14px;
     }
     .entity-type {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       color: var(--google-blue);
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .entity-name {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
       color: var(--text-primary);
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .entity-desc {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-secondary);
       line-height: 1.4;
     }
@@ -428,26 +496,46 @@
     /* Bot Crawler Matrix */
     .bot-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
     }
     .bot-card {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
+      padding: 10px 14px;
       background: #ffffff;
       border: 1px solid var(--border-divider);
       border-radius: 8px;
     }
-    .bot-name { font-weight: 600; font-size: 14px; }
+    .bot-name { font-weight: 600; font-size: 13px; }
     .bot-badge {
       font-size: 11px;
       font-weight: 700;
-      padding: 3px 8px;
+      padding: 2px 7px;
       border-radius: 12px;
       background: var(--google-green-surface);
       color: var(--google-green);
+    }
+
+    /* Guide Section Cards */
+    .guide-box {
+      border-left: 4px solid var(--google-blue);
+      padding: 14px 18px;
+      background: #f8f9fa;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 14px;
+    }
+    .guide-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--google-blue);
+      margin-bottom: 4px;
+    }
+    .guide-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
     }
 
     @media (max-width: 900px) {
@@ -459,7 +547,7 @@
 </head>
 <body>
 
-  <!-- Google-Style Header -->
+  <!-- Google Header -->
   <header class="app-bar">
     <div class="brand-section">
       <div class="google-dots">
@@ -484,6 +572,22 @@
   <div class="app-layout">
     <!-- Sidebar -->
     <aside class="sidebar">
+      <!-- AI Prompt Box -->
+      <div class="ai-hero-box">
+        <div class="ai-hero-title">
+          <span>🪄</span> AI Prompt Synthesizer
+        </div>
+        <input type="text" class="ai-prompt-input" id="inpAiPrompt" placeholder="Describe your app in 1 sentence..." onkeydown="if(event.key==='Enter') executeClientAiPrompt()">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button class="btn btn-purple btn-sm" onclick="executeClientAiPrompt()">⚡ Synthesize</button>
+          <div class="ai-quick-samples">
+            <span class="sample-pill" onclick="fillPrompt('DeFi lending on Solana called SolarYield on solaryield.fi')">DeFi</span>
+            <span class="sample-pill" onclick="fillPrompt('AI resume builder called CVForge on cvforge.app')">AI SaaS</span>
+            <span class="sample-pill" onclick="fillPrompt('Local plumbing service called QuickFlow Plumbing in Seattle')">Plumbing</span>
+          </div>
+        </div>
+      </div>
+
       <div>
         <div class="section-header">
           <span class="section-title">Domain Niche Preset</span>
@@ -526,7 +630,7 @@
       </div>
     </aside>
 
-    <!-- Main Panel -->
+    <!-- Main Area -->
     <main class="main-panel">
       <nav class="tabs-bar">
         <button class="tab-btn active" onclick="switchTab('tab-audit')">📊 AEO Scorecard</button>
@@ -535,6 +639,7 @@
         <button class="tab-btn" onclick="switchTab('tab-llms-full')">📚 llms-full.txt</button>
         <button class="tab-btn" onclick="switchTab('tab-ai-txt')">🤖 ai.txt & robots.txt</button>
         <button class="tab-btn" onclick="switchTab('tab-injector')">💉 HTML Injector</button>
+        <button class="tab-btn" onclick="switchTab('tab-guide')">📖 How It Works</button>
         <button class="tab-btn" onclick="switchTab('tab-api')">🔌 CLI & Python API</button>
       </nav>
 
@@ -686,17 +791,48 @@
           </div>
         </div>
 
-        <!-- 7. API Tab -->
+        <!-- 7. Guide Tab -->
+        <div id="tab-guide" class="tab-pane">
+          <div class="card">
+            <div class="card-title">How Answer Engine Optimization (AEO / GEO) Works</div>
+            
+            <div class="guide-box">
+              <div class="guide-title">1. What is AEO vs SEO?</div>
+              <div class="guide-desc">
+                Classic SEO aimed to rank on 10 blue links on Google. Modern <strong>AEO</strong> structures your data so AI answer engines (Perplexity, ChatGPT Search, Claude, Google AI Overviews) can directly read, synthesize, and cite your website during conversational answers.
+              </div>
+            </div>
+
+            <div class="guide-box">
+              <div class="guide-title">2. Why Connected Schema.org @graph Matters</div>
+              <div class="guide-desc">
+                Isolated schema tags leave ambiguity. A connected <strong>@graph</strong> links your Organization, WebSite, Software/Product, FAQPage, and BreadcrumbList into a unified entity network with canonical @id URIs, giving AI models 100% confidence in factual claims.
+              </div>
+            </div>
+
+            <div class="guide-box">
+              <div class="guide-title">3. llms.txt & llms-full.txt (The Machine Index)</div>
+              <div class="guide-desc">
+                LLMs have strict token limits during live search queries. <strong>llms.txt</strong> provides an ultra-concise summary index with structured markdown links so AI crawlers can retrieve your core documentation in sub-50 tokens.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. API Tab -->
         <div id="tab-api" class="tab-pane">
           <div class="card">
             <div class="card-title">CLI Quickstart</div>
-            <div class="code-box"># Generate AEO bundle into dist/
-aeo --generate-all --output-dir dist/ --niche saas
+            <div class="code-box"># 1. Synthesize from natural language prompt
+aeo prompt "An AI resume builder called CVForge on cvforge.app" --output-dir dist/
 
-# Audit readiness
-aeo --validate dist/
+# 2. Extract metadata from existing HTML
+aeo extract dist/index.html
 
-# Start interactive local Studio
+# 3. Validate existing site
+aeo --validate dist/ --format json
+
+# 4. Start interactive local Studio
 aeo serve --port 8080</div>
           </div>
         </div>
@@ -743,6 +879,37 @@ aeo serve --port 8080</div>
     function copyCode(elemId) {
       const text = document.getElementById(elemId).innerText;
       navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
+    }
+
+    function fillPrompt(text) {
+      document.getElementById('inpAiPrompt').value = text;
+      executeClientAiPrompt();
+    }
+
+    function executeClientAiPrompt() {
+      const p = document.getElementById('inpAiPrompt').value.trim();
+      if (!p) return;
+
+      const pLower = p.toLowerCase();
+      let name = 'App';
+      const m = p.match(/(?:called|named|is an?|for)\s+([A-Za-z0-9\-_]+(?:\s+[A-Za-z0-9\-_]+)?)/i);
+      if (m) name = m[1];
+      else name = p.split(' ')[0] || 'App';
+
+      let domain = name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
+      const dm = p.match(/([a-zA-Z0-9\-]+\.(?:com|ai|io|tech|dev|fi|app))/i);
+      if (dm) domain = dm[1].toLowerCase();
+
+      document.getElementById('inpSiteName').value = name;
+      document.getElementById('inpDomain').value = domain;
+      document.getElementById('inpTagline').value = name + ' — ' + p.slice(0, 80);
+      document.getElementById('inpDescription').value = name + ' is a platform built for ' + p.toLowerCase() + '.';
+
+      if (pLower.includes('defi') || pLower.includes('solana') || pLower.includes('crypto')) currentNiche = 'developer_tools';
+      else if (pLower.includes('plumb') || pLower.includes('service') || pLower.includes('repair')) currentNiche = 'local_business';
+      else if (pLower.includes('saas') || pLower.includes('resume') || pLower.includes('cloud')) currentNiche = 'saas';
+
+      clientSynthesize();
     }
 
     function clientSynthesize() {
@@ -809,7 +976,6 @@ aeo serve --port 8080</div>
       document.getElementById('codeAiTxt').innerText = aiTxt;
       document.getElementById('codeRobots').innerText = robotsTxt;
 
-      // Entity preview cards
       const grid = document.getElementById('entityGridPreview');
       grid.innerHTML = '';
       schema['@graph'].forEach(e => {
