@@ -2,7 +2,7 @@
 Command Line Interface for AEO Graph Engine.
 Provides commands for generating, validating, inspecting, testing, extracting,
 AI prompt auto-synthesis, Model Context Protocol (MCP) server, framework exporter,
-and serving the Google-designed AEO Studio dashboard.
+and serving the AEO Studio dashboard (design influenced by Material 3).
 """
 
 import sys
@@ -159,7 +159,7 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="subcommand", help="Available subcommands")
 
     # `aeo serve` / `aeo ui`
-    serve_parser = subparsers.add_parser("serve", help="Start the interactive Google-designed AEO Studio UI server")
+    serve_parser = subparsers.add_parser("serve", help="Start the interactive AEO Studio UI server (design influenced by Material 3)")
     serve_parser.add_argument("--port", type=int, default=8080, help="Port to listen on (default: 8080)")
     serve_parser.add_argument("--host", type=str, default="127.0.0.1", help="Host interface (default: 127.0.0.1)")
     serve_parser.add_argument("--open", action="store_true", help="Automatically open browser to AEO Studio")
@@ -475,7 +475,7 @@ def main(args: Optional[List[str]] = None) -> int:
     if parsed_args.subcommand in ("serve", "ui"):
         port = getattr(parsed_args, "port", 8080)
         host = getattr(parsed_args, "host", "127.0.0.1")
-        print(f"✨ Starting Google-Styled AEO Studio at http://{host}:{port}/")
+        print(f"✨ Starting AEO Studio at http://{host}:{port}/")
         print("💡 Press Ctrl+C to stop.")
         if getattr(parsed_args, "open", False):
             open_browser(f"http://{host}:{port}/")

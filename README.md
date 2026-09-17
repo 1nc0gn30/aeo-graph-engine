@@ -1,11 +1,11 @@
 <div align="center">
 
-# <img src="https://raw.githubusercontent.com/1nc0gn30/aeo-graph-engine/main/public/assets/google-aeo-icon.svg" width="36" height="36" onerror="this.style.display='none'" style="vertical-align: middle;" /> AEO Graph Engine (`aeo-graph-engine`)
+# AEO Graph Engine (`aeo-graph-engine`)
 
-### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & Google-Grade UI Workbench*
+### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & AEO Studio UI Workbench*
 
 [![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-00f0ff?style=for-the-badge&logo=pypi&logoColor=white)](https://github.com/1nc0gn30/aeo-graph-engine)
-[![Tests](https://img.shields.io/badge/tests-168%2F168%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-208%2F208%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Termux%20%7C%20macOS%20%7C%20Windows-38bdf8?style=for-the-badge&logo=linux&logoColor=white)](docs/PLATFORMS.md)
 [![MCP Protocol](https://img.shields.io/badge/MCP-JSON--RPC%202.0-8b5cf6?style=for-the-badge&logo=anthropic&logoColor=white)](docs/MCP_GUIDE.md)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-fbbf24?style=for-the-badge&logo=python&logoColor=black)](pyproject.toml)
@@ -14,7 +14,7 @@
 <br>
 
 <p align="center">
-  <a href="#-google-designed-aeo-studio-workbench">Google AEO Studio UI</a> •
+  <a href="#-aeo-studio-workbench">AEO Studio UI</a> •
   <a href="#-interactive-cli-wizard-aeo-init">CLI Wizard</a> •
   <a href="#-live-ai-search-bot-inspector--waf-probe">Bot WAF Probe</a> •
   <a href="#%EF%B8%8F-head-to-head-competitor-benchmark">Competitor Benchmark</a> •
@@ -32,7 +32,7 @@
 
 Traditional SEO was engineered for classic 10-blue-link search result pages. **Answer Engine Optimization (AEO)** and **Generative Engine Optimization (GEO)** optimize your website for direct conversational retrieval and factual synthesis by **ChatGPT Search, Perplexity AI, Claude, Google AI Overviews, Apple Intelligence, and Grok**.
 
-**`aeo-graph-engine`** is a zero-runtime-dependency Python engine, live multi-page crawler, CLI, and **Google-styled Light Mode Web Workbench** extracted and modularized from the **Zoth Studio** architecture. It audits live URLs, generates interconnected Schema.org `@graph` JSON-LD, compiles standard `llms.txt` manifests, and optimizes AI bot directives.
+**`aeo-graph-engine`** is a zero-runtime-dependency Python engine, live multi-page crawler, CLI, and **Interactive Web Workbench (design influenced by Material 3)** extracted and modularized from the **Zoth Studio** architecture. It audits live URLs, generates interconnected Schema.org `@graph` JSON-LD, compiles standard `llms.txt` manifests, and optimizes AI bot directives.
 
 ```
                   ┌──────────────────────────────────────────────────────────┐
@@ -54,9 +54,9 @@ Traditional SEO was engineered for classic 10-blue-link search result pages. **A
 
 ---
 
-## 🎨 Google-Designed AEO Studio Workbench
+## 🎨 AEO Studio Workbench (Design Influenced by Material 3)
 
-`aeo-graph-engine` includes a built-in interactive **Google Light Mode Web UI** (`AEO Studio`) designed with Google Material 3 aesthetics: clean `#f8f9fa` canvas, Google brand colors (`#4285f4`, `#ea4335`, `#fbbc04`, `#34a853`), elevation cards, live entity graph previews, and a real-time 0–100 AEO readiness meter.
+`aeo-graph-engine` includes a built-in interactive **Light Mode Web UI** (`AEO Studio`) with design influenced by Material 3: clean `#f8f9fa` canvas, elevation cards, live entity graph previews, and a real-time 0–100 AEO readiness meter.
 
 ### Launch the Local Studio:
 
@@ -283,13 +283,13 @@ usage: aeo [-h] [--generate-all] [--output-dir OUTPUT_DIR]
 | `aeo fix <url> --framework <name>` | Automatically generate concrete code fixes and remediation plan for missing AEO assets |
 | `aeo mcp [--tools] [--config <client>]` | Start stdio Model Context Protocol (MCP) server or generate JSON config for Claude/Cursor/Cline/Zed |
 | `aeo prompt "<description>"` | Synthesize full AEO configuration and linked data from a natural language description |
-| `aeo serve [--port 8080]` | Start Google Material 3 Light Mode interactive AEO Studio UI Workbench |
+| `aeo serve [--port 8080]` | Start interactive AEO Studio UI Workbench (design influenced by Material 3) |
 | `aeo platform` | Inspect multi-platform environment details (Linux, Termux Android, macOS, Windows) |
 | `aeo extract <file>` | Extract metadata from an existing HTML file into JSON |
 | `--generate-all` | Generate complete AEO bundle (`schema-graph.json`, `llms.txt`, `llms-full.txt`, `ai.txt`, `robots.txt`) |
 | `--validate <path>` | Audit bundle or schema and compute 0–100 AEO Readiness Score |
 | `--inject <file>` | Inject or update Schema.org JSON-LD in target HTML document |
-| `--test` | Run built-in unit test suite (168 tests) with zero-drift verification |
+| `--test` | Run built-in unit test suite (208 tests) with zero-drift verification |
 
 ---
 

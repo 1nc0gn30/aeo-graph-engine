@@ -1,7 +1,7 @@
 """
 AEO Graph Engine
 Answer Engine Optimization (AEO/GEO), Schema.org Graph & llms.txt Generator Engine.
-Includes Google-designed AEO Studio interactive dashboard, Model Context Protocol (MCP) server,
+Includes AEO Studio interactive dashboard (design influenced by Material 3), Model Context Protocol (MCP) server,
 framework exporter, HTML extractor, and live multi-page audit crawler.
 """
 

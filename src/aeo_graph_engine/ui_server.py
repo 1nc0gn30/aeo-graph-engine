@@ -1,6 +1,6 @@
 """
 Interactive Web UI & REST API Server for AEO Graph Engine.
-Delivers a Google-designed light mode AEO Studio dashboard with real-time
+Delivers an AEO Studio dashboard (design influenced by Material 3) with real-time
 Schema.org visualization, llms.txt compiler, HTML injector, AI prompt synthesizer,
 Model Context Protocol (MCP) hub, framework code exporter, and live multi-page crawler.
 Zero external runtime dependencies.
