@@ -2322,9 +2322,9 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
         if path in ("/", "/index.html", "/ui", "/ui/"):
             # Check local public/index.html for live development, fallback to embedded template
             for candidate in [
-                Path("public/index.html"),
                 Path(__file__).parent.parent.parent / "public" / "index.html",
                 Path(__file__).parent / "public" / "index.html",
+                Path("public/index.html"),
             ]:
                 if candidate.exists():
                     try:
