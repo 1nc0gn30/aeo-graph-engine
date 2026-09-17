@@ -18,6 +18,12 @@ from .core import (
     generate_robots_txt,
     write_aeo_bundle,
 )
+from .citation_readiness import (
+    CitationValidationIssue,
+    LLMCitationReadinessReport,
+    validate_llm_citation_readiness,
+)
+from .ui_server import start_ui_server
 from .injector import inject_jsonld_into_html, inject_file
 from .validator import validate_aeo_bundle, AEODiagnosticReport
 from .extractor import extract_metadata_from_html, extract_from_file
@@ -107,4 +113,7 @@ __all__ = [
     "run_ci_check",
     "DEFAULT_CONFIG",
     "NICHE_PRESETS",
+    "CitationValidationIssue",
+    "LLMCitationReadinessReport",
+    "validate_llm_citation_readiness",
 ]
