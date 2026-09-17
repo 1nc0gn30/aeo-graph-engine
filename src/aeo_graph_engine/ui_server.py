@@ -2571,6 +2571,15 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
             res = crawl_sitemap_batch(target, max_pages=max_pages, timeout=timeout)
             return self._send_json(res)
 
+        if path == "/api/knowledge-graph":
+            from .knowledge_graph import analyze_knowledge_graph
+            content = payload.get("content") or payload.get("text") or payload.get("html") or ""
+            schema_data = payload.get("schema")
+            base_url = payload.get("base_url", "https://example.com")
+            min_conf = float(payload.get("min_confidence", 0.4))
+            kg_report = analyze_knowledge_graph(content, schema_or_graph=schema_data, base_url=base_url, min_confidence=min_conf)
+            return self._send_json(kg_report.to_dict())
+
         self.send_error(404, "Endpoint not found")
 
 

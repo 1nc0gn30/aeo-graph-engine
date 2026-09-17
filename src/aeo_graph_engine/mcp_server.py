@@ -331,6 +331,38 @@ TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
             },
             "required": ["sitemap_url_or_domain"]
         }
+    },
+    {
+        "name": "aeo_extract_knowledge_graph",
+        "description": (
+            "Extract subject-predicate-object semantic triplets from content/HTML, compute entity PageRank "
+            "centrality, audit Schema.org @graph alignment to identify orphan entities, and generate "
+            "RDF N-Triples and Turtle knowledge graph serializations."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "description": "Raw HTML or Markdown text content to extract semantic knowledge graph from."
+                },
+                "schema_json": {
+                    "type": "object",
+                    "description": "Optional parsed Schema.org JSON-LD object to audit entity coverage against."
+                },
+                "base_url": {
+                    "type": "string",
+                    "description": "Base website canonical URL (default: 'https://example.com').",
+                    "default": "https://example.com"
+                },
+                "min_confidence": {
+                    "type": "number",
+                    "description": "Minimum extraction confidence threshold (0.0 to 1.0, default: 0.4).",
+                    "default": 0.4
+                }
+            },
+            "required": ["content"]
+        }
     }
 ]
 
@@ -1744,6 +1776,41 @@ class AEOMCPServer:
                     "content": [
                         {"type": "text", "text": summary},
                         {"type": "text", "text": json.dumps(crawl_res, indent=2, ensure_ascii=False)}
+                    ],
+                    "isError": False
+                }
+
+            elif name == "aeo_extract_knowledge_graph":
+                from .knowledge_graph import analyze_knowledge_graph
+                content = arguments.get("content")
+                if not content:
+                    return {
+                        "content": [{"type": "text", "text": "Error: 'content' parameter is required for aeo_extract_knowledge_graph."}],
+                        "isError": True
+                    }
+                schema_json = arguments.get("schema_json")
+                base_url = arguments.get("base_url", "https://example.com")
+                min_conf = float(arguments.get("min_confidence", 0.4))
+                kg_report = analyze_knowledge_graph(content, schema_or_graph=schema_json, base_url=base_url, min_confidence=min_conf)
+                res_dict = kg_report.to_dict()
+
+                summary = (
+                    f"🧠 AEO KNOWLEDGE GRAPH & TRIPLETS REPORT\n"
+                    f"🔗 Extracted Semantic Triplets: {res_dict['triplets_count']}\n"
+                    f"🌐 Unique Entities Identified: {res_dict['entities_count']}\n"
+                    f"📊 Schema.org Entity Coverage: {res_dict['entity_coverage_score']}%\n"
+                    f"🕸️ Graph Density: {res_dict['graph_density']}\n"
+                    f"⚠️ Orphan High-Salience Concepts: {len(res_dict['orphan_entities'])}\n\n"
+                    f"--- Top Central Entities (PageRank Salience) ---\n"
+                )
+                for ent in res_dict["entities"][:6]:
+                    in_s = "✅ In Schema" if ent["in_schema"] else "❌ Missing from Schema"
+                    summary += f"  • {ent['name']} ({ent['entity_type']}) - Salience: {ent['salience']} (PR: {ent['pagerank']}) [{in_s}]\n"
+
+                return {
+                    "content": [
+                        {"type": "text", "text": summary},
+                        {"type": "text", "text": json.dumps(res_dict, indent=2, ensure_ascii=False)}
                     ],
                     "isError": False
                 }

@@ -285,6 +285,14 @@ def build_parser() -> argparse.ArgumentParser:
     crawl_parser.add_argument("--max-pages", type=int, default=10, help="Maximum pages to discover & crawl (default: 10)")
     crawl_parser.add_argument("--json", action="store_true", help="Output JSON results")
 
+    # `aeo knowledge-graph` / `aeo kg`
+    kg_parser = subparsers.add_parser("knowledge-graph", aliases=["kg", "triplets"], help="Extract semantic triplets, compute PageRank centrality, and audit Schema.org entity coverage")
+    kg_parser.add_argument("input", type=str, help="Input HTML, Markdown file path, or raw text string")
+    kg_parser.add_argument("--schema", type=str, help="Optional Schema.org JSON-LD file to audit entity coverage against")
+    kg_parser.add_argument("--base-url", type=str, default="https://example.com", help="Base canonical URL (default: https://example.com)")
+    kg_parser.add_argument("--format", choices=["summary", "json", "ntriples", "turtle"], default="summary", help="Output format (default: summary)")
+    kg_parser.add_argument("--min-confidence", type=float, default=0.4, help="Minimum extraction confidence (default: 0.4)")
+
     # Main root flags
     parser.add_argument("--generate-all", action="store_true", help="Generate complete AEO bundle into output directory")
     parser.add_argument("--output-dir", type=str, default="dist", help="Output directory to write generated files (default: dist)")
@@ -742,6 +750,63 @@ def main(args: Optional[List[str]] = None) -> int:
                 print(f"        -> Fix: {item['fix']}")
 
         print("=" * 70 + "\n")
+        return 0
+
+    # Subcommand: knowledge-graph / kg / triplets
+    if parsed_args.subcommand in ("knowledge-graph", "kg", "triplets"):
+        from .knowledge_graph import analyze_knowledge_graph
+        input_target = parsed_args.input
+        content = input_target
+        if "\n" not in input_target and len(input_target) < 260:
+            try:
+                target_path = Path(input_target)
+                if target_path.exists() and target_path.is_file():
+                    content = target_path.read_text(encoding="utf-8")
+            except OSError:
+                pass
+
+        schema_json = None
+        if parsed_args.schema:
+            s_path = Path(parsed_args.schema)
+            if s_path.exists() and s_path.is_file():
+                try:
+                    schema_json = json.loads(s_path.read_text(encoding="utf-8"))
+                except Exception as exc:
+                    print(f"⚠️ Warning: Could not parse schema JSON: {exc}", file=sys.stderr)
+
+        base_url = getattr(parsed_args, "base_url", "https://example.com")
+        min_conf = getattr(parsed_args, "min_confidence", 0.4)
+        out_fmt = getattr(parsed_args, "format", "summary")
+
+        kg_report = analyze_knowledge_graph(content, schema_or_graph=schema_json, base_url=base_url, min_confidence=min_conf)
+        res_dict = kg_report.to_dict()
+
+        if out_fmt == "json":
+            print(json.dumps(res_dict, indent=2, ensure_ascii=False))
+        elif out_fmt == "ntriples":
+            print(res_dict["rdf_ntriples"])
+        elif out_fmt == "turtle":
+            print(res_dict["turtle"])
+        else:
+            print("=" * 70)
+            print("🧠 AEO KNOWLEDGE GRAPH & TRIPLETS REPORT")
+            print("=" * 70)
+            print(f"  • Extracted Triplets:      {res_dict['triplets_count']}")
+            print(f"  • Unique Entities:          {res_dict['entities_count']}")
+            print(f"  • Schema.org Coverage:     {res_dict['entity_coverage_score']}%")
+            print(f"  • Graph Density:           {res_dict['graph_density']}")
+            print(f"  • Orphan Concepts:         {len(res_dict['orphan_entities'])}")
+            if res_dict["orphan_entities"]:
+                print(f"    Missing: {', '.join(res_dict['orphan_entities'][:5])}")
+            print("\n--- Top Salient Entities (PageRank Centrality) ---")
+            for ent in res_dict["entities"][:6]:
+                status = "✅ In Schema" if ent["in_schema"] else "❌ Missing"
+                same_as_str = f" ({ent['wikidata_id']})" if ent.get("wikidata_id") else ""
+                print(f"  • {ent['name']} [{ent['entity_type']}]: Salience {ent['salience']} (PR: {ent['pagerank']}){same_as_str} - {status}")
+            print("\n--- Extracted Semantic Relations ---")
+            for trip in res_dict["triplets"][:8]:
+                print(f"  ({trip['subject']}) --[{trip['predicate']}]--> ({trip['object']}) [conf: {trip['confidence']}]")
+            print("=" * 70 + "\n")
         return 0
 
     # Load custom JSON config if provided

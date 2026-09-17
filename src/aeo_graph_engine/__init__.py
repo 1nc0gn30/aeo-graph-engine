@@ -23,6 +23,18 @@ from .citation_readiness import (
     LLMCitationReadinessReport,
     validate_llm_citation_readiness,
 )
+from .knowledge_graph import (
+    SemanticTriplet,
+    EntityNode,
+    KnowledgeGraphReport,
+    extract_semantic_triplets,
+    compute_pagerank,
+    build_entity_graph,
+    audit_knowledge_graph_schema_alignment,
+    export_rdf_ntriples,
+    export_turtle,
+    analyze_knowledge_graph,
+)
 from .ui_server import start_ui_server
 from .injector import inject_jsonld_into_html, inject_file
 from .validator import validate_aeo_bundle, AEODiagnosticReport
@@ -116,4 +128,14 @@ __all__ = [
     "CitationValidationIssue",
     "LLMCitationReadinessReport",
     "validate_llm_citation_readiness",
+    "SemanticTriplet",
+    "EntityNode",
+    "KnowledgeGraphReport",
+    "extract_semantic_triplets",
+    "compute_pagerank",
+    "build_entity_graph",
+    "audit_knowledge_graph_schema_alignment",
+    "export_rdf_ntriples",
+    "export_turtle",
+    "analyze_knowledge_graph",
 ]
