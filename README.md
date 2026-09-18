@@ -5,7 +5,7 @@
 ### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & AEO Studio UI Workbench*
 
 [![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-00f0ff?style=for-the-badge&logo=pypi&logoColor=white)](https://github.com/1nc0gn30/aeo-graph-engine)
-[![Tests](https://img.shields.io/badge/tests-208%2F208%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/tests-229%2F229%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Termux%20%7C%20macOS%20%7C%20Windows-38bdf8?style=for-the-badge&logo=linux&logoColor=white)](docs/PLATFORMS.md)
 [![MCP Protocol](https://img.shields.io/badge/MCP-JSON--RPC%202.0-8b5cf6?style=for-the-badge&logo=anthropic&logoColor=white)](docs/MCP_GUIDE.md)
 [![Python](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-fbbf24?style=for-the-badge&logo=python&logoColor=black)](pyproject.toml)
@@ -246,6 +246,30 @@ aeo --validate dist/ --format json
 
 ---
 
+## 🎯 Atomic Claim-Evidence Matrix & Scroll-to-Text Fragments
+
+Modern generative search engines (Perplexity Sonar, OpenAI SearchGPT, Gemini) perform grounded citation by extracting atomic factual propositions and pinning them to direct quotation fragments.
+
+```bash
+# Analyze document or HTML file into an atomic claim-evidence matrix
+aeo claims README.md
+
+# Export as Schema.org Statement linked data JSON
+aeo claims public/index.html --format json --output claims.json
+
+# Export as standalone dark-mode SVG badge
+aeo claims technical_spec.md --format svg --output claims_matrix.svg
+```
+
+#### Core Capabilities:
+- 🔬 **Atomic Assertion Decomposition**: Parses complex paragraphs into discrete, independently verifiable propositions.
+- 📐 **Linguistic Categorization**: Classifies claims into `Quantitative`, `Architectural`, `Comparative`, and `Capability` tiers.
+- 📊 **Quotability Scoring ($Q_{\text{atomic}}$)**: Heuristic evaluation penalizing speculative hedging ("might", "could", "we believe") and rewarding metric density and optimal citation sentence length (12–25 words).
+- 🔗 **W3C Scroll-to-Text Fragment Generation**: Automatically calculates `#:~:text=start,end` deep links and SHA-256 quote hashes (`quote_hash`) enabling pinpoint footnote citations.
+- 🏛️ **Schema.org ClaimReview & Statement Graph**: Synthesizes structured JSON-LD allowing AI search crawlers to ingest atomic assertions directly.
+
+---
+
 ## 💡 Why AEO / GEO Matters in 2026
 
 | Dimension | Classic SEO | Modern AEO / GEO |
@@ -283,13 +307,14 @@ usage: aeo [-h] [--generate-all] [--output-dir OUTPUT_DIR]
 | `aeo fix <url> --framework <name>` | Automatically generate concrete code fixes and remediation plan for missing AEO assets |
 | `aeo mcp [--tools] [--config <client>]` | Start stdio Model Context Protocol (MCP) server or generate JSON config for Claude/Cursor/Cline/Zed |
 | `aeo prompt "<description>"` | Synthesize full AEO configuration and linked data from a natural language description |
+| `aeo claims <target>` | **Atomic Claim-Evidence Matrix**: extracts verifiable claims, computes quotability score, and generates W3C citation text fragments |
 | `aeo serve [--port 8080]` | Start interactive AEO Studio UI Workbench (design influenced by Material 3) |
 | `aeo platform` | Inspect multi-platform environment details (Linux, Termux Android, macOS, Windows) |
 | `aeo extract <file>` | Extract metadata from an existing HTML file into JSON |
 | `--generate-all` | Generate complete AEO bundle (`schema-graph.json`, `llms.txt`, `llms-full.txt`, `ai.txt`, `robots.txt`) |
 | `--validate <path>` | Audit bundle or schema and compute 0–100 AEO Readiness Score |
 | `--inject <file>` | Inject or update Schema.org JSON-LD in target HTML document |
-| `--test` | Run built-in unit test suite (208 tests) with zero-drift verification |
+| `--test` | Run built-in unit test suite (229 tests) with zero-drift verification |
 
 ---
 

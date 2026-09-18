@@ -24,6 +24,11 @@ keywords = [
     "chatgpt-search",
     "claudebot",
     "knowledge-graph",
+    "claim-evidence-matrix",
+    "citation-quotability",
+    "text-fragments",
+    "scroll-to-text",
+    "claim-review",
     "seo"
 ]
 classifiers = [

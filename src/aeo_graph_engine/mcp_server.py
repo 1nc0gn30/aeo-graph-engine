@@ -363,6 +363,61 @@ TOOLS_DEFINITIONS: List[Dict[str, Any]] = [
             },
             "required": ["content"]
         }
+    },
+    {
+        "name": "aeo_analyze_claims",
+        "description": (
+            "Extract atomic factual assertions from web content or markdown, calculate LLM quotability scores, "
+            "categorize claims (quantitative, architectural, capability, comparative), and generate W3C Scroll-to-Text "
+            "citation fragments for Perplexity and SearchGPT grounding."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "description": "Text, markdown, or raw HTML content to extract atomic claims from."
+                },
+                "base_url": {
+                    "type": "string",
+                    "description": "Base canonical URL for W3C text fragment generation (default: 'https://example.com').",
+                    "default": "https://example.com"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Optional document or product title."
+                }
+            },
+            "required": ["content"]
+        }
+    },
+    {
+        "name": "aeo_generate_claim_matrix",
+        "description": (
+            "Generate a formatted Atomic Claim-Evidence Matrix in Markdown, SVG dark-mode visualization badge, "
+            "or Schema.org Statement/ClaimReview linked data graph."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "description": "Text, markdown, or raw HTML content to process."
+                },
+                "base_url": {
+                    "type": "string",
+                    "description": "Base canonical URL (default: 'https://example.com').",
+                    "default": "https://example.com"
+                },
+                "format": {
+                    "type": "string",
+                    "description": "Output representation format ('markdown', 'svg', 'json', 'schema_org').",
+                    "enum": ["markdown", "svg", "json", "schema_org"],
+                    "default": "markdown"
+                }
+            },
+            "required": ["content"]
+        }
     }
 ]
 
@@ -1811,6 +1866,64 @@ class AEOMCPServer:
                     "content": [
                         {"type": "text", "text": summary},
                         {"type": "text", "text": json.dumps(res_dict, indent=2, ensure_ascii=False)}
+                    ],
+                    "isError": False
+                }
+
+            elif name == "aeo_analyze_claims":
+                from .claim_evidence_matrix import analyze_claim_evidence_matrix
+                content = arguments.get("content")
+                if not content:
+                    return {
+                        "content": [{"type": "text", "text": "Error: 'content' parameter is required for aeo_analyze_claims."}],
+                        "isError": True
+                    }
+                base_url = arguments.get("base_url", "https://example.com")
+                title = arguments.get("title")
+                matrix = analyze_claim_evidence_matrix(content, base_url=base_url, title=title)
+                res_dict = matrix.to_dict()
+
+                summary = (
+                    f"🎯 ATOMIC CLAIM-EVIDENCE & CITATION MATRIX\n"
+                    f"📄 Target / Title: {matrix.url_or_title}\n"
+                    f"📊 Quotability Score: {matrix.mean_quotability_score:.1f}/100 (Grade: {matrix.quotability_grade})\n"
+                    f"🔬 Total Atomic Claims: {matrix.total_claims}\n"
+                    f"📈 Quantitative Metric Density: {matrix.quantitative_density * 100:.1f}%\n"
+                    f"⚡ High-Confidence Quotable (≥75): {matrix.high_quotability_count}\n"
+                )
+
+                return {
+                    "content": [
+                        {"type": "text", "text": summary},
+                        {"type": "text", "text": json.dumps(res_dict, indent=2, ensure_ascii=False)}
+                    ],
+                    "isError": False
+                }
+
+            elif name == "aeo_generate_claim_matrix":
+                from .claim_evidence_matrix import analyze_claim_evidence_matrix
+                content = arguments.get("content")
+                if not content:
+                    return {
+                        "content": [{"type": "text", "text": "Error: 'content' parameter is required for aeo_generate_claim_matrix."}],
+                        "isError": True
+                    }
+                base_url = arguments.get("base_url", "https://example.com")
+                fmt = arguments.get("format", "markdown")
+                matrix = analyze_claim_evidence_matrix(content, base_url=base_url)
+
+                if fmt == "svg":
+                    out_text = matrix.to_svg()
+                elif fmt == "schema_org":
+                    out_text = json.dumps(matrix.schema_org_claim_review, indent=2, ensure_ascii=False)
+                elif fmt == "json":
+                    out_text = json.dumps(matrix.to_dict(), indent=2, ensure_ascii=False)
+                else:
+                    out_text = matrix.to_markdown()
+
+                return {
+                    "content": [
+                        {"type": "text", "text": out_text}
                     ],
                     "isError": False
                 }

@@ -2407,6 +2407,16 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
             res = crawl_sitemap_batch(target, max_pages=max_pages)
             return self._send_json(res)
 
+        if path == "/api/claims/demo":
+            from .claim_evidence_matrix import analyze_claim_evidence_matrix
+            demo_text = (
+                "AEO Graph Engine delivers automated Schema.org linked data graphs with zero external dependencies. "
+                "The engine boosts SearchGPT and Perplexity citation confidence by 3.8x with full RFC-conforming output. "
+                "Webmasters can configure crawler directives across 10 autonomous AI bot user agents in under 3 minutes."
+            )
+            matrix = analyze_claim_evidence_matrix(demo_text, base_url="https://aeo.nullai.tech", title="AEO Graph Engine Architecture")
+            return self._send_json(matrix.to_dict())
+
         self.send_error(404, "Endpoint not found")
 
     def do_POST(self):
@@ -2579,6 +2589,20 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
             min_conf = float(payload.get("min_confidence", 0.4))
             kg_report = analyze_knowledge_graph(content, schema_or_graph=schema_data, base_url=base_url, min_confidence=min_conf)
             return self._send_json(kg_report.to_dict())
+
+        if path in ("/api/claims", "/api/claim-matrix"):
+            from .claim_evidence_matrix import analyze_claim_evidence_matrix
+            content = payload.get("content") or payload.get("text") or payload.get("html") or ""
+            base_url = payload.get("base_url", "https://example.com")
+            title = payload.get("title")
+            fmt = payload.get("format", "json")
+            matrix = analyze_claim_evidence_matrix(content, base_url=base_url, title=title)
+
+            if fmt == "svg":
+                return self._send_json({"svg": matrix.to_svg()})
+            elif fmt == "markdown":
+                return self._send_json({"markdown": matrix.to_markdown()})
+            return self._send_json(matrix.to_dict())
 
         self.send_error(404, "Endpoint not found")
 

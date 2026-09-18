@@ -23,6 +23,12 @@ from .citation_readiness import (
     LLMCitationReadinessReport,
     validate_llm_citation_readiness,
 )
+from .claim_evidence_matrix import (
+    AtomicClaim,
+    ClaimCategory,
+    ClaimEvidenceMatrix,
+    analyze_claim_evidence_matrix,
+)
 from .knowledge_graph import (
     SemanticTriplet,
     EntityNode,
@@ -128,6 +134,10 @@ __all__ = [
     "CitationValidationIssue",
     "LLMCitationReadinessReport",
     "validate_llm_citation_readiness",
+    "AtomicClaim",
+    "ClaimCategory",
+    "ClaimEvidenceMatrix",
+    "analyze_claim_evidence_matrix",
     "SemanticTriplet",
     "EntityNode",
     "KnowledgeGraphReport",

@@ -21,6 +21,7 @@ from .core import (
     write_aeo_bundle,
     resolve_config
 )
+from .claim_evidence_matrix import analyze_claim_evidence_matrix
 from .injector import inject_file, inject_jsonld_into_html
 from .validator import validate_aeo_bundle
 from .extractor import extract_from_file, extract_metadata_from_html
@@ -292,6 +293,13 @@ def build_parser() -> argparse.ArgumentParser:
     kg_parser.add_argument("--base-url", type=str, default="https://example.com", help="Base canonical URL (default: https://example.com)")
     kg_parser.add_argument("--format", choices=["summary", "json", "ntriples", "turtle"], default="summary", help="Output format (default: summary)")
     kg_parser.add_argument("--min-confidence", type=float, default=0.4, help="Minimum extraction confidence (default: 0.4)")
+
+    # `aeo claims` / `aeo claim-matrix`
+    claims_parser = subparsers.add_parser("claims", aliases=["claim-matrix"], help="Decompose content into an atomic claim-evidence matrix with W3C citation text fragments")
+    claims_parser.add_argument("input", type=str, help="Input HTML, Markdown file path, URL, or raw text string")
+    claims_parser.add_argument("--base-url", type=str, default="https://example.com", help="Base canonical URL (default: https://example.com)")
+    claims_parser.add_argument("--format", choices=["summary", "json", "markdown", "svg"], default="summary", help="Output format (default: summary)")
+    claims_parser.add_argument("-o", "--output", type=str, help="Optional output file path to write results")
 
     # Main root flags
     parser.add_argument("--generate-all", action="store_true", help="Generate complete AEO bundle into output directory")
@@ -807,6 +815,66 @@ def main(args: Optional[List[str]] = None) -> int:
             for trip in res_dict["triplets"][:8]:
                 print(f"  ({trip['subject']}) --[{trip['predicate']}]--> ({trip['object']}) [conf: {trip['confidence']}]")
             print("=" * 70 + "\n")
+        return 0
+
+    # Subcommand: claims / claim-matrix
+    if parsed_args.subcommand in ("claims", "claim-matrix"):
+        input_target = parsed_args.input
+        content = input_target
+        if "\n" not in input_target and len(input_target) < 260:
+            try:
+                target_path = Path(input_target)
+                if target_path.exists() and target_path.is_file():
+                    content = target_path.read_text(encoding="utf-8")
+            except OSError:
+                pass
+
+        base_url = getattr(parsed_args, "base_url", "https://example.com")
+        matrix = analyze_claim_evidence_matrix(content, base_url=base_url)
+
+        fmt = getattr(parsed_args, "format", "summary")
+        out_content = ""
+
+        if fmt == "json":
+            out_content = json.dumps(matrix.to_dict(), indent=2, ensure_ascii=False)
+        elif fmt == "markdown":
+            out_content = matrix.to_markdown()
+        elif fmt == "svg":
+            out_content = matrix.to_svg()
+        else:
+            lines = [
+                "\n" + "=" * 70,
+                "🎯 ATOMIC CLAIM-EVIDENCE & CITATION MATRIX",
+                "=" * 70,
+                f"  • Target / Document:       {matrix.url_or_title}",
+                f"  • Quotability Score:       {matrix.mean_quotability_score:.1f} / 100 ({matrix.quotability_grade})",
+                f"  • Total Atomic Claims:     {matrix.total_claims}",
+                f"  • High-Confidence (≥75):   {matrix.high_quotability_count}",
+                f"  • Quantitative Density:    {matrix.quantitative_density * 100:.1f}%",
+                "\n--- Claim Categories ---",
+            ]
+            for cat, cnt in matrix.category_counts.items():
+                lines.append(f"  • {cat.capitalize():<16}: {cnt}")
+
+            lines.append("\n--- Top Verifiable Claims & Quote Anchors ---")
+            for c in matrix.claims[:6]:
+                metrics_str = f" [Metrics: {', '.join(c.metrics)}]" if c.metrics else ""
+                lines.append(f"  [{c.id}] ({c.quotability_score:.0f} pts) {c.text}{metrics_str}")
+                lines.append(f"        Anchor: #{c.quote_hash} -> {c.text_fragment}")
+
+            if matrix.actionable_recommendations:
+                lines.append("\n--- Actionable Grounding Recommendations ---")
+                for rec in matrix.actionable_recommendations:
+                    lines.append(f"  💡 {rec}")
+            lines.append("=" * 70 + "\n")
+            out_content = "\n".join(lines)
+
+        if parsed_args.output:
+            out_path = Path(parsed_args.output)
+            atomic_write_text(out_path, out_content)
+            print(f"✅ Claim-evidence matrix written to: {out_path}")
+        else:
+            print(out_content)
         return 0
 
     # Load custom JSON config if provided
