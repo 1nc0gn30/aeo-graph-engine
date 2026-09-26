@@ -1,0 +1,34 @@
+{
+  "name": "aeo-graph-engine",
+  "version": "2.0.0",
+  "description": "Zero-Dependency Answer Engine Optimization, Schema.org Knowledge Graph, llms.txt & AI Bot Shield — Desktop Workstation",
+  "main": "electron/main.cjs",
+  "bin": {
+    "aeo": "./bin/aeo-graph.js",
+    "aeo-graph": "./bin/aeo-graph.js"
+  },
+  "scripts": {
+    "start": "python3 -m aeo_graph_engine.cli serve --port 8089",
+    "electron": "electron .",
+    "app": "electron .",
+    "test": "pytest tests/"
+  },
+  "keywords": [
+    "aeo",
+    "answer-engine-optimization",
+    "knowledge-graph",
+    "schema-org",
+    "json-ld",
+    "llms-txt",
+    "ai-bots",
+    "zero-egress",
+    "sovereign",
+    "electron",
+    "zoth"
+  ],
+  "author": "NullAI Tech / Zoth Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^34.5.8"
+  }
+}
