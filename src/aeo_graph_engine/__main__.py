@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Executable module entrypoint for `python3 -m aeo_graph_engine`.
 """

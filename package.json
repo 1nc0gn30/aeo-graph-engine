@@ -1,0 +1,18 @@
+{
+  "name": "aeo-graph-engine",
+  "version": "1.0.0",
+  "description": "Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler & Schema.org Engine",
+  "main": "bin/aeo-engine",
+  "bin": {
+    "aeo-engine": "bin/aeo-engine"
+  },
+  "scripts": {
+    "start": "bin/aeo-engine serve",
+    "cli": "bin/aeo-engine",
+    "ui": "python3 -m aeo_graph_engine.ui_server",
+    "mcp": "python3 -m aeo_graph_engine.mcp_server",
+    "test": "pytest"
+  },
+  "author": "Micro-Tools Web & Media",
+  "license": "MIT"
+}
