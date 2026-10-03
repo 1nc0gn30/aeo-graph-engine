@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Command Line Interface for AEO Graph Engine.
 Provides commands for generating, validating, inspecting, testing, extracting,

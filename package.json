@@ -1,18 +1,34 @@
 {
   "name": "aeo-graph-engine",
-  "version": "1.0.0",
-  "description": "Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler & Schema.org Engine",
-  "main": "bin/aeo-engine",
+  "version": "2.0.0",
+  "description": "Zero-Dependency Answer Engine Optimization, Schema.org Knowledge Graph, llms.txt & AI Bot Shield — Desktop Workstation",
+  "main": "electron/main.cjs",
   "bin": {
-    "aeo-engine": "bin/aeo-engine"
+    "aeo": "./bin/aeo-graph.js",
+    "aeo-graph": "./bin/aeo-graph.js"
   },
   "scripts": {
-    "start": "bin/aeo-engine serve",
-    "cli": "bin/aeo-engine",
-    "ui": "python3 -m aeo_graph_engine.ui_server",
-    "mcp": "python3 -m aeo_graph_engine.mcp_server",
-    "test": "pytest"
+    "start": "python3 -m aeo_graph_engine.cli serve --port 8089",
+    "electron": "electron .",
+    "app": "electron .",
+    "test": "pytest tests/"
   },
-  "author": "Micro-Tools Web & Media",
-  "license": "MIT"
+  "keywords": [
+    "aeo",
+    "answer-engine-optimization",
+    "knowledge-graph",
+    "schema-org",
+    "json-ld",
+    "llms-txt",
+    "ai-bots",
+    "zero-egress",
+    "sovereign",
+    "electron",
+    "zoth"
+  ],
+  "author": "NullAI Tech / Zoth Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^34.5.8"
+  }
 }

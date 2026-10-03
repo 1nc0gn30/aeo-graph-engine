@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+
+# AEO & AI Knowledge Crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+Sitemap: https://aeo-graph-engine.netlify.app/sitemap.xml

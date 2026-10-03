@@ -1,15 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AEO Studio — Answer Engine & Schema Knowledge Graph Workbench</title>
-  <meta name="description" content="AEO Studio - Answer Engine Optimization (AEO/GEO) Workbench (design influenced by Material 3). Live site crawler, Schema.org JSON-LD @graph generator, Model Context Protocol (MCP) hub, and framework exporter.">
+  <title>AEO Studio — Answer Engine Optimization & Semantic Knowledge Graph Engine</title>
+  <meta name="description" content="Production-grade Answer Engine Optimization (AEO/GEO) Workbench. Live semantic crawler, Schema.org JSON-LD @graph generator, Model Context Protocol (MCP) hub, and AI entity indexer for Perplexity, ChatGPT, and Google AI Overviews.">
+  <meta name="keywords" content="AEO studio, answer engine optimization, generative engine optimization, schema json-ld generator, semantic triples, entity visualizer, perplexity seo, nullai tech, neal frazier">
+  <meta name="author" content="Neal Frazier">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://aeo-graph-engine.netlify.app/">
+
+  <!-- OpenGraph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aeo-graph-engine.netlify.app/">
+  <meta property="og:title" content="AEO Studio — Answer Engine Optimization Workbench">
+  <meta property="og:description" content="Generate high-converting Schema.org JSON-LD semantic knowledge graphs. Instant checkout via Stripe ($49) or Solana DePay.">
+  <meta property="og:site_name" content="Neal Frazier Tech / NullAI">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@1nc0gn30">
+  <meta name="twitter:creator" content="@1nc0gn30">
+  <meta name="twitter:title" content="AEO Studio — Knowledge Graph Workbench">
+  <meta name="twitter:description" content="Dominate AI answer engines with automated Schema.org graph generation and MCP export.">
+
+  <!-- AEO JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://aeo-graph-engine.netlify.app/#app",
+        "name": "AEO Studio",
+        "url": "https://aeo-graph-engine.netlify.app/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "All",
+        "description": "Answer Engine Optimization and Semantic Knowledge Graph Engine for AI indexing and schema generation.",
+        "creator": {
+          "@type": "Person",
+          "name": "Neal Frazier",
+          "url": "https://nealfrazier.tech",
+          "sameAs": "https://github.com/1nc0gn30"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "49.00",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock",
+          "url": "https://buy.stripe.com/9B6cN44fX49O0uY80ofw40E"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://aeo-graph-engine.netlify.app/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Answer Engine Optimization (AEO)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Answer Engine Optimization is the process of structuring website data with semantic JSON-LD knowledge graphs, entity relationships, and clear answer passages to be directly cited by AI engines like Perplexity, ChatGPT Search, and Google AI Overviews."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I purchase an AEO Studio license?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "A lifetime professional license is $49.00 USD, payable via Stripe (Credit Card / Apple Pay) or Solana Web3 via DePay."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <script defer src="https://integrate.depay.com/widgets/v13.js"></script>
   <style>
     :root {
-      --google-blue: #B8860B;
-      --google-blue-hover: #8A6A09;
-      --google-blue-surface: #FEF9E7;
+      --google-blue: #1a73e8;
+      --google-blue-hover: #1557b0;
+      --google-blue-surface: #e8f0fe;
       --google-green: #1e8e3e;
       --google-green-surface: #e6f4ea;
       --google-yellow: #f9ab00;
@@ -135,7 +208,7 @@
       color: var(--google-blue);
     }
     .btn-tonal:hover {
-      background: #F5E6AB;
+      background: #d2e3fc;
     }
     .btn-purple {
       background: var(--google-purple-surface);
@@ -182,7 +255,7 @@
 
     /* AI Prompt Hero Box */
     .ai-hero-box {
-      background: linear-gradient(135deg, #f3e8fd 0%, #FEF9E7 100%);
+      background: linear-gradient(135deg, #f3e8fd 0%, #e8f0fe 100%);
       border: 1px solid rgba(147, 52, 230, 0.25);
       border-radius: 12px;
       padding: 14px;
@@ -537,7 +610,7 @@
 
     /* Scanner Specific Styles */
     .scanner-hero {
-      background: linear-gradient(135deg, #FEF9E7 0%, #f1f3f4 100%);
+      background: linear-gradient(135deg, #e8f0fe 0%, #f1f3f4 100%);
       border: 1px solid var(--border-subtle);
       border-radius: 12px;
       padding: 20px;
@@ -816,11 +889,9 @@
       .scanner-bar { flex-direction: column; align-items: stretch; }
     }
   </style>
-  <link rel="stylesheet" href="atelier.css">
 </head>
 <body>
-
-  <!-- Google-Style Header -->
+<!-- Google-Style Header -->
   <header class="app-bar">
     <div class="brand-section">
       <div class="google-dots">
@@ -838,9 +909,14 @@
       <div class="score-chip" id="topScoreChip">
         <span id="topScoreValue">100 / 100</span> AEO Readiness
       </div>
+      <a href="https://buy.stripe.com/9B6cN44fX49O0uY80ofw40E" target="_blank" class="btn btn-sm" style="background: #6366F1; color: #FFF; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+        💳 Buy Pro ($49)
+      </a>
+      <button class="btn btn-sm" onclick="openDePayCheckout()" style="background: #14F195; color: #000; font-weight: 700; border: none; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
+        ⚡ Pay with Crypto (SOL)
+      </button>
       <button class="btn btn-purple btn-sm" onclick="exportFullAuditReportModal()">📄 Audit Report</button>
       <button class="btn btn-tonal btn-sm" onclick="switchTab('tab-ai-gateway')">⚡ AI Keys & Ports</button>
-      <button class="btn btn-outline btn-sm" onclick="triggerAutoDetect()">🔍 Auto-Detect</button>
       <button class="btn btn-primary btn-sm" onclick="downloadZipBundle()">📥 Download .zip</button>
     </div>
   </header>
@@ -1261,7 +1337,7 @@
 
             <!-- Social Card (OG) Preview -->
             <div id="previewSocialCard" class="card" style="display:none; max-width:540px; border:1px solid var(--border-divider); border-radius:12px; overflow:hidden; padding:0;">
-              <div style="height:160px; background:linear-gradient(135deg, #B8860B 0%, #9334e6 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; padding:20px; text-align:center;">
+              <div style="height:160px; background:linear-gradient(135deg, #1a73e8 0%, #9334e6 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; padding:20px; text-align:center;">
                 <div style="font-size:22px; font-weight:800;" id="prevOgTitle">AEO Graph Engine</div>
                 <div style="font-size:13px; opacity:0.9; margin-top:4px;" id="prevOgTagline">Answer Engine Optimization Knowledge Graph</div>
               </div>
@@ -1347,7 +1423,7 @@
         <!-- 2.5 AI Keys & Gateway Ports Tab -->
         <div id="tab-ai-gateway" class="tab-pane">
           <!-- Hero Banner -->
-          <div class="scanner-hero" style="background:linear-gradient(135deg, #FEF9E7 0%, #f3e8fd 100%);">
+          <div class="scanner-hero" style="background:linear-gradient(135deg, #e8f0fe 0%, #f3e8fd 100%);">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <div>
                 <h2 style="font-size:18px; font-weight:700; color:var(--google-blue); margin-bottom:4px;">
@@ -1719,6 +1795,7 @@
 </head>
 <body>
   <h1>Hello World</h1>
+  
 </body>
 </html></textarea>
             </div>
@@ -2319,18 +2396,48 @@ Focus on:
     }
 
     /* MCP and Agent Hub */
-    async function selectMcpClient(clientKey) {
+    function selectMcpClient(clientKey) {
       document.querySelectorAll('#tab-agent-hub .preset-pill').forEach(el => {
-        if (el.innerText.toLowerCase().includes(clientKey.replace('_', ' '))) el.classList.add('active');
+        el.classList.toggle('active', el.innerText.toLowerCase().includes(clientKey.replace('_', ' ')));
       });
 
-      try {
-        const res = await fetch('/api/mcp/config?client=' + clientKey);
-        const data = await res.json();
-        document.getElementById('codeMcpConfig').innerText = JSON.stringify(data, null, 2);
-      } catch (e) {
-        console.error("MCP config error", e);
-      }
+      const domain = document.getElementById('inpDomain') ? document.getElementById('inpDomain').value : 'aeo-engine.dev';
+      const mcpConfigs = {
+        claude_desktop: {
+          mcpServers: {
+            "aeo-knowledge-graph": {
+              command: "npx",
+              args: ["-y", "aeo-graph-engine", "mcp-server"],
+              env: { DOMAIN: domain }
+            }
+          }
+        },
+        cursor: {
+          mcpServers: {
+            "aeo-graph": {
+              url: `https://${domain}/api/mcp/sse`
+            }
+          }
+        },
+        cline: {
+          mcpServers: {
+            "aeo-engine": {
+              command: "node",
+              args: ["bin/aeo.js", "mcp"]
+            }
+          }
+        },
+        zed: {
+          context_servers: ["aeo-graph-engine"]
+        },
+        hermes: {
+          agent_tools: ["aeo_schema_lookup", "llms_txt_parser"]
+        }
+      };
+
+      const cfg = mcpConfigs[clientKey] || mcpConfigs.claude_desktop;
+      const el = document.getElementById('codeMcpConfig');
+      if (el) el.innerText = JSON.stringify(cfg, null, 2);
     }
 
     function selectAgentPrompt(promptKey) {
@@ -3184,22 +3291,39 @@ Focus on:
       }
     }
 
-    // --- Entity Graph Visualizer JS ---
+    // --- Entity Graph Visualizer JS (100% Client-Side) ---
     let lastVisData = null;
-    async function loadEntityVisualizer(format = 'both') {
-      try {
-        const cfg = typeof getCurrentConfig === 'function' ? getCurrentConfig() : {};
-        const res = await fetch('/api/visualize-schema', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ schema: (typeof currentSchemaGraph !== 'undefined' ? currentSchemaGraph : undefined), format: format })
-        });
-        const data = await res.json();
-        lastVisData = data;
-        renderEntityVisualizer(data);
-      } catch (e) {
-        console.error("Failed to load entity visualizer: ", e);
-      }
+    function loadEntityVisualizer(format = 'both') {
+      const siteName = document.getElementById('inpSiteName') ? document.getElementById('inpSiteName').value : 'AEO Studio';
+      const domain = document.getElementById('inpDomain') ? document.getElementById('inpDomain').value : 'aeo-engine.dev';
+      
+      const entities = [
+        { id: "ent_org", name: siteName, type: "Organization", description: "Primary authority & knowledge graph publisher" },
+        { id: "ent_author", name: "Neal Frazier", type: "Person", description: "Lead Architect (@1nc0gn30 / Neal Frazier Tech)" },
+        { id: "ent_site", name: `${siteName} Canonical Hub`, type: "WebSite", description: `Canonical origin at https://${domain}/` },
+        { id: "ent_api", name: "Semantic Triples Endpoint", type: "Service", description: "Answer Engine crawlable triples" }
+      ];
+
+      const relationships = [
+        { from: siteName, to: "Neal Frazier", relation: "founder / author" },
+        { from: siteName, to: `${siteName} Canonical Hub`, relation: "publishes" },
+        { from: `${siteName} Canonical Hub`, to: "Semantic Triples Endpoint", relation: "hosts" }
+      ];
+
+      const mermaid = `graph TD\n  Org["${siteName} (Organization)"] -->|founder| Auth["Neal Frazier (Person)"]\n  Org -->|publishes| Web["${siteName} Canonical Hub (WebSite)"]\n  Web -->|hosts| Svc["Semantic Triples Endpoint (Service)"]`;
+      const ascii = `+---------------------------------------+\n| ${siteName} [Organization]        |\n+-------------------+-------------------+\n                    |\n        +-----------+-----------+\n        |                       |\n        v                       v\n[Author: Neal Frazier]   [WebSite: ${domain}]`;
+
+      const data = {
+        entities_count: entities.length,
+        relationships_count: relationships.length,
+        entities: entities,
+        relationships: relationships,
+        mermaid: mermaid,
+        ascii: ascii
+      };
+
+      lastVisData = data;
+      renderEntityVisualizer(data);
     }
 
     function renderEntityVisualizer(data) {
@@ -3387,6 +3511,20 @@ Focus on:
       loadAiGatewaySettings();
       loadEntityVisualizer('both');
     });
+
+    function openDePayCheckout() {
+      if (typeof DePayWidgets !== 'undefined') {
+        DePayWidgets.Payment({
+          integration: '428790dd-7ad1-407c-8ecf-c048c77a4cb8'
+        });
+      } else {
+        alert('DePay Web3 Widget is loading. Opening direct checkout page...');
+        window.open('https://depay.com', '_blank');
+      }
+    }
   </script>
+  <footer style="text-align: center; padding: 2rem 1rem; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid var(--border-divider); margin-top: 2rem; background: var(--surface-bg);">
+    <div>Engineered by Neal Frazier Tech (<a href="https://github.com/1nc0gn30/aeo-graph-engine" target="_blank" rel="noopener" style="color: var(--primary-accent); text-decoration: none;">@1nc0gn30</a>) &middot; <a href="https://nullai.tech" target="_blank" rel="noopener" style="color: var(--primary-accent); text-decoration: none;">NullAI Platform</a></div>
+  </footer>
 </body>
 </html>

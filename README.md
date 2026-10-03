@@ -4,7 +4,7 @@
 
 ### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & AEO Studio UI Workbench*
 
-[![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-00f0ff?style=for-the-badge&logo=pypi&logoColor=white)](https://github.com/1nc0gn30/aeo-graph-engine)
+[![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-00f0ff?style=for-the-badge&logo=pypi&logoColor=white)](https://github.com/NullAITech/aeo-graph-engine)
 [![Tests](https://img.shields.io/badge/tests-229%2F229%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Termux%20%7C%20macOS%20%7C%20Windows-38bdf8?style=for-the-badge&logo=linux&logoColor=white)](docs/PLATFORMS.md)
 [![MCP Protocol](https://img.shields.io/badge/MCP-JSON--RPC%202.0-8b5cf6?style=for-the-badge&logo=anthropic&logoColor=white)](docs/MCP_GUIDE.md)
@@ -174,7 +174,7 @@ Supported frameworks:
 
 ```bash
 # Clone the repository
-git clone https://github.com/1nc0gn30/aeo-graph-engine.git
+git clone https://github.com/NullAITech/aeo-graph-engine.git
 cd aeo-graph-engine
 
 # Editable pip install (zero external runtime dependencies!)
