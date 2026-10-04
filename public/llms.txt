@@ -1,0 +1,8 @@
+# AEO Knowledge Graph Engine — Context & Model Discovery (llms.txt)
+> Sovereign in-browser developer utility engineered by Neal Frazier Tech.
+- [Application]: https://aeo-graph-engine.netlify.app/
+- [Terms of Service]: https://aeo-graph-engine.netlify.app/terms.html
+- [Privacy Policy]: https://aeo-graph-engine.netlify.app/privacy.html
+- [Support & FAQ]: https://aeo-graph-engine.netlify.app/support.html
+- [Netlify AX API]: https://aeo-graph-engine.netlify.app/api/netlify-ax.json
+- [Netlify MCP API]: https://aeo-graph-engine.netlify.app/api/netlify-ax-mcp.json
