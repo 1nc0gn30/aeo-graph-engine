@@ -157,6 +157,15 @@ def test_build_entity_graph_salience_and_density():
         assert len(py_entities[0].same_as) > 0
 
 
+def test_wikidata_authorities_catalog():
+    """Verify common tech entities map to canonical Wikidata URIs."""
+    from aeo_graph_engine.knowledge_graph import COMMON_WIKIDATA_ENTITIES
+    for key in ("html", "css", "markdown", "webassembly", "cloudflare", "solana", "github"):
+        assert key in COMMON_WIKIDATA_ENTITIES
+        assert COMMON_WIKIDATA_ENTITIES[key].startswith("https://www.wikidata.org/wiki/Q")
+
+
+
 def test_audit_knowledge_graph_schema_alignment():
     """Verify Schema.org alignment, entity coverage scoring, and orphan detection."""
     triplets = extract_semantic_triplets(SAMPLE_TEXT)

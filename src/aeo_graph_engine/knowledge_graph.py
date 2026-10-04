@@ -58,6 +58,11 @@ COMMON_WIKIDATA_ENTITIES: Dict[str, str] = {
     "github": "https://www.wikidata.org/wiki/Q364",
     "solana": "https://www.wikidata.org/wiki/Q108876426",
     "ethereum": "https://www.wikidata.org/wiki/Q20667575",
+    "html": "https://www.wikidata.org/wiki/Q8811",
+    "css": "https://www.wikidata.org/wiki/Q46441",
+    "markdown": "https://www.wikidata.org/wiki/Q1193600",
+    "webassembly": "https://www.wikidata.org/wiki/Q20819777",
+    "cloudflare": "https://www.wikidata.org/wiki/Q13410010",
 }
 
 
