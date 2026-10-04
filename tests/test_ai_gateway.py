@@ -10,7 +10,10 @@ from unittest.mock import patch, MagicMock
 from aeo_graph_engine.ai_gateway import AIGateway, DEFAULT_AI_GATEWAY_CONFIG
 
 
-def test_ai_gateway_defaults(tmp_path):
+def test_ai_gateway_defaults(tmp_path, monkeypatch):
+    monkeypatch.delenv("OLLAMA_HOST", raising=False)
+    monkeypatch.delenv("LM_STUDIO_URL", raising=False)
+    monkeypatch.delenv("VLLM_URL", raising=False)
     cfg_file = tmp_path / "test_ai_cfg.json"
     gateway = AIGateway(cfg_file)
     status = gateway.get_public_status()

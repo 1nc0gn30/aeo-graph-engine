@@ -98,6 +98,8 @@ class AIGateway:
         for env_var, (section, key) in env_map.items():
             val = os.environ.get(env_var)
             if val:
+                if section == "endpoints" and not val.startswith(("http://", "https://")):
+                    val = f"http://{val}"
                 cfg[section][key] = val
 
         return cfg
