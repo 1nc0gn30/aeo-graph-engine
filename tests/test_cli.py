@@ -289,3 +289,17 @@ def test_cli_crawl_command(capsys, tmp_path, monkeypatch):
     assert len(parsed["pages"]) == 2
     assert parsed["coverage_metrics"]["schema_coverage_pct"] == 100
 
+
+def test_main_module_execution(monkeypatch):
+    import runpy
+    import aeo_graph_engine.cli as cli_module
+
+    called = []
+    monkeypatch.setattr(cli_module, "main", lambda: called.append(True) or 0)
+    try:
+        runpy.run_module("aeo_graph_engine", run_name="__main__")
+    except SystemExit as exc:
+        assert exc.code == 0
+    assert called == [True]
+
+
