@@ -84,6 +84,13 @@ from .reporter import generate_markdown_report, generate_standalone_html_report,
 from .wizard import run_wizard, detect_framework, detect_project_profile
 from .ci_gate import run_ci_check
 from .presets import DEFAULT_CONFIG, NICHE_PRESETS
+from .crawler import SitemapCrawler, crawl_sitemap_or_site
+from .schema_visualizer import (
+    extract_graph_nodes_and_edges,
+    render_schema_mermaid,
+    render_schema_ascii_tree,
+    render_schema_summary_table,
+)
 from .crypto import (
     canonicalize_jsonld,
     compute_sha256,
@@ -174,4 +181,10 @@ __all__ = [
     "compute_manifest_hashes",
     "generate_cryptographic_manifest",
     "verify_cryptographic_manifest",
+    "SitemapCrawler",
+    "crawl_sitemap_or_site",
+    "extract_graph_nodes_and_edges",
+    "render_schema_mermaid",
+    "render_schema_ascii_tree",
+    "render_schema_summary_table",
 ]
