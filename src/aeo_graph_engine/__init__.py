@@ -76,6 +76,13 @@ from .reporter import generate_markdown_report, generate_standalone_html_report,
 from .wizard import run_wizard, detect_framework, detect_project_profile
 from .ci_gate import run_ci_check
 from .presets import DEFAULT_CONFIG, NICHE_PRESETS
+from .crypto import (
+    canonicalize_jsonld,
+    compute_sha256,
+    compute_manifest_hashes,
+    generate_cryptographic_manifest,
+    verify_cryptographic_manifest,
+)
 
 __all__ = [
     "__version__",
@@ -148,4 +155,9 @@ __all__ = [
     "export_rdf_ntriples",
     "export_turtle",
     "analyze_knowledge_graph",
+    "canonicalize_jsonld",
+    "compute_sha256",
+    "compute_manifest_hashes",
+    "generate_cryptographic_manifest",
+    "verify_cryptographic_manifest",
 ]
