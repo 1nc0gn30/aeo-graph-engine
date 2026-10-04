@@ -383,11 +383,11 @@ def build_entity_graph(
         same_as = [wikidata_url] if wikidata_url else []
 
         # Simple entity type heuristic
-        if norm_name in ("python", "javascript", "typescript", "solana", "ethereum", "react", "next.js", "astro"):
+        if norm_name in ("python", "javascript", "typescript", "solana", "ethereum", "react", "next.js", "astro", "webassembly"):
             e_type = "SoftwareApplication"
-        elif any(w in norm_name for w in ("foundation", "lab", "team", "technologies", "inc", "corp", "org")):
+        elif any(w in norm_name for w in ("foundation", "lab", "team", "technologies", "inc", "corp", "org")) or norm_name in ("cloudflare", "google", "openai", "anthropic", "perplexity", "github"):
             e_type = "Organization"
-        elif norm_name in ("schema.org", "json-ld", "rest", "graphql", "mcp"):
+        elif norm_name in ("schema.org", "json-ld", "rest", "graphql", "mcp", "html", "css", "markdown"):
             e_type = "Intangible"
         else:
             e_type = "Thing"

@@ -158,11 +158,25 @@ def test_build_entity_graph_salience_and_density():
 
 
 def test_wikidata_authorities_catalog():
-    """Verify common tech entities map to canonical Wikidata URIs."""
-    from aeo_graph_engine.knowledge_graph import COMMON_WIKIDATA_ENTITIES
+    """Verify common tech entities map to canonical Wikidata URIs and correct Schema.org types."""
+    from aeo_graph_engine.knowledge_graph import COMMON_WIKIDATA_ENTITIES, SemanticTriplet, build_entity_graph
     for key in ("html", "css", "markdown", "webassembly", "cloudflare", "solana", "github"):
         assert key in COMMON_WIKIDATA_ENTITIES
         assert COMMON_WIKIDATA_ENTITIES[key].startswith("https://www.wikidata.org/wiki/Q")
+
+    sample_triplets = [
+        SemanticTriplet(subject="Cloudflare", predicate="provides", object="WebAssembly", confidence=0.9),
+        SemanticTriplet(subject="GitHub", predicate="renders", object="Markdown", confidence=0.9),
+        SemanticTriplet(subject="Browser", predicate="parses", object="HTML", confidence=0.9),
+    ]
+    entities, _, _ = build_entity_graph(sample_triplets)
+    ent_map = {e.name.lower(): e for e in entities}
+    assert ent_map["webassembly"].entity_type == "SoftwareApplication"
+    assert ent_map["cloudflare"].entity_type == "Organization"
+    assert ent_map["github"].entity_type == "Organization"
+    assert ent_map["markdown"].entity_type == "Intangible"
+    assert ent_map["html"].entity_type == "Intangible"
+
 
 
 
