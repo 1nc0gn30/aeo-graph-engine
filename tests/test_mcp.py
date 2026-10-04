@@ -9,12 +9,10 @@ import io
 import pytest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
-from typing import Dict, Any
 
 from aeo_graph_engine.mcp_server import (
     AEOMCPServer,
     generate_mcp_client_config,
-    get_framework_snippets,
     simulate_ai_citations,
     visualize_schema_graph,
     crawl_sitemap_batch,
