@@ -105,3 +105,12 @@ def test_write_aeo_bundle(tmp_path):
     assert (tmp_path / "ai.txt").exists()
     assert (tmp_path / "robots.txt").exists()
     assert len(res) >= 5
+
+
+def test_package_exports_boundary():
+    import aeo_graph_engine as aeo
+
+    assert hasattr(aeo, "__all__")
+    missing = [name for name in aeo.__all__ if not hasattr(aeo, name)]
+    assert missing == [], f"Missing exports in package boundary: {missing}"
+
