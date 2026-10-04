@@ -10,12 +10,10 @@ detects orphan concepts, and synthesizes structured knowledge graph enrichment p
 from __future__ import annotations
 
 import html
-import json
-import math
 import re
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 
 # Predicate mappings to Schema.org properties and Wikidata concepts
@@ -476,7 +474,7 @@ def audit_knowledge_graph_schema_alignment(
         patch_entry: Dict[str, Any] = {
             "@type": "DefinedTerm",
             "name": orphan,
-            "description": f"Core entity identified by knowledge graph extractor with high salience.",
+            "description": "Core entity identified by knowledge graph extractor with high salience.",
         }
         if wikidata:
             patch_entry["sameAs"] = wikidata

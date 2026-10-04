@@ -16,13 +16,10 @@ import json
 import threading
 import time
 import urllib.request
-from pathlib import Path
-from typing import Any, Dict
 
 import pytest
 
 from aeo_graph_engine.knowledge_graph import (
-    EntityNode,
     KnowledgeGraphReport,
     SemanticTriplet,
     analyze_knowledge_graph,
@@ -120,7 +117,6 @@ def test_extract_semantic_triplets_from_html():
 
 def test_pagerank_computation():
     """Verify power-iteration PageRank calculation on cyclic and dangling graphs."""
-    nodes = ["A", "B", "C"]
     # A -> B, B -> C, C -> A (cyclic triangle)
     adj = {"a": ["b"], "b": ["c"], "c": ["a"]}
     ranks = compute_pagerank(["a", "b", "c"], adj)
