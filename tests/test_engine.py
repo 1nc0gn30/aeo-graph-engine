@@ -108,9 +108,12 @@ def test_write_aeo_bundle(tmp_path):
 
 
 def test_package_exports_boundary():
+    import re
     import aeo_graph_engine as aeo
 
     assert hasattr(aeo, "__all__")
+    assert "__version__" in aeo.__all__
+    assert re.match(r"^\d+\.\d+\.\d+", aeo.__version__)
     assert len(aeo.__all__) > 0
     assert len(aeo.__all__) == len(set(aeo.__all__)), "Duplicate symbols in __all__"
     missing = [name for name in aeo.__all__ if not hasattr(aeo, name)]
