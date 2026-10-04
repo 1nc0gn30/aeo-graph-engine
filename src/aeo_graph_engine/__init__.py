@@ -23,6 +23,14 @@ from .citation_readiness import (
     LLMCitationReadinessReport,
     validate_llm_citation_readiness,
 )
+from .citation_simulator import (
+    HTMLStructureParser,
+    extract_html_structure,
+    calculate_citation_extractability_score,
+    generate_engine_previews,
+    generate_optimization_tips,
+    simulate_ai_citation,
+)
 from .claim_evidence_matrix import (
     AtomicClaim,
     ClaimCategory,
@@ -141,6 +149,12 @@ __all__ = [
     "CitationValidationIssue",
     "LLMCitationReadinessReport",
     "validate_llm_citation_readiness",
+    "HTMLStructureParser",
+    "extract_html_structure",
+    "calculate_citation_extractability_score",
+    "generate_engine_previews",
+    "generate_optimization_tips",
+    "simulate_ai_citation",
     "AtomicClaim",
     "ClaimCategory",
     "ClaimEvidenceMatrix",
