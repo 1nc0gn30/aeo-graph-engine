@@ -98,6 +98,13 @@ from .crypto import (
     generate_cryptographic_manifest,
     verify_cryptographic_manifest,
 )
+from .resilience import (
+    CircuitState,
+    CircuitBreaker,
+    SelfHealingEngine,
+    SelfHealingEngine as ResilientTaskEngine,
+)
+
 
 __all__ = [
     "__version__",
@@ -181,6 +188,10 @@ __all__ = [
     "compute_manifest_hashes",
     "generate_cryptographic_manifest",
     "verify_cryptographic_manifest",
+    "CircuitState",
+    "CircuitBreaker",
+    "SelfHealingEngine",
+    "ResilientTaskEngine",
     "SitemapCrawler",
     "crawl_sitemap_or_site",
     "extract_graph_nodes_and_edges",
