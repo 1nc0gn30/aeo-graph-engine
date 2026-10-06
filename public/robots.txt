@@ -1,4 +1,5 @@
 User-agent: *
+Crawl-delay: 0
 Allow: /
 
 # AEO & AI Knowledge Crawlers

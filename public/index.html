@@ -15,6 +15,7 @@
   <meta property="og:url" content="https://aeo-graph-engine.netlify.app/">
   <meta property="og:title" content="AEO Studio — Answer Engine Optimization Workbench">
   <meta property="og:description" content="Generate high-converting Schema.org JSON-LD semantic knowledge graphs. Instant checkout via Stripe ($49) or Solana DePay.">
+  <meta property="og:image" content="https://aeo-graph-engine.netlify.app/assets/icon.png">
   <meta property="og:site_name" content="Neal Frazier Tech / NullAI">
 
   <!-- Twitter / X -->
@@ -23,6 +24,7 @@
   <meta name="twitter:creator" content="@1nc0gn30">
   <meta name="twitter:title" content="AEO Studio — Knowledge Graph Workbench">
   <meta name="twitter:description" content="Dominate AI answer engines with automated Schema.org graph generation and MCP export.">
+  <meta name="twitter:image" content="https://aeo-graph-engine.netlify.app/assets/icon.png">
 
   <!-- AEO JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -882,11 +884,19 @@
     }
 
     @media (max-width: 900px) {
+      header.app-bar { height: auto; padding: 10px 16px; flex-wrap: wrap; gap: 10px; }
+      .top-actions { flex-wrap: wrap; gap: 8px; width: 100%; justify-content: flex-start; }
       .benchmark-split { grid-template-columns: 1fr; }
       .app-layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
       .sidebar { border-right: none; border-bottom: 1px solid var(--border-divider); height: auto; }
       .audit-grid { grid-template-columns: 1fr; }
       .scanner-bar { flex-direction: column; align-items: stretch; }
+    }
+    @media (max-width: 600px) {
+      header.app-bar { padding: 8px 12px; }
+      .top-actions { gap: 6px; }
+      .top-actions .btn { font-size: 12px; padding: 6px 10px; }
+      .score-chip { font-size: 11px; padding: 4px 8px; }
     }
   </style>
 </head>
@@ -920,6 +930,28 @@
       <button class="btn btn-primary btn-sm" onclick="downloadZipBundle()">📥 Download .zip</button>
     </div>
   </header>
+
+  <!-- High-Converting Sales Funnel Banner -->
+  <div id="funnelHeroBanner" style="background: linear-gradient(90deg, rgba(99,102,241,0.18) 0%, rgba(20,241,149,0.18) 100%); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 13px; z-index: 95; position: relative;">
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <span style="background: #ef4444; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Founding Sale</span>
+      <span style="font-weight: 600; color: #fff;">Sovereign Lifetime License:</span>
+      <span style="color: #94a3b8; text-decoration: line-through;">$79</span>
+      <span style="color: #14F195; font-weight: 800; font-size: 14px;">$19 Lifetime</span>
+      <span style="color: #cbd5e1; font-size: 12px;">• Unlimited Schema.org Linked Data • One-Click ZIP Bundles • Zero Telemetry</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <a href="https://buy.stripe.com/9B6cN44fX49O0uY80ofw40E" target="_blank" rel="noopener" style="padding: 5px 12px; background: #6366F1; color: #fff; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+        💳 Card / Apple Pay ($19)
+      </a>
+      <button onclick="openDePayCheckout()" style="padding: 5px 12px; background: #14F195; color: #000; border-radius: 6px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+        ⚡ Pay with SOL
+      </button>
+      <button onclick="openLicenseActivationModal()" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #cbd5e1; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer;">
+        🔑 Activate Key
+      </button>
+    </div>
+  </div>
 
   <div class="app-layout">
     <!-- Sidebar -->
@@ -1701,7 +1733,21 @@
               Schema.org JSON-LD Linked Data (@graph)
               <button class="btn btn-tonal btn-sm" onclick="copyCode('codeSchema')">📋 Copy JSON-LD</button>
             </div>
-            <div class="code-box" id="codeSchema"></div>
+            <div style="position: relative;">
+              <div class="code-box" id="codeSchema"></div>
+              <div id="schemaPaywallOverlay" style="display: flex; position: absolute; inset: 0; background: rgba(10,12,18,0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; align-items: center; justify-content: center; z-index: 10;">
+                <div style="text-align: center; max-width: 380px; padding: 1.5rem; background: #0c0d14; border: 1px solid rgba(99,102,241,0.4); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+                  <div style="font-size: 2rem; margin-bottom: 8px;">🔒</div>
+                  <div style="font-weight: 700; color: #fff; font-size: 1.05rem; margin-bottom: 6px;">Schema.org Output Locked</div>
+                  <p style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">Unlock unlimited Schema.org JSON-LD graphs, llms.txt compiler, and one-click ZIP bundles.</p>
+                  <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <a href="https://buy.stripe.com/9B6cN44fX49O0uY80ofw40E" target="_blank" class="btn btn-sm" style="background: #6366F1; color: #FFF; text-decoration: none; font-weight: 700;">💳 Buy ($19)</a>
+                    <button onclick="openDePayCheckout()" class="btn btn-sm" style="background: #14F195; color: #000; font-weight: 700; border: none; cursor: pointer;">⚡ Pay SOL</button>
+                    <button onclick="openLicenseActivationModal()" class="btn btn-sm btn-tonal" style="cursor: pointer;">🔑 Enter Key</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2240,9 +2286,13 @@ Focus on:
     }
 
     function copyCode(elemId) {
+      if (!isProLicensed) {
+        openPaywallModal();
+        return;
+      }
       const text = document.getElementById(elemId).innerText;
       navigator.clipboard.writeText(text).then(() => {
-        alert("Copied to clipboard!");
+        showToast("Copied to clipboard!");
       });
     }
 
@@ -2470,6 +2520,10 @@ Focus on:
     }
 
     function downloadZipBundle() {
+      if (!isProLicensed) {
+        openPaywallModal();
+        return;
+      }
       window.location.href = '/api/export-zip?niche=' + currentNiche + '&site_name=' + encodeURIComponent(document.getElementById('inpSiteName').value);
     }
 
@@ -3164,6 +3218,10 @@ Focus on:
 
     // --- Audit Report Exporter Modal JS ---
     async function exportFullAuditReportModal() {
+      if (!isProLicensed) {
+        openPaywallModal();
+        return;
+      }
       const url = document.getElementById('inpScannerUrl') ? document.getElementById('inpScannerUrl').value : 'https://example.com';
       try {
         const res = await fetch('/api/report', {
@@ -3503,6 +3561,83 @@ Focus on:
       a.click();
     }
 
+    // Pro Licensing & Paywall Logic
+    let isProLicensed = false;
+
+    function checkProLicense() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("licensed") === "true" || urlParams.get("session_id")) {
+        activateProLicense("STRIPE-CHECKOUT");
+        return;
+      }
+      if (localStorage.getItem("pro_licensed") === "true") {
+        isProLicensed = true;
+        updateProUI();
+      }
+    }
+
+    function updateProUI() {
+      const banner = document.getElementById("funnelHeroBanner");
+      if (banner) banner.style.display = isProLicensed ? "none" : "flex";
+      const overlay = document.getElementById("schemaPaywallOverlay");
+      if (overlay) overlay.style.display = isProLicensed ? "none" : "flex";
+      const proChip = document.getElementById("topScoreChip");
+      if (proChip && isProLicensed) {
+        proChip.innerHTML = '<span style="color: #10B981; font-weight: 700; font-size: 11px; border: 1px solid #10B981; padding: 4px 10px; border-radius: 9999px; background: rgba(16,185,129,0.1);">⭐ PRO ACTIVE</span>';
+      }
+    }
+
+    function activateProLicense(key) {
+      isProLicensed = true;
+      localStorage.setItem("pro_licensed", "true");
+      updateProUI();
+      closeLicenseModal();
+      closePaywallModal();
+      showToast("Pro License Activated! Unlimited exports unlocked.");
+    }
+
+    function openPaywallModal() {
+      const m = document.getElementById("proPaywallModal");
+      if (m) m.style.display = "flex";
+    }
+
+    function closePaywallModal() {
+      const m = document.getElementById("proPaywallModal");
+      if (m) m.style.display = "none";
+    }
+
+    function openLicenseActivationModal() {
+      closePaywallModal();
+      const m = document.getElementById("licenseModal");
+      if (m) m.style.display = "flex";
+    }
+
+    function closeLicenseModal() {
+      const m = document.getElementById("licenseModal");
+      if (m) m.style.display = "none";
+    }
+
+    function activateLicenseSubmit() {
+      const val = document.getElementById("licenseKeyInput").value.trim();
+      if (val) {
+        activateProLicense(val);
+      }
+    }
+
+    function showToast(msg) {
+      let t = document.getElementById("appToast");
+      if (!t) {
+        t = document.createElement("div");
+        t.id = "appToast";
+        t.style.cssText = "position: fixed; bottom: 24px; right: 24px; background: #1e1b4b; color: #fff; padding: 12px 20px; border-radius: 8px; border: 1px solid #6366f1; font-size: 13px; font-weight: 600; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: opacity 0.3s;";
+        document.body.appendChild(t);
+      }
+      t.innerText = msg;
+      t.style.display = "block";
+      t.style.opacity = "1";
+      setTimeout(() => { t.style.opacity = "0"; setTimeout(() => { t.style.display = "none"; }, 300); }, 3000);
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       regenerateAll();
       updateSerpPreviews();
@@ -3510,6 +3645,7 @@ Focus on:
       selectAgentPrompt('engineer');
       loadAiGatewaySettings();
       loadEntityVisualizer('both');
+      checkProLicense();
     });
 
     function openDePayCheckout() {
@@ -3518,13 +3654,71 @@ Focus on:
           integration: '428790dd-7ad1-407c-8ecf-c048c77a4cb8'
         });
       } else {
-        alert('DePay Web3 Widget is loading. Opening direct checkout page...');
-        window.open('https://depay.com', '_blank');
+        window.open('https://buy.stripe.com/9B6cN44fX49O0uY80ofw40E', '_blank');
       }
     }
   </script>
   <footer style="text-align: center; padding: 2rem 1rem; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid var(--border-divider); margin-top: 2rem; background: var(--surface-bg);">
     <div>Engineered by Neal Frazier Tech (<a href="https://github.com/1nc0gn30/aeo-graph-engine" target="_blank" rel="noopener" style="color: var(--primary-accent); text-decoration: none;">@1nc0gn30</a>) &middot; <a href="https://nullai.tech" target="_blank" rel="noopener" style="color: var(--primary-accent); text-decoration: none;">NullAI Platform</a></div>
   </footer>
+
+  <!-- Pro Paywall Modal -->
+  <div id="proPaywallModal" style="display: none; position: fixed; inset: 0; background: rgba(5,7,12,0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 1200; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="max-width: 520px; width: 100%; border: 1px solid rgba(99,102,241,0.4); background: #0c0d14; border-radius: 16px; padding: 1.75rem; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.5rem;">🔍</span>
+          <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #f4f4f5;">Unlock AEO Studio Pro</h3>
+        </div>
+        <button onclick="closePaywallModal()" style="background: none; border: none; color: #a1a1aa; font-size: 1.25rem; cursor: pointer; padding: 4px;">✕</button>
+      </div>
+      <p style="font-size: 0.88rem; color: #a1a1aa; margin-bottom: 1.25rem; line-height: 1.5;">
+        Automate Schema.org linked data graphs, export multi-client MCP presets, and dominate AI answer engine citations across Perplexity, ChatGPT, and Google Gemini.
+      </p>
+      
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 16px; margin-bottom: 1.25rem;">
+        <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #818cf8; margin-bottom: 8px;">What's Included:</div>
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: #e4e4e7;">
+          <li>✔ Unlimited Schema.org JSON-LD @graph linked data exports</li>
+          <li>✔ One-click multi-client MCP presets (Claude Desktop, Cursor, Windsurf)</li>
+          <li>✔ Automated llms.txt & llms-full.txt generator per llmstxt.org spec</li>
+          <li>✔ Full Markdown AEO Technical Audit Report Generator</li>
+          <li>✔ Instant ZIP bundle deployment downloader with zero telemetry</li>
+        </ul>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <a href="https://buy.stripe.com/9B6cN44fX49O0uY80ofw40E" target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; background: #6366F1; color: #fff; font-weight: 700; font-size: 0.95rem; border-radius: 8px; text-decoration: none; box-sizing: border-box;">
+          💳 Buy Pro Lifetime — $19 (Card / Apple Pay)
+        </a>
+        <button onclick="openDePayCheckout()" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; background: #14F195; color: #000; font-weight: 700; font-size: 0.95rem; border-radius: 8px; border: none; cursor: pointer; box-sizing: border-box;">
+          ⚡ Pay with Crypto (SOL / USDC)
+        </button>
+      </div>
+
+      <div style="margin-top: 14px; text-align: center;">
+        <button onclick="openLicenseActivationModal()" style="background: none; border: none; color: #94a3b8; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">
+          Already have a receipt or license key? Activate here
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- License Activation Modal -->
+  <div id="licenseModal" style="display: none; position: fixed; inset: 0; background: rgba(5,7,12,0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 1250; align-items: center; justify-content: center; padding: 1rem;">
+    <div style="max-width: 420px; width: 100%; border: 1px solid rgba(255,255,255,0.15); background: #0c0d14; border-radius: 16px; padding: 1.5rem; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 style="margin: 0; font-size: 1.1rem; color: #fff;">Activate Pro License</h4>
+        <button onclick="closeLicenseModal()" style="background: none; border: none; color: #a1a1aa; font-size: 1.25rem; cursor: pointer;">✕</button>
+      </div>
+      <p style="font-size: 0.82rem; color: #a1a1aa; margin-bottom: 1rem;">
+        Enter your Stripe customer email, checkout session ID, or Solana tx signature to unlock:
+      </p>
+      <input type="text" id="licenseKeyInput" placeholder="e.g. cs_live_... or your@email.com" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem; margin-bottom: 1rem; box-sizing: border-box;">
+      <button onclick="activateLicenseSubmit()" style="width: 100%; padding: 10px; background: #6366F1; color: #fff; font-weight: 700; border-radius: 8px; border: none; cursor: pointer;">
+        Activate License
+      </button>
+    </div>
+  </div>
 </body>
 </html>
