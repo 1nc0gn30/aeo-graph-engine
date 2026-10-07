@@ -12,6 +12,11 @@
   NODE_VERSION = "20.17.0"
 
 [[redirects]]
+  from = "/norfolk"
+  to = "/norfolk.html"
+  status = 200
+
+[[redirects]]
   from = "/terms"
   to = "/terms.html"
   status = 200
@@ -60,6 +65,12 @@
 
 [[headers]]
   for = "/llms.txt"
+  [headers.values]
+    Content-Type = "text/plain; charset=UTF-8"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/handoff-norfolk.txt"
   [headers.values]
     Content-Type = "text/plain; charset=UTF-8"
     Cache-Control = "public, max-age=3600, must-revalidate"

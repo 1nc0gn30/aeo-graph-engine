@@ -6,21 +6,90 @@
   <title>Support & FAQ — aeo-graph-engine</title>
   <meta name="description" content="Direct customer support desk, 30-day refund assistance, and comprehensive FAQ for aeo-graph-engine by Neal Frazier Tech.">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://aeo-graph-engine.netlify.app/support.html">
+  <link rel="canonical" href="https://aeo-graph-engine.netlify.app/support">
 
   <meta property="og:title" content="Support & FAQ — aeo-graph-engine">
   <meta property="og:description" content="Get direct support, instant license recovery, 30-day refunds, and answers to common questions about aeo-graph-engine.">
-  <meta property="og:url" content="https://aeo-graph-engine.netlify.app/support.html">
+  <meta property="og:url" content="https://aeo-graph-engine.netlify.app/support">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://aeo-graph-engine.netlify.app/assets/icon.png">
+  <meta property="og:image" content="https://aeo-graph-engine.netlify.app/assets/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="AEO Knowledge Graph Engine: Schema.org graph builder for answer engines">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@1nc0gn30">
   <meta name="twitter:creator" content="@1nc0gn30">
-  <meta name="twitter:image" content="https://aeo-graph-engine.netlify.app/assets/icon.png">
+  <meta name="twitter:image" content="https://aeo-graph-engine.netlify.app/assets/og-card.png">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+  <!-- AEO JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://aeo-graph-engine.netlify.app/support#webpage",
+        "url": "https://aeo-graph-engine.netlify.app/support",
+        "name": "Support & FAQ — aeo-graph-engine",
+        "description": "Direct customer support desk, 30-day refund assistance, and comprehensive FAQ for aeo-graph-engine by Neal Frazier Tech.",
+        "isPartOf": {
+          "@type": "WebApplication",
+          "@id": "https://aeo-graph-engine.netlify.app/#app",
+          "name": "AEO Studio",
+          "url": "https://aeo-graph-engine.netlify.app/"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Neal Frazier",
+          "url": "https://nealfrazier.tech"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://aeo-graph-engine.netlify.app/support#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How do I recover my lost license key or activate Pro?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Enter the email address used during Stripe or DePay checkout into the License Recovery tool on this page to instantly restore Pro mode locally."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is the refund policy?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "We offer an unconditional 30-day money-back guarantee. If you are not satisfied for any reason, email neal@nealfrazier.tech with your receipt for a 100% full refund within 24 to 48 hours."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does aeo-graph-engine transmit my code or data to external servers?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. 100% of data parsing and code generation takes place client-side in your browser sandbox. We do not store or transmit your code, secrets, or configurations."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What payment methods are supported?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "We accept Credit Cards, Apple Pay, Google Pay via Stripe, and peer-to-peer Web3 payments via DePay on the Solana blockchain."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <style>
     
@@ -192,46 +261,13 @@
     }
     input:focus { outline: none; border-color: var(--primary); }
     @media (max-width: 768px) {
+      header { padding: 0.75rem 1rem; }
+      .header-inner { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+      .nav-links { flex-wrap: wrap; gap: 0.4rem; }
+      .nav-link { padding: 0.25rem 0.5rem; font-size: 0.78rem; }
       .support-grid { grid-template-columns: 1fr; }
     }
   </style>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "How does the $19 founding member lifetime license work?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Founding members receive lifetime access to all Pro features with no recurring subscriptions. 1-click activation unlocks all export rails and features permanently in your browser."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How do I request a refund?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Email neal@nealfrazier.tech with your receipt or checkout email for an unconditional 100% refund within 30 days of purchase."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Is my data stored or sent to remote servers?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Zero data is sent to cloud servers. All transformations, calculations, and AST processing execute 100% locally in your web browser."
-            }
-          }
-        ]
-      }
-    ]
-  }
-  </script>
 </head>
 <body>
   <div class="aurora-container">

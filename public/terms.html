@@ -6,21 +6,74 @@
   <title>Terms of Service — aeo-graph-engine</title>
   <meta name="description" content="Terms of Service and Sovereign Commercial License Agreement for aeo-graph-engine, engineered by Neal Frazier Tech.">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://aeo-graph-engine.netlify.app/terms.html">
+  <link rel="canonical" href="https://aeo-graph-engine.netlify.app/terms">
 
   <meta property="og:title" content="Terms of Service — aeo-graph-engine">
   <meta property="og:description" content="Sovereign commercial license terms, local-first IP protection, and refund policy for aeo-graph-engine.">
-  <meta property="og:url" content="https://aeo-graph-engine.netlify.app/terms.html">
+  <meta property="og:url" content="https://aeo-graph-engine.netlify.app/terms">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://aeo-graph-engine.netlify.app/assets/icon.png">
+  <meta property="og:image" content="https://aeo-graph-engine.netlify.app/assets/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="AEO Knowledge Graph Engine: Schema.org graph builder for answer engines">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@1nc0gn30">
   <meta name="twitter:creator" content="@1nc0gn30">
-  <meta name="twitter:image" content="https://aeo-graph-engine.netlify.app/assets/icon.png">
+  <meta name="twitter:image" content="https://aeo-graph-engine.netlify.app/assets/og-card.png">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+  <!-- AEO JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://aeo-graph-engine.netlify.app/terms#webpage",
+        "url": "https://aeo-graph-engine.netlify.app/terms",
+        "name": "Terms of Service — aeo-graph-engine",
+        "description": "Sovereign commercial license terms, local-first IP protection, and refund policy for aeo-graph-engine.",
+        "isPartOf": {
+          "@type": "WebApplication",
+          "@id": "https://aeo-graph-engine.netlify.app/#app",
+          "name": "AEO Studio",
+          "url": "https://aeo-graph-engine.netlify.app/"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Neal Frazier",
+          "url": "https://nealfrazier.tech"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://aeo-graph-engine.netlify.app/terms#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is the refund policy for aeo-graph-engine?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "aeo-graph-engine offers an unconditional 30-day money-back guarantee. If you are not satisfied, submit your receipt email to support@nealfrazier.tech or via our support desk for a full refund."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What kind of license do I receive upon purchase?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "You receive a perpetual, non-exclusive commercial license to use the workbench and all export features for unlimited personal and client projects."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <style>
     :root {
@@ -142,52 +195,16 @@
     }
     .footer-links a:hover { color: #fff; }
     @media (max-width: 768px) {
+      header { padding: 0.75rem 1rem; }
+      .header-inner { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+      .nav-links { flex-wrap: wrap; gap: 0.4rem; }
+      .nav-link { padding: 0.25rem 0.5rem; font-size: 0.78rem; }
       .page-title { font-size: 1.85rem; }
       .legal-card { padding: 1.25rem; }
       .footer-inner { flex-direction: column; text-align: center; }
       .footer-links a { margin: 0 0.5rem; }
     }
   </style>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebPage",
-        "name": "Terms of Service — aeo-graph-engine",
-        "url": "https://aeo-graph-engine.netlify.app/terms.html",
-        "description": "Terms of Service, Sovereign Lifetime Commercial License, and refund agreement for aeo-graph-engine.",
-        "publisher": {
-          "@type": "Organization",
-          "name": "Neal Frazier Tech",
-          "url": "https://nealfrazier.tech"
-        }
-      },
-      {
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "What are the terms of the Sovereign Lifetime Commercial License?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "The Pro license grants a perpetual, royalty-free commercial license to execute, export, and utilize all generated outputs for unlimited personal and client projects without recurring subscriptions."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What is the aeo-graph-engine refund policy?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "aeo-graph-engine offers an unconditional 30-day money-back guarantee. Email neal@nealfrazier.tech with your receipt for a 100% full refund within 24 to 48 business hours."
-            }
-          }
-        ]
-      }
-    ]
-  }
-  </script>
 </head>
 <body>
   <div class="aurora-container">

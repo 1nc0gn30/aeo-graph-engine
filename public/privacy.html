@@ -6,21 +6,74 @@
   <title>Privacy Policy — aeo-graph-engine</title>
   <meta name="description" content="Privacy Policy for aeo-graph-engine. 100% client-side zero-logging guarantee by Neal Frazier Tech.">
   <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://aeo-graph-engine.netlify.app/privacy.html">
+  <link rel="canonical" href="https://aeo-graph-engine.netlify.app/privacy">
 
   <meta property="og:title" content="Privacy Policy — aeo-graph-engine">
   <meta property="og:description" content="100% Client-Side Local Execution Guarantee. Zero telemetry, zero server-side logging, zero selling of user data.">
-  <meta property="og:url" content="https://aeo-graph-engine.netlify.app/privacy.html">
+  <meta property="og:url" content="https://aeo-graph-engine.netlify.app/privacy">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://aeo-graph-engine.netlify.app/assets/icon.png">
+  <meta property="og:image" content="https://aeo-graph-engine.netlify.app/assets/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="AEO Knowledge Graph Engine: Schema.org graph builder for answer engines">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@1nc0gn30">
   <meta name="twitter:creator" content="@1nc0gn30">
-  <meta name="twitter:image" content="https://aeo-graph-engine.netlify.app/assets/icon.png">
+  <meta name="twitter:image" content="https://aeo-graph-engine.netlify.app/assets/og-card.png">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+  <!-- AEO JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://aeo-graph-engine.netlify.app/privacy#webpage",
+        "url": "https://aeo-graph-engine.netlify.app/privacy",
+        "name": "Privacy Policy — aeo-graph-engine",
+        "description": "100% Client-Side Local Execution Guarantee. Zero telemetry, zero server-side logging, zero selling of user data.",
+        "isPartOf": {
+          "@type": "WebApplication",
+          "@id": "https://aeo-graph-engine.netlify.app/#app",
+          "name": "AEO Studio",
+          "url": "https://aeo-graph-engine.netlify.app/"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Neal Frazier",
+          "url": "https://nealfrazier.tech"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://aeo-graph-engine.netlify.app/privacy#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Does aeo-graph-engine collect or transmit user data?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. All semantic knowledge graph generation, AST analysis, and schema structuring run 100% locally in your web browser. Zero telemetry or personal data is collected or transmitted."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Are API keys stored remotely?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Never. Optional AI provider API keys are stored solely in your local browser sandbox (localStorage) and never hit any third-party telemetry server."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <style>
     :root {
@@ -142,31 +195,16 @@
     }
     .footer-links a:hover { color: #fff; }
     @media (max-width: 768px) {
+      header { padding: 0.75rem 1rem; }
+      .header-inner { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+      .nav-links { flex-wrap: wrap; gap: 0.4rem; }
+      .nav-link { padding: 0.25rem 0.5rem; font-size: 0.78rem; }
       .page-title { font-size: 1.85rem; }
       .legal-card { padding: 1.25rem; }
       .footer-inner { flex-direction: column; text-align: center; }
       .footer-links a { margin: 0 0.5rem; }
     }
   </style>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebPage",
-        "name": "Privacy Policy — aeo-graph-engine",
-        "url": "https://aeo-graph-engine.netlify.app/privacy.html",
-        "description": "100% Client-Side Local Execution Guarantee. Zero telemetry, zero cloud data storage by Neal Frazier Tech.",
-        "publisher": {
-          "@type": "Organization",
-          "name": "Neal Frazier Tech",
-          "url": "https://nealfrazier.tech"
-        }
-      }
-    ]
-  }
-  </script>
 </head>
 <body>
   <div class="aurora-container">
