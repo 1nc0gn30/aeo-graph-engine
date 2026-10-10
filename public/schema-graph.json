@@ -1,0 +1,91 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://aeo-graph-engine.netlify.app/#organization",
+      "name": "Neal Frazier Tech",
+      "url": "https://nealfrazier.tech",
+      "founder": {
+        "@type": "Person",
+        "name": "Neal Frazier",
+        "url": "https://nealfrazier.tech",
+        "sameAs": "https://github.com/1nc0gn30"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://aeo-graph-engine.netlify.app/#website",
+      "name": "AEO Knowledge Graph Engine",
+      "url": "https://aeo-graph-engine.netlify.app/",
+      "publisher": {
+        "@id": "https://aeo-graph-engine.netlify.app/#organization"
+      }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://aeo-graph-engine.netlify.app/#software",
+      "name": "AEO Knowledge Graph Engine",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "49.00",
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://aeo-graph-engine.netlify.app/#app",
+      "name": "AEO Studio",
+      "url": "https://aeo-graph-engine.netlify.app/",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "All",
+      "description": "Answer Engine Optimization and Semantic Knowledge Graph Engine for AI indexing and schema generation.",
+      "creator": {
+        "@type": "Person",
+        "name": "Neal Frazier",
+        "url": "https://nealfrazier.tech",
+        "sameAs": "https://github.com/1nc0gn30"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "49.00",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "url": "https://buy.stripe.com/9B6cN44fX49O0uY80ofw40E"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://aeo-graph-engine.netlify.app/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Answer Engine Optimization (AEO)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Answer Engine Optimization is the process of structuring website data with semantic JSON-LD knowledge graphs, entity relationships, and clear answer passages to be directly cited by AI engines like Perplexity, ChatGPT Search, and Google AI Overviews."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I purchase an AEO Studio license?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A lifetime professional license is $49.00 USD, payable via Stripe (Credit Card / Apple Pay) or Solana Web3 via DePay."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is my data private when analyzing sites or generating graphs?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. AEO Studio operates 100% client-side in your browser. No crawled content, API requests, or generated schemas are tracked, stored, or transmitted to any central database."
+          }
+        }
+      ],
+      "name": "AEO Studio Frequently Answered Questions"
+    }
+  ]
+}

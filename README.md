@@ -4,7 +4,8 @@
 
 ### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & AEO Studio UI Workbench*
 
-[![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-00f0ff?style=for-the-badge&logo=pypi&logoColor=white)](https://github.com/NullAITech/aeo-graph-engine)
+[![Live App](https://img.shields.io/badge/Live%20App-aeo--graph--engine.netlify.app-00f0ff?style=for-the-badge&logo=netlify&logoColor=white)](https://aeo-graph-engine.netlify.app)
+[![Founding Pass](https://img.shields.io/badge/Founding%20Pass-$49%20Lifetime-14f195?style=for-the-badge)](https://aeo-graph-engine.netlify.app)
 [![Tests](https://img.shields.io/badge/tests-229%2F229%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Termux%20%7C%20macOS%20%7C%20Windows-38bdf8?style=for-the-badge&logo=linux&logoColor=white)](docs/PLATFORMS.md)
 [![MCP Protocol](https://img.shields.io/badge/MCP-JSON--RPC%202.0-8b5cf6?style=for-the-badge&logo=anthropic&logoColor=white)](docs/MCP_GUIDE.md)
@@ -14,12 +15,12 @@
 <br>
 
 <p align="center">
+  <a href="https://aeo-graph-engine.netlify.app"><b>Launch AEO Studio Live App</b></a> •
   <a href="#-aeo-studio-workbench">AEO Studio UI</a> •
   <a href="#-interactive-cli-wizard-aeo-init">CLI Wizard</a> •
   <a href="#-live-ai-search-bot-inspector--waf-probe">Bot WAF Probe</a> •
   <a href="#%EF%B8%8F-head-to-head-competitor-benchmark">Competitor Benchmark</a> •
   <a href="#-automated-audit-reports-markdown--html">Audit Reports</a> •
-  <a href="#-cicd-quality-gate--github-actions">CI Quality Gate</a> •
   <a href="examples/">Examples</a> •
   <a href="#%EF%B8%8F-cli-reference">CLI Reference</a>
 </p>

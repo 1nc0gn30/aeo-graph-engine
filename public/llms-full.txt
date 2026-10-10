@@ -1,0 +1,22 @@
+# AEO Knowledge Graph Engine — Comprehensive Context & Model Discovery (llms-full.txt)
+
+> Sovereign in-browser developer utility and knowledge graph generator engineered by Neal Frazier Tech.
+
+The AEO Knowledge Graph Engine (AEO Studio) transforms raw webpage content, markdown documentation, and API specifications into machine-readable Schema.org linked data graphs, llms.txt manifests, and crawler directives optimized for frontier AI search systems including Perplexity, Google SGE/AI Overviews, Claude, and GPTBot.
+
+## Key Capabilities & Architecture
+
+- **Semantic Triples & Schema.org JSON-LD Generation**: Emits `@graph`-compliant WebApplication, Service, Organization, SoftwareApplication, and FAQPage nodes with verifiable context.
+- **Client-Side Autonomous Operation**: All AST parsing, schema synthesis, and token calculations execute client-side with zero remote data exfiltration.
+- **Local Knowledge Graph Synthesis**: Structured facts, clean semantic entities, and machine-readable documentation for technical systems.
+
+## Core Resources & Documentation
+
+- [Application](https://aeo-graph-engine.netlify.app/): Main interactive in-browser AEO Studio and graph generator
+- [Schema.org Graph](https://aeo-graph-engine.netlify.app/schema-graph.json): Complete machine-readable linked data graph
+- [LLMs Manifest](https://aeo-graph-engine.netlify.app/llms.txt): Standard model context and discovery manifest
+- [Terms of Service](https://aeo-graph-engine.netlify.app/terms): Commercial licensing and usage terms
+- [Privacy Policy](https://aeo-graph-engine.netlify.app/privacy): Client-side privacy and data handling guarantees
+- [Support & FAQ](https://aeo-graph-engine.netlify.app/support): Direct support channels and technical answers
+- [Netlify AX API](https://aeo-graph-engine.netlify.app/api/netlify-ax.json): Agent Experience machine discovery endpoint
+- [Netlify MCP API](https://aeo-graph-engine.netlify.app/api/netlify-ax-mcp.json): Model Context Protocol tools manifest

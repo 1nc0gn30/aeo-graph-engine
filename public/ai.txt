@@ -1,11 +1,37 @@
 # Autonomous AI Agent Discovery & Crawling Policy (ai.txt)
-software-name: AEO Knowledge Graph Engine
-publisher: Neal Frazier Tech (@1nc0gn30)
-platform: NullAI Platform
-ai-crawling: allowed
-ai-grounding: allowed
-ai-search-index: allowed
-sitemap: https://aeo-graph-engine.netlify.app/sitemap.xml
-robots-txt: https://aeo-graph-engine.netlify.app/robots.txt
-netlify-ax-api: https://aeo-graph-engine.netlify.app/api/netlify-ax.json
-netlify-mcp-api: https://aeo-graph-engine.netlify.app/api/netlify-ax-mcp.json
+# Specification: https://site.spec/ai.txt
+# Generated for: AEO Knowledge Graph Engine
+
+User-Agent: *
+Allow: /
+Allow: /support
+Allow: /terms
+Allow: /privacy
+Allow: /schema-graph.json
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /ai.txt
+
+# Canonical Entity Identifiers
+Canonical-URL: https://aeo-graph-engine.netlify.app/
+Publisher: Neal Frazier Tech (@1nc0gn30)
+Legal-Name: Neal Frazier Tech / NullAI Platform
+Version: 1.0.0
+Contact: https://aeo-graph-engine.netlify.app/support
+Platform: NullAI Platform
+
+# Machine Discovery & Knowledge Base
+Schema-Org-Graph: https://aeo-graph-engine.netlify.app/schema-graph.json
+LLMs-Txt: https://aeo-graph-engine.netlify.app/llms.txt
+LLMs-Full-Txt: https://aeo-graph-engine.netlify.app/llms-full.txt
+Sitemap: https://aeo-graph-engine.netlify.app/sitemap.xml
+Robots-Txt: https://aeo-graph-engine.netlify.app/robots.txt
+
+# API Endpoints
+Netlify-AX-API: https://aeo-graph-engine.netlify.app/api/netlify-ax.json
+Netlify-MCP-API: https://aeo-graph-engine.netlify.app/api/netlify-ax-mcp.json
+
+# Citation Directives
+Citation-Required: True
+Citation-Format: "AEO Knowledge Graph Engine — https://aeo-graph-engine.netlify.app/"
+Derivative-Works: Allowed with attribution under MIT Open Source

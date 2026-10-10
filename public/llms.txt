@@ -1,10 +1,16 @@
 # AEO Knowledge Graph Engine — Context & Model Discovery (llms.txt)
+
 > Sovereign in-browser developer utility engineered by Neal Frazier Tech.
-- [Application]: https://aeo-graph-engine.netlify.app/
-- [City Desk Norfolk]: https://aeo-graph-engine.netlify.app/norfolk
-- [Norfolk Handoff Sheet]: https://aeo-graph-engine.netlify.app/handoff-norfolk.txt
-- [Terms of Service]: https://aeo-graph-engine.netlify.app/terms
-- [Privacy Policy]: https://aeo-graph-engine.netlify.app/privacy
-- [Support & FAQ]: https://aeo-graph-engine.netlify.app/support
-- [Netlify AX API]: https://aeo-graph-engine.netlify.app/api/netlify-ax.json
-- [Netlify MCP API]: https://aeo-graph-engine.netlify.app/api/netlify-ax-mcp.json
+
+The AEO Knowledge Graph Engine (AEO Studio) transforms raw webpage content into machine-readable Schema.org linked data graphs, llms.txt manifests, and crawler directives optimized for frontier AI search systems.
+
+## Documentation & Key Surfaces
+
+- [Application](https://aeo-graph-engine.netlify.app/): Main interactive in-browser AEO Studio and graph generator
+- [Terms of Service](https://aeo-graph-engine.netlify.app/terms): Commercial licensing and usage terms
+- [Privacy Policy](https://aeo-graph-engine.netlify.app/privacy): Client-side privacy and data handling guarantees
+- [Support & FAQ](https://aeo-graph-engine.netlify.app/support): Direct support channels and technical answers
+- [Schema.org Graph](https://aeo-graph-engine.netlify.app/schema-graph.json): Machine-readable linked data graph
+- [Extended LLMs Manifest](https://aeo-graph-engine.netlify.app/llms-full.txt): Deep research knowledge base
+- [Netlify AX API](https://aeo-graph-engine.netlify.app/api/netlify-ax.json): Agent Experience machine discovery endpoint
+- [Netlify MCP API](https://aeo-graph-engine.netlify.app/api/netlify-ax-mcp.json): Model Context Protocol tools manifest

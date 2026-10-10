@@ -11,10 +11,7 @@
 [build.environment]
   NODE_VERSION = "20.17.0"
 
-[[redirects]]
-  from = "/norfolk"
-  to = "/norfolk.html"
-  status = 200
+
 
 [[redirects]]
   from = "/terms"
@@ -39,6 +36,11 @@
 [[redirects]]
   from = "/api/netlify-ax"
   to = "/api/netlify-ax.json"
+  status = 200
+
+[[redirects]]
+  from = "/api/netlify-ax-mcp"
+  to = "/api/netlify-ax-mcp.json"
   status = 200
 
 
@@ -70,10 +72,18 @@
     Cache-Control = "public, max-age=3600, must-revalidate"
 
 [[headers]]
-  for = "/handoff-norfolk.txt"
+  for = "/schema-graph.json"
+  [headers.values]
+    Content-Type = "application/json; charset=UTF-8"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=1800, must-revalidate"
+
+[[headers]]
+  for = "/llms-full.txt"
   [headers.values]
     Content-Type = "text/plain; charset=UTF-8"
     Cache-Control = "public, max-age=3600, must-revalidate"
+
 
 [[headers]]
   for = "/media/*"
