@@ -2,6 +2,10 @@
 
 # AEO Graph Engine (`aeo-graph-engine`)
 
+> ⚡ **Live Web Application**: [https://aeo-graph-engine.netlify.app](https://aeo-graph-engine.netlify.app)  
+> 💳 **Unlock Pro Lifetime License ($19 One-Time, $0/mo)**: **[Instant Pro Unlock via Stripe](https://buy.stripe.com/6oUbJ08wddKoa5y0xWfw40P)** *(Use promo code `FOUNDER25` for 25% off)*  
+> 🏆 **All-Access Sovereign Pro Bundle (All 44 Tools — $49 Lifetime)**: **[Get All 44 Studios via Stripe](https://buy.stripe.com/eVq14m5k16hW4Le0xWfw40M)**
+
 ### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & AEO Studio UI Workbench*
 
 [![Live App](https://img.shields.io/badge/Live%20App-aeo--graph--engine.netlify.app-00f0ff?style=for-the-badge&logo=netlify&logoColor=white)](https://aeo-graph-engine.netlify.app)
