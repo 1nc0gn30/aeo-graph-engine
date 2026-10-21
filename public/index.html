@@ -935,8 +935,12 @@
     }
 
     @media (max-width: 900px) {
-      header.app-bar { height: auto; padding: 10px 16px; flex-wrap: wrap; gap: 10px; }
-      .top-actions { flex-wrap: wrap; gap: 8px; width: 100%; justify-content: flex-start; }
+      header.app-bar { height: 58px; padding: 0 14px; flex-wrap: nowrap; gap: 10px; }
+      .top-actions { flex-wrap: nowrap; gap: 8px; width: auto; justify-content: flex-end; }
+      .top-actions a.btn[href*="stripe.com"],
+      .top-actions button[onclick*="openDePayCheckout"] {
+        display: none !important;
+      }
       .benchmark-split { grid-template-columns: 1fr; }
       .app-layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
       .sidebar { border-right: none; border-bottom: 1px solid var(--border-divider); height: auto; }
@@ -944,14 +948,12 @@
       .scanner-bar { flex-direction: column; align-items: stretch; }
     }
     @media (max-width: 600px) {
-      header.app-bar { padding: 8px 12px; }
+      header.app-bar { padding: 0 12px; height: 54px; }
+      .brand-badge { display: none; }
       .top-actions { gap: 6px; }
-      .top-actions .btn { font-size: 12px; padding: 6px 10px; }
-      .top-actions a.btn[href*="stripe.com"],
-      .top-actions button[onclick*="openDePayCheckout"] {
-        display: none !important;
-      }
-      .score-chip { font-size: 11px; padding: 4px 8px; }
+      .top-actions .btn { font-size: 11px; padding: 5px 9px; }
+      .top-actions button[onclick*="switchTab"] { display: none !important; }
+      .score-chip { display: none; }
     }
   </style>
 </head>
