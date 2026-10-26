@@ -1,4 +1,10 @@
 <div align="center">
+  <img src="assets/hero-banner.svg" alt="AEO Graph Engine &amp; Studio — Sovereign Architecture Banner" width="100%" />
+</div>
+
+<br />
+
+<div align="center">
 
 # AEO Graph Engine (`aeo-graph-engine`)
 
