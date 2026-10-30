@@ -2334,7 +2334,7 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
                         pass
             return self._send_html(STUDIO_HTML_TEMPLATE)
 
-        if path == "/api/status":
+        if path in ("/health", "/api/health", "/api/status"):
             return self._send_json({"status": "healthy", "engine": "aeo-graph-engine", "version": "1.0.0"})
 
         if path == "/api/schema":
@@ -2416,6 +2416,30 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
             )
             matrix = analyze_claim_evidence_matrix(demo_text, base_url="https://aeo.nullai.tech", title="AEO Graph Engine Architecture")
             return self._send_json(matrix.to_dict())
+
+        # Check static file in public/
+        for candidate_root in [
+            Path(__file__).parent.parent.parent / "public",
+            Path(__file__).parent / "public",
+            Path("public"),
+        ]:
+            if candidate_root.exists():
+                static_file = (candidate_root / path.lstrip("/")).resolve()
+                if static_file.is_file() and str(static_file).startswith(str(candidate_root.resolve())):
+                    import mimetypes
+                    mime_type, _ = mimetypes.guess_type(str(static_file))
+                    mime_type = mime_type or "application/octet-stream"
+                    try:
+                        data = static_file.read_bytes()
+                        self.send_response(200)
+                        self.send_header("Content-Type", mime_type)
+                        self.send_header("Content-Length", str(len(data)))
+                        self.send_header("Access-Control-Allow-Origin", "*")
+                        self.end_headers()
+                        self.wfile.write(data)
+                        return
+                    except Exception:
+                        pass
 
         self.send_error(404, "Endpoint not found")
 

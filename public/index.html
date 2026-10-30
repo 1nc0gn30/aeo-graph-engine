@@ -15,7 +15,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://aeo-graph-engine.netlify.app/">
   <meta property="og:title" content="AEO Studio — Answer Engine Optimization Workbench">
-  <meta property="og:description" content="Generate high-converting Schema.org JSON-LD semantic knowledge graphs. Instant checkout via Stripe ($19) or Solana DePay.">
+  <meta property="og:description" content="Generate high-converting Schema.org JSON-LD semantic knowledge graphs. Instant checkout via Stripe (Free (100% Open Access)) or Solana Tip.">
   <meta property="og:image" content="https://aeo-graph-engine.netlify.app/assets/og-card.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -65,7 +65,7 @@
         "operatingSystem": "All",
         "offers": {
           "@type": "Offer",
-          "price": "19.00",
+          "price": "0",
           "priceCurrency": "USD"
         }
       },
@@ -85,10 +85,10 @@
         },
         "offers": {
           "@type": "Offer",
-          "price": "19.00",
+          "price": "0",
           "priceCurrency": "USD",
           "availability": "https://schema.org/InStock",
-          "url": "https://buy.stripe.com/6oUbJ08wddKoa5y0xWfw40P"
+          "url": "https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X"
         }
       },
       {
@@ -109,7 +109,7 @@
             "name": "How do I purchase an AEO Studio license?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "A lifetime professional license is $19.00 USD, payable via Stripe (Credit Card / Apple Pay) or Solana Web3 via DePay."
+              "text": "A lifetime professional license is Free (100% Open Access), payable via Stripe (Credit Card / Apple Pay) or Solana Web3 via DePay."
             }
           },
           {
@@ -129,7 +129,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&family=Roboto:wght@400;500;700&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
 
-  <script defer src="https://integrate.depay.com/widgets/v13.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     :root {
@@ -156,6 +155,11 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      overflow-x: hidden !important;
+      max-width: 100vw !important;
+      width: 100% !important;
+    }
     body {
       font-family: var(--font-sans);
       background-color: var(--canvas-bg);
@@ -163,7 +167,6 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
     }
 
     /* Top Google-Style App Bar */
@@ -956,8 +959,47 @@
       .score-chip { display: none; }
     }
   </style>
+
+  <!-- Zoth 100% Open-Access & Buy Us a Coffee Invariant -->
+  <script id="zoth-open-access-init">
+    (function() {
+      try {
+        var keys = ['agent_audiocipher_pro', 'agent_cyber_turtle_pro', 'agent_datamosh_pro', 'agent_nexus3d_pro', 'agent_policy_pro', 'audiocipher_license', 'audiocipher_pro_licensed', 'badge3d_pro_licensed', 'certpath_pro_key', 'certpath_pro_licensed', 'cron_rhythm_pro_key', 'cron_rhythm_pro_licensed', 'cwv-speed-engine_pro_licensed', 'cwv_pro_licensed', 'cyber_turtle_pro_licensed', 'datamosh_pro_licensed', 'deepsearch-research-agent_pro_licensed', 'deepsearch_pro_licensed', 'entropy_studio_licensed', 'envguard-secrets-vault_pro_licensed', 'envguard_pro_license', 'etsy_connector_pro', 'jwt_guard_licensed', 'mdg_pro_licensed', 'neuro_pro_licensed', 'nexus3d_pro_licensed', 'omnipost_pro_key', 'omnipost_pro_licensed', 'osint_pro_licensed', 'payload-entropy-studio_pro_licensed', 'polyglot_pro_licensed', 'pro_licensed', 'promptmaster_pro_licensed', 'promptmaster_pro_active', 'robots-txt-auditor_pro_licensed', 'robots_pro_licensed', 'schema_illustrator_pro_licensed', 'sovereign_pro_licensed', 'subsweep-lead-scanner_pro_licensed', 'subsweep_licensed', 'turtle_pro_licensed', 'ufo_sacred_licensed', 'vector-search-engine_pro_licensed', 'vector_studio_pro_licensed', 'web-security-guard_pro_licensed', 'web_security_guard_licensed', 'yourdigitalspace_pro', 'zela_guide_pro_licensed', 'zoth_ascii_magic_pro', 'zoth_audiocipher_licensed', 'zoth_badge3d_licensed', 'zoth_cyber_turtle_licensed', 'zoth_datamosh_licensed', 'zoth_etsy_licensed', 'zoth_nexus3d_licensed', 'zoth_osint_licensed', 'zoth_policy_licensed', 'zoth_sacred_licensed', 'zoth_ufo_licensed'];
+        for (var i = 0; i < keys.length; i++) {
+          localStorage.setItem(keys[i], 'true');
+        }
+        localStorage.setItem('pm_license_v2', JSON.stringify({ method: 'open_access', ref: 'free_forever', at: '2026-01-01T00:00:00Z' }));
+        window.isPro = true;
+        window.isProLicensed = true;
+      } catch (e) {}
+    })();
+  </script>
+  <style id="zoth-open-access-override">
+    .paywall-overlay, .output-paywall-overlay, #outputPaywallOverlay, #schemaPaywallOverlay,
+    #transformerPaywallOverlay, #proPaywallModal, #licenseModal, #salesBanner, #founding-offer-banner,
+    #funnelHeroBanner, [data-alias="paywallOverlay"], [data-alias="founding-offer-banner"] {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    .paywall-wrap #outputPreview, .paywall-wrap #reportContentArea, .paywall-content,
+    .paywall-content.locked, .paywall-wrap.is-locked #outputPreview, .paywall-wrap.locked #outputPreview {
+      filter: none !important;
+      -webkit-filter: none !important;
+      user-select: auto !important;
+      pointer-events: auto !important;
+    }
+  </style>
+
 </head>
 <body>
+
+<div id="zoth-coffee-support-bar" style="background: linear-gradient(90deg, rgba(16,185,129,0.12), rgba(212,175,55,0.14)); border-bottom: 1px solid rgba(212,175,55,0.35); padding: 8px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; z-index: 9999;">
+  <span style="color: #10B981; font-weight: 800;">✦ 100% FREE &amp; OPEN ACCESS · ZERO PAYWALLS</span>
+  <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" rel="noopener noreferrer" style="background: #D4AF37; color: #08080B; padding: 4px 12px; border-radius: 6px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">☕ Buy Us a Coffee (Stripe)</a>
+  <a href="solana:GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK" onclick="if(navigator.clipboard){navigator.clipboard.writeText('GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK');this.textContent='✓ Copied GG2eQb...dXoK!';}" style="background: rgba(20,241,149,0.15); color: #14F195; border: 1px solid rgba(20,241,149,0.45); padding: 4px 12px; border-radius: 6px; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">◎ Solana Tip (GG2e...dXoK)</a>
+</div>
+
 <!-- Google-Style Header -->
   <header class="app-bar">
     <div class="brand-section">
@@ -976,39 +1018,14 @@
       <div class="score-chip" id="topScoreChip">
         <span id="topScoreValue">100 / 100</span> AEO Readiness
       </div>
-      <a href="https://buy.stripe.com/6oUbJ08wddKoa5y0xWfw40P" target="_blank" class="btn btn-sm" style="background: #6366F1; color: #FFF; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-        ★ Buy Pro ($19)
-      </a>
-      <button class="btn btn-sm" onclick="openDePayCheckout()" style="background: #14F195; color: #000; font-weight: 700; border: none; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
-        ⚡ Pay with Crypto (SOL)
-      </button>
+      <span class="badge-status" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); font-size: 11px; font-weight: 700; color: #10B981;">
+        ✦ 100% UNLOCKED
+      </span>
       <button class="btn btn-purple btn-sm" onclick="exportFullAuditReportModal()">◆ Audit Report</button>
       <button class="btn btn-tonal btn-sm" onclick="switchTab('tab-ai-gateway')">⚡ AI Keys & Ports</button>
       <button class="btn btn-primary btn-sm" onclick="downloadZipBundle()">↓ Download .zip</button>
     </div>
   </header>
-
-  <!-- High-Converting Sales Funnel Banner -->
-  <div id="funnelHeroBanner" style="background: linear-gradient(90deg, #e0e7ff 0%, #d1fae5 100%); border-bottom: 1px solid #cbd5e1; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 13px; z-index: 95; position: relative;">
-    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-      <span style="background: #dc2626; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Founding Sale</span>
-      <span style="font-weight: 700; color: #1e293b;">Sovereign Lifetime License:</span>
-      <span style="color: #64748b; text-decoration: line-through;">$79</span>
-      <span style="color: #047857; font-weight: 800; font-size: 14px;">$19 Lifetime</span>
-      <span style="color: #334155; font-size: 12px; font-weight: 500;">• Unlimited Schema.org Linked Data • One-Click ZIP Bundles • Zero Telemetry</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-      <a href="https://buy.stripe.com/6oUbJ08wddKoa5y0xWfw40P" target="_blank" rel="noopener" style="padding: 6px 12px; background: #4f46e5; color: #fff; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-        ★ Card / Apple Pay ($19)
-      </a>
-      <button onclick="openDePayCheckout()" style="padding: 6px 12px; background: #059669; color: #fff; border-radius: 6px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-        ⚡ Pay with SOL
-      </button>
-      <button onclick="openLicenseActivationModal()" style="background: #ffffff; border: 1px solid #94a3b8; color: #1e293b; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer;">
-        ✦ Activate Key
-      </button>
-    </div>
-  </div>
 
   <div class="app-layout">
     <!-- Sidebar -->
@@ -1792,13 +1809,13 @@
             </div>
             <div style="position: relative;">
               <div class="code-box" id="codeSchema"></div>
-              <div id="schemaPaywallOverlay" style="display: flex; position: absolute; inset: 0; background: rgba(10,12,18,0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 8px; align-items: center; justify-content: center; z-index: 10;">
+              <div id="schemaPaywallOverlay" style="display: none; position: absolute; inset: 0; background: rgba(10,12,18,0.7); backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: 8px; align-items: center; justify-content: center; z-index: 10;">
                 <div style="text-align: center; max-width: 380px; padding: 1.5rem; background: #0c0d14; border: 1px solid rgba(99,102,241,0.4); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
                   <div style="font-size: 2rem; margin-bottom: 8px;">★</div>
                   <div style="font-weight: 700; color: #fff; font-size: 1.05rem; margin-bottom: 6px;">Schema.org Output Locked</div>
                   <p style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">Unlock unlimited Schema.org JSON-LD graphs, llms.txt compiler, and one-click ZIP bundles.</p>
                   <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-                    <a href="https://buy.stripe.com/6oUbJ08wddKoa5y0xWfw40P" target="_blank" class="btn btn-sm" style="background: #6366F1; color: #FFF; text-decoration: none; font-weight: 700;">★ Buy ($19)</a>
+                    <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" class="btn btn-sm" style="background: #6366F1; color: #FFF; text-decoration: none; font-weight: 700;">☕ Buy Us a Coffee</a>
                     <button onclick="openDePayCheckout()" class="btn btn-sm" style="background: #14F195; color: #000; font-weight: 700; border: none; cursor: pointer;">⚡ Pay SOL</button>
                     <button onclick="openLicenseActivationModal()" class="btn btn-sm btn-tonal" style="cursor: pointer;">✦ Enter Key</button>
                   </div>
@@ -2284,9 +2301,9 @@ print(f"Generated {len(next_files)} Next.js integration files.")</div>
                 "description": description,
                 "offers": {
                   "@type": "Offer",
-                  "price": "19.00",
+                  "price": "0",
                   "priceCurrency": "USD",
-                  "url": "https://buy.stripe.com/6oUbJ08wddKoa5y0xWfw40P"
+                  "url": "https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X"
                 }
               },
               {
@@ -3904,9 +3921,9 @@ Focus on:
     }
 
     // Pro Licensing & Paywall Logic
-    let isProLicensed = false;
+    let isProLicensed = true;
 
-    function checkProLicense() {
+    function checkProLicense() { isProLicensed = true; try { updateProUI(); } catch(e){} return true;
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get("licensed") === "true" || urlParams.get("session_id")) {
         activateProLicense("STRIPE-CHECKOUT");
@@ -3992,11 +4009,9 @@ Focus on:
 
     function openDePayCheckout() {
       if (typeof DePayWidgets !== 'undefined') {
-        DePayWidgets.Payment({
-          integration: '428790dd-7ad1-407c-8ecf-c048c77a4cb8'
-        });
+        (navigator.clipboard && navigator.clipboard.writeText('GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK'));
       } else {
-        window.open('https://buy.stripe.com/6oUbJ08wddKoa5y0xWfw40P', '_blank');
+        window.open('https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X', '_blank');
       }
     }
   </script>
@@ -4006,66 +4021,12 @@ Focus on:
       <a href="/terms" style="color: var(--text-secondary); text-decoration: none;">Terms</a>
       <a href="/privacy" style="color: var(--text-secondary); text-decoration: none;">Privacy</a>
     </div>
-    <div>Engineered by Neal Frazier Tech (<a href="https://github.com/1nc0gn30/aeo-graph-engine" target="_blank" rel="noopener" style="color: var(--google-blue); text-decoration: none;">@1nc0gn30</a>) &middot; <a href="https://nullai.tech" target="_blank" rel="noopener" style="color: var(--google-blue); text-decoration: none;">NullAI Platform</a></div>
+    <div style="margin-bottom: 0.4rem;">
+      Engineered by Neal Frazier Tech (<a href="https://github.com/1nc0gn30/aeo-graph-engine" target="_blank" rel="noopener" style="color: var(--google-blue); text-decoration: none;">@1nc0gn30</a>) &middot; <a href="https://nullai.tech" target="_blank" rel="noopener" style="color: var(--google-blue); text-decoration: none;">NullAI Platform</a>
+    </div>
+    <div style="font-size: 0.78rem; opacity: 0.85;">
+      100% Free & Open Access • <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" rel="noopener" style="color: #D4AF37;">☕ Buy Us a Coffee</a> • Solana: <code style="font-size: 0.75rem; color: #14F195;">GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK</code>
+    </div>
   </footer>
-
-  <!-- Pro Paywall Modal -->
-  <div id="proPaywallModal" style="display: none; position: fixed; inset: 0; background: rgba(5,7,12,0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 1200; align-items: center; justify-content: center; padding: 1rem;">
-    <div style="max-width: 520px; width: 100%; border: 1px solid rgba(99,102,241,0.4); background: #0c0d14; border-radius: 16px; padding: 1.75rem; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 1.5rem;">⌕</span>
-          <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #f4f4f5;">Unlock AEO Studio Pro</h3>
-        </div>
-        <button onclick="closePaywallModal()" style="background: none; border: none; color: #a1a1aa; font-size: 1.25rem; cursor: pointer; padding: 4px;">✕</button>
-      </div>
-      <p style="font-size: 0.88rem; color: #a1a1aa; margin-bottom: 1.25rem; line-height: 1.5;">
-        Automate Schema.org linked data graphs, export multi-client MCP presets, and dominate AI answer engine citations across Perplexity, ChatGPT, and Google Gemini.
-      </p>
-      
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 16px; margin-bottom: 1.25rem;">
-        <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #818cf8; margin-bottom: 8px;">What's Included:</div>
-        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: #e4e4e7;">
-          <li>✔ Unlimited Schema.org JSON-LD @graph linked data exports</li>
-          <li>✔ One-click multi-client MCP presets (Claude Desktop, Cursor, Windsurf)</li>
-          <li>✔ Automated llms.txt & llms-full.txt generator per llmstxt.org spec</li>
-          <li>✔ Full Markdown AEO Technical Audit Report Generator</li>
-          <li>✔ Instant ZIP bundle deployment downloader with zero telemetry</li>
-        </ul>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="https://buy.stripe.com/6oUbJ08wddKoa5y0xWfw40P" target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; background: #6366F1; color: #fff; font-weight: 700; font-size: 0.95rem; border-radius: 8px; text-decoration: none; box-sizing: border-box;">
-          ★ Buy Pro Lifetime — $19 (Card / Apple Pay)
-        </a>
-        <button onclick="openDePayCheckout()" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; background: #14F195; color: #000; font-weight: 700; font-size: 0.95rem; border-radius: 8px; border: none; cursor: pointer; box-sizing: border-box;">
-          ⚡ Pay with Crypto (SOL / USDC)
-        </button>
-      </div>
-
-      <div style="margin-top: 14px; text-align: center;">
-        <button onclick="openLicenseActivationModal()" style="background: none; border: none; color: #94a3b8; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">
-          Already have a receipt or license key? Activate here
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- License Activation Modal -->
-  <div id="licenseModal" style="display: none; position: fixed; inset: 0; background: rgba(5,7,12,0.85); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 1250; align-items: center; justify-content: center; padding: 1rem;">
-    <div style="max-width: 420px; width: 100%; border: 1px solid rgba(255,255,255,0.15); background: #0c0d14; border-radius: 16px; padding: 1.5rem; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h4 style="margin: 0; font-size: 1.1rem; color: #fff;">Activate Pro License</h4>
-        <button onclick="closeLicenseModal()" style="background: none; border: none; color: #a1a1aa; font-size: 1.25rem; cursor: pointer;">✕</button>
-      </div>
-      <p style="font-size: 0.82rem; color: #a1a1aa; margin-bottom: 1rem;">
-        Enter your Stripe customer email, checkout session ID, or Solana tx signature to unlock:
-      </p>
-      <input type="text" id="licenseKeyInput" placeholder="e.g. cs_live_... or your@email.com" style="width: 100%; padding: 10px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem; margin-bottom: 1rem; box-sizing: border-box;">
-      <button onclick="activateLicenseSubmit()" style="width: 100%; padding: 10px; background: #6366F1; color: #fff; font-weight: 700; border-radius: 8px; border: none; cursor: pointer;">
-        Activate License
-      </button>
-    </div>
-  </div>
 </body>
 </html>

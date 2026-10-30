@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/hero-banner.svg" alt="AEO Graph Engine &amp; Studio — Sovereign Architecture Banner" width="100%" />
+  <img src="assets/hero-banner.svg" alt="AEO Graph Engine & Studio — Sovereign Architecture Banner" width="100%" />
 </div>
 
 <br />
@@ -9,13 +9,17 @@
 # AEO Graph Engine (`aeo-graph-engine`)
 
 > ⚡ **Live Web Application**: [https://aeo-graph-engine.netlify.app](https://aeo-graph-engine.netlify.app)  
-> 💳 **Unlock Pro Lifetime License ($19 One-Time, $0/mo)**: **[Instant Pro Unlock via Stripe](https://buy.stripe.com/6oUbJ08wddKoa5y0xWfw40P)** *(Use promo code `FOUNDER25` for 25% off)*  
-> 🏆 **All-Access Sovereign Pro Bundle (All 44 Tools — $49 Lifetime)**: **[Get All 44 Studios via Stripe](https://buy.stripe.com/eVq14m5k16hW4Le0xWfw40M)**
+> ☕ **Buy Us a Coffee**: **[Support via Stripe](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X)**  
+> ⚡ **Web3 Solana Tip**: Receiver `GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK`  
+> 🔓 **100% Free & Open Access**: Zero paywalls, zero license keys, zero feature gating.  
+> ⚡ **Attribution**: Engineered by Neal Frazier Tech ([@1nc0gn30](https://github.com/1nc0gn30)) • NullAI Platform.
 
 ### *Autonomous Answer Engine Optimization (AEO/GEO), Live Site Crawler, Schema.org Linked Data `@graph`, `llms.txt` & AEO Studio UI Workbench*
 
 [![Live App](https://img.shields.io/badge/Live%20App-aeo--graph--engine.netlify.app-00f0ff?style=for-the-badge&logo=netlify&logoColor=white)](https://aeo-graph-engine.netlify.app)
-[![Founding Pass](https://img.shields.io/badge/Founding%20Pass-$49%20Lifetime-14f195?style=for-the-badge)](https://aeo-graph-engine.netlify.app)
+[![Buy Us a Coffee](https://img.shields.io/badge/☕%20Buy%20Us%20a%20Coffee-Stripe-D4AF37?style=for-the-badge&logo=stripe&logoColor=white)](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X)
+[![Solana Tip](https://img.shields.io/badge/Solana%20Tip-GG2e...dXoK-14f195?style=for-the-badge&logo=solana&logoColor=black)](https://solana.fm/address/GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK)
+[![Access](https://img.shields.io/badge/Access-100%25%20Free%20%26%20Unlocked-00FF9D?style=for-the-badge)](https://aeo-graph-engine.netlify.app)
 [![Tests](https://img.shields.io/badge/tests-229%2F229%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Termux%20%7C%20macOS%20%7C%20Windows-38bdf8?style=for-the-badge&logo=linux&logoColor=white)](docs/PLATFORMS.md)
 [![MCP Protocol](https://img.shields.io/badge/MCP-JSON--RPC%202.0-8b5cf6?style=for-the-badge&logo=anthropic&logoColor=white)](docs/MCP_GUIDE.md)
@@ -516,6 +520,40 @@ Every push to the `main` branch or tag creation (`v*`) triggers the automated re
 2. Builds distribution wheel (`.whl`) and source archive (`.tar.gz`).
 3. Computes cryptographic SHA-256 checksums (`dist/SHA256SUMS.txt`).
 4. Generates changelog and creates a published GitHub Release with attached assets.
+
+---
+
+## ☕ 100% Free & Open-Access (Buy Us a Coffee Support Architecture)
+
+AEO Graph Engine and AEO Studio are **100% free, open, and unlocked by default**. Zero paywalls, zero license keys, and zero locked features.
+
+If this project powers your SEO/AEO indexation or saves engineering hours, consider supporting its independent research:
+
+- **Stripe "Buy Us a Coffee"**: [Support via Stripe](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X) (Cards, Apple Pay, Google Pay)
+- **Solana Tip Address**: `GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK`
+- **Sovereign Invariants**: Full Schema.org linked data @graph generation, llms.txt compiler, AI search bot WAF probe, and 100% client-side zero-egress execution.
+
+---
+
+## 💻 ZothOS CLI & MCP Integration
+
+```bash
+# Verify installation & deterministic JSON telemetry
+aeo-graph-engine --json
+aeo-graph-engine --version
+
+# Crawl live site and compute real AEO scores
+aeo-graph-engine scan https://nullai.tech
+
+# Probe 10 autonomous AI crawlers (GPTBot, ClaudeBot, PerplexityBot)
+aeo-graph-engine bot-audit https://nullai.tech
+
+# Generate complete AEO bundle into dist/
+aeo-graph-engine --generate-all --domain nullai.tech --site-name "NullAI Platform"
+
+# Launch MCP Server for Claude Desktop & Cursor
+aeo-graph-engine mcp
+```
 
 ---
 
