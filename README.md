@@ -512,4 +512,3 @@ Every push to the `main` branch or tag creation (`v*`) triggers the automated re
 
 Licensed under the [MIT License](LICENSE). Extracted and modularized from the [Zoth Studio](https://github.com/NullAITech/zoth-studio) open architecture.
 
-
