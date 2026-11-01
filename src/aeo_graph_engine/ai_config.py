@@ -76,7 +76,7 @@ def synthesize_config_from_prompt(
             site_name = preset.get("site_name", "Autonomous Platform")
 
     # 3. Extract domain if present
-    domain_match = re.search(r'\b([a-zA-Z0-9\-]+\.[a-zA-Z]{2,12})\b', cleaned)
+    domain_match = re.search(r'\b((?:[a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,12})\b', cleaned)
     if domain_match and "." in domain_match.group(1):
         domain = domain_match.group(1).lower()
     else:
