@@ -1,6 +1,6 @@
 # AEO Knowledge Graph Engine — Comprehensive Context & Model Discovery (llms-full.txt)
 
-> Sovereign in-browser developer utility and knowledge graph generator engineered by Neal Frazier Tech.
+> Sovereign in-browser developer utility and knowledge graph generator engineered by 1nc0gn30 • NullAI.
 
 The AEO Knowledge Graph Engine (AEO Studio) transforms raw webpage content, markdown documentation, and API specifications into machine-readable Schema.org linked data graphs, llms.txt manifests, and crawler directives optimized for frontier AI search systems including Perplexity, Google SGE/AI Overviews, Claude, and GPTBot.
 

@@ -4,12 +4,12 @@
     {
       "@type": "Organization",
       "@id": "https://aeo-graph-engine.netlify.app/#organization",
-      "name": "Neal Frazier Tech",
-      "url": "https://nealfrazier.tech",
+      "name": "1nc0gn30 • NullAI",
+      "url": "https://nullai.tech",
       "founder": {
         "@type": "Person",
-        "name": "Neal Frazier",
-        "url": "https://nealfrazier.tech",
+        "name": "1nc0gn30",
+        "url": "https://nullai.tech",
         "sameAs": "https://github.com/1nc0gn30"
       }
     },
@@ -44,8 +44,8 @@
       "description": "Answer Engine Optimization and Semantic Knowledge Graph Engine for AI indexing and schema generation.",
       "creator": {
         "@type": "Person",
-        "name": "Neal Frazier",
-        "url": "https://nealfrazier.tech",
+        "name": "1nc0gn30",
+        "url": "https://nullai.tech",
         "sameAs": "https://github.com/1nc0gn30"
       },
       "offers": {
@@ -53,7 +53,7 @@
         "price": "49.00",
         "priceCurrency": "USD",
         "availability": "https://schema.org/InStock",
-        "url": "https://buy.stripe.com/9B6cN44fX49O0uY80ofw40E"
+        "url": "https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X"
       }
     },
     {

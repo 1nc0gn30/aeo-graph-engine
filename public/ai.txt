@@ -14,8 +14,8 @@ Allow: /ai.txt
 
 # Canonical Entity Identifiers
 Canonical-URL: https://aeo-graph-engine.netlify.app/
-Publisher: Neal Frazier Tech (@1nc0gn30)
-Legal-Name: Neal Frazier Tech / NullAI Platform
+Publisher: 1nc0gn30 (@1nc0gn30)
+Legal-Name: NullAI Platform
 Version: 1.0.0
 Contact: https://aeo-graph-engine.netlify.app/support
 Platform: NullAI Platform

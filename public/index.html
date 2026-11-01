@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AEO Studio — Answer Engine Optimization & Semantic Knowledge Graph Engine</title>
   <meta name="description" content="Production-grade Answer Engine Optimization (AEO/GEO) Workbench. Live semantic crawler, Schema.org JSON-LD @graph generator, Model Context Protocol (MCP) hub, and AI entity indexer for Perplexity, ChatGPT, and Google AI Overviews.">
-  <meta name="keywords" content="AEO studio, answer engine optimization, generative engine optimization, schema json-ld generator, semantic triples, entity visualizer, perplexity seo, nullai tech, neal frazier">
-  <meta name="author" content="Neal Frazier">
+  <meta name="keywords" content="AEO studio, answer engine optimization, generative engine optimization, schema json-ld generator, semantic triples, entity visualizer, perplexity seo, nullai tech, 1nc0gn30">
+  <meta name="author" content="1nc0gn30">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <link rel="canonical" href="https://aeo-graph-engine.netlify.app/">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
@@ -20,7 +20,7 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="AEO Knowledge Graph Engine: Schema.org graph builder for answer engines">
-  <meta property="og:site_name" content="Neal Frazier Tech / NullAI">
+  <meta property="og:site_name" content="1nc0gn30 • NullAI / NullAI">
 
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image">
@@ -39,12 +39,12 @@
       {
         "@type": "Organization",
         "@id": "https://aeo-graph-engine.netlify.app/#organization",
-        "name": "Neal Frazier Tech",
-        "url": "https://nealfrazier.tech",
+        "name": "1nc0gn30 • NullAI",
+        "url": "https://nullai.tech",
         "founder": {
           "@type": "Person",
-          "name": "Neal Frazier",
-          "url": "https://nealfrazier.tech",
+          "name": "1nc0gn30",
+          "url": "https://nullai.tech",
           "sameAs": "https://github.com/1nc0gn30"
         }
       },
@@ -79,8 +79,8 @@
         "description": "Answer Engine Optimization and Semantic Knowledge Graph Engine for AI indexing and schema generation.",
         "creator": {
           "@type": "Person",
-          "name": "Neal Frazier",
-          "url": "https://nealfrazier.tech",
+          "name": "1nc0gn30",
+          "url": "https://nullai.tech",
           "sameAs": "https://github.com/1nc0gn30"
         },
         "offers": {
@@ -1809,18 +1809,6 @@
             </div>
             <div style="position: relative;">
               <div class="code-box" id="codeSchema"></div>
-              <div id="schemaPaywallOverlay" style="display: none; position: absolute; inset: 0; background: rgba(10,12,18,0.7); backdrop-filter: none; -webkit-backdrop-filter: none; border-radius: 8px; align-items: center; justify-content: center; z-index: 10;">
-                <div style="text-align: center; max-width: 380px; padding: 1.5rem; background: #0c0d14; border: 1px solid rgba(99,102,241,0.4); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
-                  <div style="font-size: 2rem; margin-bottom: 8px;">★</div>
-                  <div style="font-weight: 700; color: #fff; font-size: 1.05rem; margin-bottom: 6px;">Schema.org Output Locked</div>
-                  <p style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 1rem; line-height: 1.4;">Unlock unlimited Schema.org JSON-LD graphs, llms.txt compiler, and one-click ZIP bundles.</p>
-                  <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-                    <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" class="btn btn-sm" style="background: #6366F1; color: #FFF; text-decoration: none; font-weight: 700;">☕ Buy Us a Coffee</a>
-                    <button onclick="openDePayCheckout()" class="btn btn-sm" style="background: #14F195; color: #000; font-weight: 700; border: none; cursor: pointer;">⚡ Pay SOL</button>
-                    <button onclick="openLicenseActivationModal()" class="btn btn-sm btn-tonal" style="cursor: pointer;">✦ Enter Key</button>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -2244,11 +2232,19 @@ print(f"Generated {len(next_files)} Next.js integration files.")</div>
   </div>
 
   <script>
-    // In-Browser Client AEO Engine (Zero-Cloud Egress & Static Netlify Support)
+    // Real Backend-First + In-Browser Client Fallback Engine (Static Netlify Support)
     const originalFetch = window.fetch;
     window.fetch = async function(input, init) {
       const url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
       if (url.startsWith('/api/')) {
+        try {
+          const realRes = await originalFetch.apply(this, arguments);
+          if (realRes && realRes.ok) {
+            return realRes;
+          }
+        } catch (err) {
+          // Backend offline or static host: fall back to deterministic client engine
+        }
         return handleClientAeoApi(url, init);
       }
       return originalFetch.apply(this, arguments);
@@ -2266,7 +2262,7 @@ print(f"Generated {len(next_files)} Next.js integration files.")</div>
         const domain = body.domain || 'aeo-engine.dev';
         const tagline = body.tagline || 'Answer Engine Optimization Knowledge Graph';
         const description = body.description || 'Standalone generator for Schema.org linked data and llms.txt.';
-        const publisher = body.publisher_name || 'Neal Frazier Tech / NullAI';
+        const publisher = body.publisher_name || '1nc0gn30 • NullAI / NullAI';
         const category = body.category || 'SoftwareApplication';
 
         const data = {
@@ -2281,8 +2277,8 @@ print(f"Generated {len(next_files)} Next.js integration files.")</div>
                 "description": description,
                 "founder": {
                   "@type": "Person",
-                  "name": "Neal Frazier",
-                  "url": "https://nealfrazier.tech"
+                  "name": "1nc0gn30",
+                  "url": "https://nullai.tech"
                 }
               },
               {
@@ -2539,14 +2535,11 @@ Focus on:
     }
 
     function copyCode(elemId) {
-      if (!isProLicensed) {
-        openPaywallModal();
-        return;
+      const text = document.getElementById(elemId)?.innerText || '';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).catch(() => {});
       }
-      const text = document.getElementById(elemId).innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        showToast("Copied to clipboard!");
-      });
+      showToast("Copied to clipboard!");
     }
 
     function fillPrompt(text) {
@@ -3715,20 +3708,20 @@ Focus on:
       const domain = document.getElementById('inpDomain') ? document.getElementById('inpDomain').value : 'aeo-engine.dev';
       
       const entities = [
-        { id: "ent_org", name: siteName, type: "Organization", description: "Primary authority & knowledge graph publisher" },
-        { id: "ent_author", name: "Neal Frazier", type: "Person", description: "Lead Architect (@1nc0gn30 / Neal Frazier Tech)" },
-        { id: "ent_site", name: `${siteName} Canonical Hub`, type: "WebSite", description: `Canonical origin at https://${domain}/` },
-        { id: "ent_api", name: "Semantic Triples Endpoint", type: "Service", description: "Answer Engine crawlable triples" }
+        { id: `https://${domain}/#organization`, raw_id: `https://${domain}/#organization`, name: siteName, type: "Organization", description: "Primary authority & knowledge graph publisher" },
+        { id: `https://${domain}/#founder`, raw_id: `https://${domain}/#founder`, name: "1nc0gn30", type: "Person", description: "Lead Architect (@1nc0gn30 / 1nc0gn30 • NullAI)" },
+        { id: `https://${domain}/#website`, raw_id: `https://${domain}/#website`, name: `${siteName} Canonical Hub`, type: "WebSite", description: `Canonical origin at https://${domain}/` },
+        { id: `https://${domain}/#software`, raw_id: `https://${domain}/#software`, name: "Semantic Triples Endpoint", type: "SoftwareApplication", description: "Answer Engine crawlable triples" }
       ];
 
       const relationships = [
-        { from: siteName, to: "Neal Frazier", relation: "founder / author" },
+        { from: siteName, to: "1nc0gn30", relation: "founder / author" },
         { from: siteName, to: `${siteName} Canonical Hub`, relation: "publishes" },
         { from: `${siteName} Canonical Hub`, to: "Semantic Triples Endpoint", relation: "hosts" }
       ];
 
-      const mermaid = `graph TD\n  Org["${siteName} (Organization)"] -->|founder| Auth["Neal Frazier (Person)"]\n  Org -->|publishes| Web["${siteName} Canonical Hub (WebSite)"]\n  Web -->|hosts| Svc["Semantic Triples Endpoint (Service)"]`;
-      const ascii = `+---------------------------------------+\n| ${siteName} [Organization]        |\n+-------------------+-------------------+\n                    |\n        +-----------+-----------+\n        |                       |\n        v                       v\n[Author: Neal Frazier]   [WebSite: ${domain}]`;
+      const mermaid = `graph TD\n  Org["${siteName} (Organization)"] -->|founder| Auth["1nc0gn30 (Person)"]\n  Org -->|publishes| Web["${siteName} Canonical Hub (WebSite)"]\n  Web -->|hosts| Svc["Semantic Triples Endpoint (Service)"]`;
+      const ascii = `+---------------------------------------+\n| ${siteName} [Organization]        |\n+-------------------+-------------------+\n                    |\n        +-----------+-----------+\n        |                       |\n        v                       v\n[Author: 1nc0gn30]   [WebSite: ${domain}]`;
 
       const data = {
         entities_count: entities.length,
@@ -3768,7 +3761,7 @@ Focus on:
             <div class="entity-type">${ent.icon || '▣'} ${ent.type}</div>
             <div class="entity-name">${ent.name}</div>
             <div class="entity-desc" style="font-family:var(--font-mono); font-size:11px; color:var(--text-secondary);">
-              ID: ${ent.raw_id}
+              ID: ${ent.raw_id || ent.id || ent['@id'] || '#entity'}
             </div>
           `;
           grid.appendChild(card);
@@ -3920,68 +3913,12 @@ Focus on:
       a.click();
     }
 
-    // Pro Licensing & Paywall Logic
+    // 100% Open-Access Sovereign Invariant
     let isProLicensed = true;
-
-    function checkProLicense() { isProLicensed = true; try { updateProUI(); } catch(e){} return true;
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get("licensed") === "true" || urlParams.get("session_id")) {
-        activateProLicense("STRIPE-CHECKOUT");
-        return;
-      }
-      if (localStorage.getItem("pro_licensed") === "true") {
-        isProLicensed = true;
-        updateProUI();
-      }
-    }
-
-    function updateProUI() {
-      const banner = document.getElementById("funnelHeroBanner");
-      if (banner) banner.style.display = isProLicensed ? "none" : "flex";
-      const overlay = document.getElementById("schemaPaywallOverlay");
-      if (overlay) overlay.style.display = isProLicensed ? "none" : "flex";
-      const proChip = document.getElementById("topScoreChip");
-      if (proChip && isProLicensed) {
-        proChip.innerHTML = '<span style="color: #10B981; font-weight: 700; font-size: 11px; border: 1px solid #10B981; padding: 4px 10px; border-radius: 9999px; background: rgba(16,185,129,0.1);">⭐ PRO ACTIVE</span>';
-      }
-    }
-
-    function activateProLicense(key) {
-      isProLicensed = true;
-      localStorage.setItem("pro_licensed", "true");
-      updateProUI();
-      closeLicenseModal();
-      closePaywallModal();
-      showToast("Pro License Activated! Unlimited exports unlocked.");
-    }
-
-    function openPaywallModal() {
-      const m = document.getElementById("proPaywallModal");
-      if (m) m.style.display = "flex";
-    }
-
-    function closePaywallModal() {
-      const m = document.getElementById("proPaywallModal");
-      if (m) m.style.display = "none";
-    }
-
-    function openLicenseActivationModal() {
-      closePaywallModal();
-      const m = document.getElementById("licenseModal");
-      if (m) m.style.display = "flex";
-    }
-
-    function closeLicenseModal() {
-      const m = document.getElementById("licenseModal");
-      if (m) m.style.display = "none";
-    }
-
-    function activateLicenseSubmit() {
-      const val = document.getElementById("licenseKeyInput").value.trim();
-      if (val) {
-        activateProLicense(val);
-      }
-    }
+    function checkProLicense() { return true; }
+    function updateProUI() {}
+    function openPaywallModal() {}
+    function closePaywallModal() {}
 
     function showToast(msg) {
       let t = document.getElementById("appToast");
@@ -4004,16 +3941,7 @@ Focus on:
       selectAgentPrompt('engineer');
       loadAiGatewaySettings();
       loadEntityVisualizer('both');
-      checkProLicense();
     });
-
-    function openDePayCheckout() {
-      if (typeof DePayWidgets !== 'undefined') {
-        (navigator.clipboard && navigator.clipboard.writeText('GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK'));
-      } else {
-        window.open('https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X', '_blank');
-      }
-    }
   </script>
   <footer style="text-align: center; padding: 2rem 1rem; font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid var(--border-divider); margin-top: 2rem; background: var(--surface-bg);">
     <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px;">
@@ -4022,7 +3950,7 @@ Focus on:
       <a href="/privacy" style="color: var(--text-secondary); text-decoration: none;">Privacy</a>
     </div>
     <div style="margin-bottom: 0.4rem;">
-      Engineered by Neal Frazier Tech (<a href="https://github.com/1nc0gn30/aeo-graph-engine" target="_blank" rel="noopener" style="color: var(--google-blue); text-decoration: none;">@1nc0gn30</a>) &middot; <a href="https://nullai.tech" target="_blank" rel="noopener" style="color: var(--google-blue); text-decoration: none;">NullAI Platform</a>
+      Engineered by 1nc0gn30 • NullAI (<a href="https://github.com/1nc0gn30/aeo-graph-engine" target="_blank" rel="noopener" style="color: var(--google-blue); text-decoration: none;">@1nc0gn30</a>) &middot; <a href="https://nullai.tech" target="_blank" rel="noopener" style="color: var(--google-blue); text-decoration: none;">NullAI Platform</a>
     </div>
     <div style="font-size: 0.78rem; opacity: 0.85;">
       100% Free & Open Access • <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" rel="noopener" style="color: #D4AF37;">☕ Buy Us a Coffee</a> • Solana: <code style="font-size: 0.75rem; color: #14F195;">GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK</code>
