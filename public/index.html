@@ -3408,24 +3408,26 @@ Focus on:
           body: JSON.stringify({ url: url, timeout: timeout })
         });
         const data = await res.json();
+        const botList = Array.isArray(data.bot_results) ? data.bot_results : Object.values(data.bot_results || {});
 
         document.getElementById('statBotsAllowed').innerText = `${data.allowed_count} / ${data.total_bots}`;
         document.getElementById('statBotsBlocked').innerText = `${data.blocked_count}`;
         document.getElementById('statWafDetected').innerText = data.waf_detected ? `${data.waf_vendor || 'WAF'} Block` : 'Clean (No Block)';
         document.getElementById('statWafDetected').style.color = data.waf_detected ? 'var(--google-red)' : 'var(--google-green)';
-        document.getElementById('statServerHeader').innerText = data.server_header || 'Unknown';
+        document.getElementById('statServerHeader').innerText = data.server_header || (botList[0] && botList[0].server) || 'Unknown';
 
-        cardsGrid.innerHTML = (data.bot_results || []).map(r => {
-          const isOk = r.status === 'allowed';
-          const isWarn = r.status === 'warning';
+        cardsGrid.innerHTML = botList.map(r => {
+          const st = r.status || r.status_category;
+          const isOk = st === 'allowed';
+          const isWarn = st === 'warning';
           const tagClass = isOk ? 'allowed' : (isWarn ? 'warning' : 'blocked');
-          const tagText = isOk ? 'Allowed (200 OK)' : (isWarn ? 'Warning / Restricted' : `Blocked (${r.http_status || 'WAF'})`);
+          const tagText = isOk ? 'Allowed (200 OK)' : (isWarn ? 'Warning / Restricted' : `Blocked (${r.http_status || r.status_code || 'WAF'})`);
 
           return `
             <div class="bot-probe-card">
               <div class="bot-probe-header">
                 <div>
-                  <div class="bot-probe-name">${r.bot_name}</div>
+                  <div class="bot-probe-name">${r.bot_name || r.name}</div>
                   <div class="bot-probe-org">${r.operator || 'AI Crawler'}</div>
                 </div>
                 <span class="bot-status-tag ${tagClass}">${tagText}</span>
