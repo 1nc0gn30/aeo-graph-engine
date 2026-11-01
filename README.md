@@ -114,8 +114,8 @@ open public/index.html
 - 🔌 **Local LLM Endpoints & Ports (100% Free & Private)**:
   - **Ollama**: Default `http://127.0.0.1:11434` (Port 11434)
   - **LM Studio**: Default `http://127.0.0.1:1234/v1` (Port 1234)
-  - **vLLM / llama.cpp**: Default `http://127.0.0.1:8000/v1` (Port 8000)
-  - **Hermes Agent / Zoth Memory Daemon**: Default `http://127.0.0.1:8788/v1` (Port 8788)
+  - **vLLM / llama.cpp**: Default `http://127.0.0.1:8127/v1` (Port 8000)
+  - **Hermes Agent / Zoth Memory Daemon**: Default `http://127.0.0.1:8127/v1` (Port 8788)
   - **AEO MCP Gateway Port**: Port 8091
 - ⚡ **Live Endpoint Latency & Connection Tester**: Ping any endpoint with 1 click to verify available models and response times.
 - 🔮 **Live Answer Engine Perception Simulator**: Query simulated ChatGPT Search & Perplexity engines to verify how AI answer engines perceive and cite your domain.
