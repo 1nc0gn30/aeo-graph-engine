@@ -20,6 +20,7 @@
 [![Buy Us a Coffee](https://img.shields.io/badge/☕%20Buy%20Us%20a%20Coffee-Stripe-D4AF37?style=for-the-badge&logo=stripe&logoColor=white)](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X)
 [![Solana Tip](https://img.shields.io/badge/Solana%20Tip-GG2e...dXoK-14f195?style=for-the-badge&logo=solana&logoColor=black)](https://solana.fm/address/GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK)
 [![Access](https://img.shields.io/badge/Access-100%25%20Free%20%26%20Unlocked-00FF9D?style=for-the-badge)](https://aeo-graph-engine.netlify.app)
+[![PyPI Version](https://img.shields.io/badge/pypi-v1.0.0-00f0ff?style=for-the-badge&logo=pypi&logoColor=white)](https://github.com/NullAITech/aeo-graph-engine)
 [![Tests](https://img.shields.io/badge/tests-229%2F229%20Passing%20(100%25)-34d399?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
 [![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Termux%20%7C%20macOS%20%7C%20Windows-38bdf8?style=for-the-badge&logo=linux&logoColor=white)](docs/PLATFORMS.md)
 [![MCP Protocol](https://img.shields.io/badge/MCP-JSON--RPC%202.0-8b5cf6?style=for-the-badge&logo=anthropic&logoColor=white)](docs/MCP_GUIDE.md)
@@ -560,5 +561,4 @@ aeo-graph-engine mcp
 ## 📄 License
 
 Licensed under the [MIT License](LICENSE). Extracted and modularized from the [Zoth Studio](https://github.com/NullAITech/zoth-studio) open architecture.
-
 
