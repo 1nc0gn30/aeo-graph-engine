@@ -38,7 +38,7 @@ from aeo_graph_engine.cli import build_parser, main as cli_main
 SAMPLE_TEXT = """
 NullAI is a cutting-edge autonomous AI developer tools studio.
 NullAI was founded by Alice Vance in San Francisco.
-NullAI is maintained by 757tech Team.
+NullAI is maintained by 1nc0gn30 Team.
 NullAI features automated answer engine optimization and schema synthesis.
 NullAI supports Python and TypeScript.
 NullAI integrates with Next.js, Astro, and GitHub Actions.
@@ -81,7 +81,7 @@ SAMPLE_SCHEMA = {
         {
             "@type": "Organization",
             "@id": "https://example.com/#org",
-            "name": "757tech Team",
+            "name": "1nc0gn30 Team",
         },
     ],
 }

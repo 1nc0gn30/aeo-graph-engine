@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Answer Engine Optimization (AEO/GEO) Engine: Standalone generator and validator for Schema.org linked data, llms.txt, ai.txt, and AI crawler directives."
 readme = "README.md"
 authors = [
-    { name = "NullAI / 757tech Team", email = "architect@nullai.tech" }
+    { name = "NullAI / 1nc0gn30 Team", email = "architect@nullai.tech" }
 ]
 license = { text = "MIT" }
 keywords = [

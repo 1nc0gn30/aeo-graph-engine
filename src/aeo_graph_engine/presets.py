@@ -8,7 +8,7 @@ from typing import Dict, Any
 
 DEFAULT_CONFIG: Dict[str, Any] = {
     "site_name": "AEO Graph Engine",
-    "legal_name": "NullAI Tech / 757tech LLC",
+    "legal_name": "NullAI Tech / 1nc0gn30 LLC",
     "publisher_name": "NullAI",
     "founding_architect": "AEO Engineering Team",
     "architect_url": "https://github.com/1nc0gn30/aeo-graph-engine",
