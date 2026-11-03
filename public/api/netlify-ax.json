@@ -1,7 +1,7 @@
 {
   "schema_version": "2026-10-04",
   "generator": "Zoth Sovereign Netlify AX & AI Engine v3.5",
-  "project_path": "/home/zoth/NullAITech/aeo-graph-engine",
+  "project_path": "~/NullAITech/aeo-graph-engine",
   "score": 93,
   "total_vectors": 14,
   "passed": 13,
@@ -94,5 +94,5 @@
       "message": "ai.txt: ✓, llms.txt: ✓, netlify-ax.json: ✓."
     }
   ],
-  "timestamp": "2026-11-03T18:39:40.695Z"
+  "timestamp": "2026-11-03T22:08:46.662Z"
 }
