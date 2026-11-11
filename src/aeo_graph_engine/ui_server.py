@@ -1251,7 +1251,7 @@ aeo framework nextjs_app --output-dir app/
 aeo prompt "An AI resume builder called CVForge on cvforge.app" --output-dir dist/
 
 # 5. Start interactive local Studio
-aeo serve --port 8080</div>
+aeo serve --port 8127</div>
           </div>
 
           <div class="card">
@@ -2631,7 +2631,7 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
         self.send_error(404, "Endpoint not found")
 
 
-def start_ui_server(host: str = "127.0.0.1", port: int = 8080) -> ThreadingHTTPServer:
+def start_ui_server(host: str = "127.0.0.1", port: int = 8127) -> ThreadingHTTPServer:
     """Starts the AEO Studio HTTP server."""
     server = ThreadingHTTPServer((host, port), AEOStudioHTTPHandler)
     return server

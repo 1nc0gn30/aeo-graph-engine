@@ -1,10 +1,10 @@
-# 🏗️ AEO Graph Engine Architecture
+# AEO Graph Engine Architecture
 
 > **Internal Pipeline, Schema Graph Linking, HTML Injection & Validation Mechanics**
 
 ---
 
-## 📐 System Architecture Diagram
+## System Architecture Diagram
 
 ```
                               ┌───────────────────────────────┐
@@ -52,7 +52,7 @@
 
 ---
 
-## 🧬 Schema.org `@graph` Linking Model
+## Schema.org `@graph` Linking Model
 
 Unlike fragmented JSON-LD snippets, `aeo-graph-engine` constructs a **single relational graph**:
 
@@ -101,7 +101,7 @@ Unlike fragmented JSON-LD snippets, `aeo-graph-engine` constructs a **single rel
 
 ---
 
-## 💉 Zero-Drift HTML Injection Mechanics
+## Zero-Drift HTML Injection Mechanics
 
 The `injector.py` module uses robust regex matching to guarantee idempotency:
 1. **Existing Tag Detection**: Checks for `<script type="application/ld+json">.*?</script>`. If found, replaces the inner payload with zero formatting corruption.

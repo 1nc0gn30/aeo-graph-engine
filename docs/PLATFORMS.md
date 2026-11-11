@@ -1,4 +1,4 @@
-# 🌐 Multi-Platform Handbook: Linux, Termux (Android), macOS, & Windows
+# Multi-Platform Handbook: Linux, Termux (Android), macOS, & Windows
 
 `aeo-graph-engine` is engineered with **zero external runtime dependencies** using Python's standard library. It runs seamlessly on:
 - 🐧 **Linux** (Debian, Ubuntu, Fedora, Arch, Alpine, CentOS, WSL2)
@@ -8,7 +8,7 @@
 
 ---
 
-## 🔍 Platform Health Check Command
+## Platform Health Check Command
 
 Inspect your platform environment and runtime encodings at any time:
 
@@ -38,7 +38,7 @@ python3 -m aeo_graph_engine.cli --platform
 
 ---
 
-## 📱 1. Termux on Android
+## 1. Termux on Android
 
 Run autonomous AEO audits, start the Google-styled AEO Studio web workbench, and serve MCP tools directly from your Android phone or tablet.
 
@@ -75,7 +75,7 @@ aeo --validate ~/storage/shared/my-web-project/dist/
 
 ---
 
-## 🍏 2. macOS (Apple Silicon & Intel)
+## 2. macOS (Apple Silicon & Intel)
 
 ### Step 1: Install & Verify Python 3
 ```bash
@@ -124,7 +124,7 @@ Cursor project MCP config: `.cursor/mcp.json` or Global Settings:
 
 ---
 
-## 🪟 3. Windows (10 / 11 / Server / WSL2)
+## 3. Windows (10 / 11 / Server / WSL2)
 
 `aeo-graph-engine` includes native UTF-8 console stream wrappers to prevent `UnicodeEncodeError` on legacy Command Prompt (`cp1252` / `cp437`) and Windows PowerShell.
 
@@ -174,7 +174,7 @@ aeo serve --port 8080 --open
 
 ---
 
-## 🐧 4. Linux & WSL2 (Debian, Ubuntu, Fedora, Arch)
+## 4. Linux & WSL2 (Debian, Ubuntu, Fedora, Arch)
 
 ### Quick Install:
 ```bash
@@ -195,7 +195,7 @@ pip install -e .
 
 ---
 
-## 🧪 5. Multi-Platform Verification Matrix
+## 5. Multi-Platform Verification Matrix
 
 | Platform | Terminal / Shell | Native Encoding | Studio Web UI | MCP Server over Stdio | Zero Dependencies |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -207,7 +207,7 @@ pip install -e .
 
 ---
 
-## 🔄 6. GitHub Actions Multi-OS Matrix & Automated Releases
+## 6. GitHub Actions Multi-OS Matrix & Automated Releases
 
 The repository is configured with two automated GitHub Actions workflows:
 

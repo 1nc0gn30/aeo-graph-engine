@@ -1,0 +1,13 @@
+title = "aeo-graph-engine gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Exclude local browser capture caches and build artifacts"
+paths = [
+  '''(^|/)shots/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)__pycache__/''',
+  '''(^|/)\.pytest_cache/''',
+]

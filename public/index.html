@@ -15,7 +15,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://aeo-graph-engine.netlify.app/">
   <meta property="og:title" content="AEO Studio — Answer Engine Optimization Workbench">
-  <meta property="og:description" content="Generate high-converting Schema.org JSON-LD semantic knowledge graphs. Instant checkout via Stripe (Free (100% Open Access)) or Solana Tip.">
+  <meta property="og:description" content="Generate Schema.org JSON-LD semantic knowledge graphs, llms.txt manifests, and AI crawler directives. 100% free and open-access.">
   <meta property="og:image" content="https://aeo-graph-engine.netlify.app/assets/og-card.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -1972,7 +1972,7 @@ aeo framework nextjs_app --output-dir app/
 aeo prompt "An AI resume builder called CVForge on cvforge.app" --output-dir dist/
 
 # 5. Start interactive local Studio
-aeo serve --port 8080</div>
+aeo serve --port 8127</div>
           </div>
 
           <div class="card">
@@ -2782,10 +2782,6 @@ Focus on:
     }
 
     async function downloadZipBundle() {
-      if (!isProLicensed) {
-        openPaywallModal();
-        return;
-      }
       const siteName = document.getElementById('inpSiteName')?.value || 'aeo-site';
       const cleanName = siteName.toLowerCase().replace(/[^a-z0-9_-]/g, '-');
       const schemaContent = document.getElementById('codeSchema')?.innerText || '';
@@ -3573,10 +3569,6 @@ Focus on:
 
     // --- Audit Report Exporter Modal JS ---
     async function exportFullAuditReportModal() {
-      if (!isProLicensed) {
-        openPaywallModal();
-        return;
-      }
       const url = document.getElementById('inpScannerUrl') ? document.getElementById('inpScannerUrl').value : 'https://example.com';
       try {
         const res = await fetch('/api/report', {

@@ -8,7 +8,8 @@
     "aeo-graph": "./bin/aeo-graph.js"
   },
   "scripts": {
-    "start": "python3 -m aeo_graph_engine.cli serve --port 8089",
+    "start": "python3 -m aeo_graph_engine.cli serve --port 8127",
+    "serve": "python3 server.py --port 8127",
     "electron": "electron .",
     "app": "electron .",
     "test": "pytest tests/"
@@ -26,7 +27,7 @@
     "electron",
     "zoth"
   ],
-  "author": "NullAI Tech / Zoth Team",
+  "author": "1nc0gn30 (@1nc0gn30) • NullAI Platform",
   "license": "MIT",
   "devDependencies": {
     "electron": "^34.5.8"

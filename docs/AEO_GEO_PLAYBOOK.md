@@ -1,10 +1,10 @@
-# 📖 The 2026 AEO & GEO Mastery Playbook
+# The 2026 AEO & GEO Mastery Playbook
 
 > **How Answer Engine Optimization (AEO) and Generative Engine Optimization (GEO) Work in Practice**
 
 ---
 
-## 🔍 The Paradigm Shift: SEO vs. AEO / GEO
+## The Paradigm Shift: SEO vs. AEO / GEO
 
 | Classic Search Engine Optimization (SEO) | Answer Engine Optimization (AEO / GEO) |
 | :--- | :--- |
@@ -15,7 +15,7 @@
 
 ---
 
-## 🧠 How AI Answer Engines Select & Cite Sources
+## How AI Answer Engines Select & Cite Sources
 
 Modern AI search engines (like Perplexity, SearchGPT, Claude, and Google AI Overviews) utilize a **four-stage pipeline**:
 
@@ -33,7 +33,7 @@ Modern AI search engines (like Perplexity, SearchGPT, Claude, and Google AI Over
 
 ---
 
-## 🛠️ The 5 Core Pillars of AEO
+## The 5 Core Pillars of AEO
 
 ### 1. Connected Schema.org `@graph` (Entity Authority)
 Isolated schema tags (e.g. just a generic `WebSite` tag) are treated as low-confidence signals. **`aeo-graph-engine`** connects entities into an interdependent graph:
@@ -68,7 +68,7 @@ Ensures that leading AI search bots are explicitly allowed:
 
 ---
 
-## 🚀 How to Achieve a 100/100 AEO Readiness Score
+## How to Achieve a 100/100 AEO Readiness Score
 
 1. **Always include a clear FAQ section**: FAQs directly power conversational responses.
 2. **Specify canonical domain names**: Ensure all `@id` URIs use absolute `https://` URLs.

@@ -1,10 +1,10 @@
-# 🔌 Model Context Protocol (MCP) Guide for AEO Graph Engine
+# Model Context Protocol (MCP) Guide for AEO Graph Engine
 
 > **Connect Any AI Coding Agent (Claude Desktop, Cursor, Cline, Zed, ChatGPT, Hermes, OpenCode, AutoGen, CrewAI, LangChain) to Automatically Optimize AEO During Development**
 
 ---
 
-## 🎯 Executive Overview
+## Executive Overview
 
 The **Model Context Protocol (MCP)** is an open standard created by Anthropic that enables Large Language Models (LLMs) and AI coding agents to securely access external tools, local filesystems, and specialized engines.
 
@@ -44,7 +44,7 @@ By connecting your AI agent to **`aeo-graph-engine`** via MCP, your agent gains 
 
 ---
 
-## 🛠️ Available MCP Tools
+## Available MCP Tools
 
 When `aeo-graph-engine` is registered as an MCP server, it exposes **6 primary tools** to connected AI agents:
 
@@ -59,7 +59,7 @@ When `aeo-graph-engine` is registered as an MCP server, it exposes **6 primary t
 
 ---
 
-## 💻 Client Setup & Copy-Paste Configurations
+## Client Setup & Copy-Paste Configurations
 
 You can generate exact configuration snippets for any client directly from the CLI:
 
@@ -361,7 +361,7 @@ class LiveAEOScannerTool(BaseTool):
 
 ---
 
-## ⚡ The Live In-Session Coding Experience
+## The Live In-Session Coding Experience
 
 Here is how an AI coding assistant interacts with `aeo-graph-engine` during a real development session:
 
@@ -385,7 +385,7 @@ Here is how an AI coding assistant interacts with `aeo-graph-engine` during a re
 
 ---
 
-## 🔍 Verification & Troubleshooting
+## Verification & Troubleshooting
 
 ### Test the MCP Server via Stdio
 You can verify that the MCP server responds correctly to JSON-RPC 2.0 messages via bash:
@@ -427,8 +427,8 @@ Expected JSON response:
 
 ---
 
-## 📚 Related Documentation
+## Related Documentation
 
-- [AI Agent Integration & Autonomous Execution Guide](file:///media/neo/f2fdda77-178b-4603-ae80-c7aa4cd97908/aeo-graph-engine/docs/AI_AGENT_INTEGRATION.md)
-- [AEO & GEO Mastery Playbook](file:///media/neo/f2fdda77-178b-4603-ae80-c7aa4cd97908/aeo-graph-engine/docs/AEO_GEO_PLAYBOOK.md)
-- [System Architecture & Schema Graph Linking](file:///media/neo/f2fdda77-178b-4603-ae80-c7aa4cd97908/aeo-graph-engine/docs/ARCHITECTURE.md)
+- [AI Agent Integration & Autonomous Execution Guide](./AI_AGENT_INTEGRATION.md)
+- [AEO & GEO Mastery Playbook](./AEO_GEO_PLAYBOOK.md)
+- [System Architecture & Schema Graph Linking](./ARCHITECTURE.md)

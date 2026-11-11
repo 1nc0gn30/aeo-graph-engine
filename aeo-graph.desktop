@@ -2,19 +2,19 @@
 Version=1.0
 Type=Application
 Name=AEO Graph Studio
-GenericName=Answer Engine Optimization & Knowledge Graph Workstation
+GenericName=Answer Engine Optimization & Schema.org Workstation
 Comment=Zero-Dependency Answer Engine Optimization, Schema.org Knowledge Graph, llms.txt & AI Bot Shield
-Exec=/usr/local/bin/aeo-graph desktop
-Icon=/media/neo/f2fdda77-178b-4603-ae80-c7aa4cd97908/zoth-micro-repos/aeo-graph-engine/assets/icon.png
+Exec=/usr/local/bin/aeo desktop
+Icon=aeo-graph-engine
 Terminal=false
-Categories=Development;System;Utility;
+Categories=Development;WebDevelopment;Utility;
 StartupNotify=true
 Actions=CLI;Web;
 
 [Desktop Action CLI]
-Name=Open AEO CLI
-Exec=x-terminal-emulator -e "/usr/local/bin/aeo-graph --help"
+Name=Open AEO Graph CLI
+Exec=x-terminal-emulator -e "/usr/local/bin/aeo --help"
 
 [Desktop Action Web]
-Name=Open Web UI (Port 8089)
-Exec=/usr/local/bin/aeo-graph web
+Name=Open Web UI (Port 8127)
+Exec=/usr/local/bin/aeo web

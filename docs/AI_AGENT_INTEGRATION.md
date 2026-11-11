@@ -1,10 +1,10 @@
-# 🤖 AI Agent Integration & Autonomous Execution Guide
+# AI Agent Integration & Autonomous Execution Guide
 
 > **Architectural Blueprint for AI Coding Agents, Multi-Agent Swarms, and Autonomous Runners to Discover, Configure, Operate, and Verify Answer Engine Optimization (AEO/GEO)**
 
 ---
 
-## 🎯 Executive Overview & Agent-Native Architecture
+## Executive Overview & Agent-Native Architecture
 
 `aeo-graph-engine` was engineered from the ground up to be **100% AI-agent native**. Modern AI coding assistants (such as Antigravity, Claude Code, Cursor, Cline, Zed, Hermes Agent, AutoGPT, and OpenCode) are no longer just passive code generators—they autonomously create routes, build static landing pages, compile frontend bundles, and deploy production software.
 
@@ -47,7 +47,7 @@ However, traditional web builds frequently suffer from:
 
 ---
 
-## 🔄 The 5-Stage Autonomous AEO Optimization Loop
+## The 5-Stage Autonomous AEO Optimization Loop
 
 AI coding agents should execute the following deterministic 5-stage loop when building or auditing web applications:
 
@@ -93,7 +93,7 @@ The agent executes an automated quality check:
 
 ---
 
-## ⚡ JSON-RPC 2.0 & Model Context Protocol (MCP) Integration
+## JSON-RPC 2.0 & Model Context Protocol (MCP) Integration
 
 `aeo-graph-engine` communicates natively with AI agent platforms via **JSON-RPC 2.0** over standard input/output (`stdio`) or HTTP/SSE.
 
@@ -282,7 +282,7 @@ The agent executes an automated quality check:
 
 ---
 
-## 📋 Tool Calling Specifications & Parameter Schemas
+## Tool Calling Specifications & Parameter Schemas
 
 For AI agents utilizing OpenAI Function Calling, Anthropic Tool Spec, or custom LLM function schemas:
 
@@ -362,7 +362,7 @@ For AI agents utilizing OpenAI Function Calling, Anthropic Tool Spec, or custom 
 
 ---
 
-## 💻 Copy-Paste Client Configuration Snippets
+## Copy-Paste Client Configuration Snippets
 
 ### 1. Claude Desktop (`claude_desktop_config.json`)
 
@@ -453,7 +453,7 @@ For AI agents utilizing OpenAI Function Calling, Anthropic Tool Spec, or custom 
 
 ---
 
-## 🧠 Agent System Prompt Templates
+## Agent System Prompt Templates
 
 Equip your AI assistants with specialized system prompts to guarantee autonomous AEO excellence:
 
@@ -512,7 +512,7 @@ Execution Protocol:
 
 ---
 
-## 🐍 Programmatic Python Agent Workflows
+## Programmatic Python Agent Workflows
 
 ### 1. Pure Python Autonomous Loop with Self-Healing Assertion
 
@@ -595,8 +595,8 @@ agent.run("Inspect https://example.com and deploy an optimized AEO layer for our
 
 ---
 
-## 📚 Related Documentation
+## Related Documentation
 
-- [Model Context Protocol (MCP) Guide](file:///media/neo/f2fdda77-178b-4603-ae80-c7aa4cd97908/aeo-graph-engine/docs/MCP_GUIDE.md)
-- [AEO & GEO Mastery Playbook](file:///media/neo/f2fdda77-178b-4603-ae80-c7aa4cd97908/aeo-graph-engine/docs/AEO_GEO_PLAYBOOK.md)
-- [System Architecture & Schema Graph Linking](file:///media/neo/f2fdda77-178b-4603-ae80-c7aa4cd97908/aeo-graph-engine/docs/ARCHITECTURE.md)
+- [Model Context Protocol (MCP) Guide](./MCP_GUIDE.md)
+- [AEO & GEO Mastery Playbook](./AEO_GEO_PLAYBOOK.md)
+- [System Architecture & Schema Graph Linking](./ARCHITECTURE.md)
