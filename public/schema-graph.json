@@ -70,10 +70,10 @@
         },
         {
           "@type": "Question",
-          "name": "How do I purchase an AEO Studio license?",
+          "name": "Is AEO Studio free and open-access?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "A lifetime professional license is $0.00 USD, payable via Stripe (Credit Card / Apple Pay) or Solana Web3 via Solana Tip."
+            "text": "Yes. AEO Studio is 100% free and open-access with zero paywalls. Optional support is accepted via Buy Us a Coffee on Stripe (https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X) or Solana tips (GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK)."
           }
         },
         {

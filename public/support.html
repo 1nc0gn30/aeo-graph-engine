@@ -320,21 +320,21 @@
       <h2>Frequently Asked Questions</h2>
       <div class="faq-item open">
         <div class="faq-question" onclick="toggleFaq(this)">
-          How does the $0 Lifetime Pro license work?
+          Is AEO Graph Engine 100% free and open-access?
           <span class="faq-toggle">▼</span>
         </div>
         <div class="faq-answer">
-          The $0 Pro license gives you lifetime access without recurring monthly subscriptions. It unlocks all advanced exports, AST transformations, and commercial project rights permanently in your browser.
+          Yes. Every generator, Schema.org exporter, crawler audit, and ZIP bundle in AEO Studio is unlocked by default with zero paywalls, zero blur locks, and zero license keys required.
         </div>
       </div>
 
       <div class="faq-item">
         <div class="faq-question" onclick="toggleFaq(this)">
-          What is the refund policy?
+          How can I support ongoing development?
           <span class="faq-toggle">▼</span>
         </div>
         <div class="faq-answer">
-          We offer an unconditional 30-day money-back guarantee. If you are not satisfied for any reason, email <a href="https://github.com/NullAITech/aeo-graph-engine/issues">GitHub Issues</a> with your receipt for a 100% full refund within 24 to 48 hours.
+          Optional community support is welcomed via <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" rel="noopener noreferrer">Buy Us a Coffee on Stripe</a> or Solana tips to <code>GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK</code>.
         </div>
       </div>
 
@@ -376,19 +376,6 @@
   <script>
     function toggleFaq(el) {
       el.parentElement.classList.toggle('open');
-    }
-    function handleRestore(e) {
-      e.preventDefault();
-      const email = document.getElementById('restoreEmail').value.trim();
-      const msg = document.getElementById('restoreMsg');
-      if (email) {
-        localStorage.setItem('aeo-graph-engine_pro_licensed', 'true');
-        localStorage.setItem('aeo-graph-engine_license_email', email);
-        msg.style.display = 'block';
-        msg.style.color = '#10B981';
-        msg.innerHTML = '✓ Pro license recovered for ' + email + '! Redirecting to workspace...';
-        setTimeout(() => { window.location.href = '/?licensed=true'; }, 1200);
-      }
     }
   </script>
 </body>
