@@ -2478,10 +2478,21 @@ Focus on:
       }
 
       const p = PRESETS[nicheKey] || {};
-      if (p.site_name) document.getElementById('inpSiteName').value = p.site_name;
-      if (p.tagline) document.getElementById('inpTagline').value = p.tagline;
-      if (p.description) document.getElementById('inpDescription').value = p.description;
-      if (p.category) document.getElementById('inpCategory').value = p.category;
+      const elSiteName = document.getElementById('inpSiteName');
+      const elTagline = document.getElementById('inpTagline');
+      const elDescription = document.getElementById('inpDescription');
+      const elCategory = document.getElementById('inpCategory') || document.getElementById('selPrimaryType');
+      if (p.site_name && elSiteName) elSiteName.value = p.site_name;
+      if (p.tagline && elTagline) elTagline.value = p.tagline;
+      if (p.description && elDescription) elDescription.value = p.description;
+      if (p.category && elCategory) {
+        if (elCategory.tagName === 'SELECT') {
+          const hasOpt = Array.from(elCategory.options).some(o => o.value === p.category);
+          if (hasOpt) elCategory.value = p.category;
+        } else {
+          elCategory.value = p.category;
+        }
+      }
 
       regenerateAll();
     }
