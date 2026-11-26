@@ -274,3 +274,96 @@ def test_providers_endpoint_and_secret_redaction(live_server, tmp_path):
     assert sim["mode"] == "offline_heuristic"
     assert sim["citation_confidence"] != "98.5%"
     assert sim["heuristic_score"] < 50
+
+
+# ---------------------------------------------------------------------------
+# 7. Generate For Me (Autonomous Domain Crawl + Multi-Agent Synthesis)
+# ---------------------------------------------------------------------------
+
+def test_generate_from_domain_blocks_ssrf(live_server):
+    host, port = live_server
+    for bad in ("http://127.0.0.1:8127", "http://169.254.169.254/latest/meta-data/", "file:///etc/passwd"):
+        st, _, raw = _http_req(
+            host,
+            port,
+            "POST",
+            "/api/agent/generate-from-domain",
+            body=json.dumps({"url": bad, "provider": "agy_bridge"}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        assert st == 403
+        assert json.loads(raw.decode("utf-8")).get("blocked") is True
+
+
+def test_generate_from_domain_scrapes_sitemap_and_runs_agent(monkeypatch):
+    from aeo_graph_engine.domain_synthesizer import generate_aeo_from_domain
+
+    fake_pages = {
+        "https://acme-ai.example/sitemap.xml": (
+            200,
+            '<?xml version="1.0"?><urlset><url><loc>https://acme-ai.example/</loc></url>'
+            '<url><loc>https://acme-ai.example/pricing</loc></url></urlset>',
+            "application/xml",
+            5.0,
+        ),
+        "https://acme-ai.example/": (
+            200,
+            '<html><head><title>Acme AI — Local Vector Engine</title>'
+            '<meta name="description" content="Fast local vector search for Linux engineers.">'
+            '</head><body><h1>Acme AI Vector Engine</h1><a href="/docs">Docs</a></body></html>',
+            "text/html",
+            8.0,
+        ),
+        "https://acme-ai.example/pricing": (
+            200,
+            "<html><head><title>Pricing | Acme AI</title></head><body><h1>Open Source Pricing</h1></body></html>",
+            "text/html",
+            6.0,
+        ),
+        "https://acme-ai.example/docs": (
+            200,
+            "<html><head><title>Docs | Acme AI</title></head><body><h1>API Reference</h1></body></html>",
+            "text/html",
+            6.0,
+        ),
+    }
+
+    def mock_fetch(self, url):
+        return fake_pages.get(url, (404, "", "text/plain", 2.0))
+
+    monkeypatch.setattr("aeo_graph_engine.crawler.SitemapCrawler._fetch", mock_fetch)
+    monkeypatch.setattr("aeo_graph_engine.net_guard.socket.getaddrinfo", lambda h, p, type=0: [(2, 1, 6, "", ("93.184.216.34", 443))])
+
+    def mock_complete(self, prompt, **kwargs):
+        return {
+            "success": True,
+            "provider": kwargs.get("provider", "hermes_cli"),
+            "model": "hermes-test",
+            "latency_ms": 42.0,
+            "content": json.dumps({
+                "site_name": "Acme AI",
+                "publisher_name": "Acme Systems",
+                "tagline": "Local Vector Search Engine for Linux",
+                "description": "Acme AI provides deterministic local vector indexing and hybrid search for Linux developers.",
+                "niche": "developer_tools",
+                "category": "DeveloperApplication",
+                "features": ["Sitemap-grounded indexing", "Open-source pricing", "REST & CLI API"],
+                "faqs": [
+                    {"question": "What is Acme AI?", "answer": "A local vector search engine for Linux developers."},
+                    {"question": "Does Acme AI publish API docs?", "answer": "Yes, at https://acme-ai.example/docs."},
+                ],
+            }),
+        }
+
+    monkeypatch.setattr("aeo_graph_engine.ai_gateway.AIGateway.complete_prompt", mock_complete)
+
+    res = generate_aeo_from_domain("https://acme-ai.example", provider="hermes_cli", max_pages=5)
+    assert res["crawl_summary"]["sitemap_detected"] is True
+    assert res["crawl_summary"]["pages_scraped"] >= 2
+    assert res["agent_execution"]["mode"] == "live_agent"
+    assert res["agent_execution"]["used_provider"] == "hermes_cli"
+    assert res["config"]["site_name"] == "Acme AI"
+    assert len(res["config"]["faqs"]) == 2
+    assert len(res["config"]["surfaces"]) >= 2
+    assert res["artifacts"]["score"] == 100.0
+    assert "acme-ai.example" in res["artifacts"]["llms_txt"]

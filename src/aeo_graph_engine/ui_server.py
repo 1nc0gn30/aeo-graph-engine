@@ -40,6 +40,7 @@ from .core import (
     resolve_config,
 )
 from .discovery import discover_project_metadata
+from .domain_synthesizer import generate_aeo_from_domain
 from .extractor import extract_metadata_from_html
 from .framework_exporter import AEORemediationGenerator, FrameworkExporter
 from .injector import inject_jsonld_into_html
@@ -515,6 +516,30 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
                 },
                 cors_origin=cors_origin,
             )
+
+        if path == "/api/agent/generate-from-domain":
+            target_url = str(payload.get("url") or payload.get("domain") or "").strip()
+            provider = str(payload.get("provider") or "agy_bridge").strip()
+            model = payload.get("model")
+            max_pages = max(1, min(15, int(payload.get("max_pages", 6))))
+            if not target_url:
+                return self._send_json(
+                    {"error": "Missing required 'url' or 'domain' parameter."},
+                    status=400,
+                    cors_origin=cors_origin,
+                )
+            try:
+                res = generate_aeo_from_domain(
+                    target_url,
+                    provider=provider,
+                    model=model,
+                    max_pages=max_pages,
+                )
+                return self._send_json(res, cors_origin=cors_origin)
+            except SSRFBlockedError as exc:
+                return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
+            except ValueError as exc:
+                return self._send_json({"error": str(exc)}, status=400, cors_origin=cors_origin)
 
         if path == "/api/agent/synthesize":
             prompt = str(payload.get("prompt", "")).strip()

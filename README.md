@@ -124,7 +124,8 @@ Bound by default to `http://127.0.0.1:8127`:
 | :--- | :--- | :--- |
 | `GET` | `/health`, `/api/health`, `/api/status` | Service health and runtime configuration |
 | `POST` | `/api/generate` | Compile Schema.org `@graph`, `llms.txt`, `ai.txt`, and `robots.txt` |
-| `POST` | `/api/scan` | Audit a live URL or HTML document for AEO readiness |
+| `POST` | `/api/agent/generate-from-domain` | Crawl sitemap/pages on an existing domain and synthesize all AEO inputs via AGY, Hermes, Codex, Claude Code, or Ollama |
+| `POST` | `/api/scan`, `/api/scan-html` | SSRF-guarded live public URL scan or zero-egress offline HTML paste audit |
 | `POST` | `/api/validate` | Validate JSON-LD and AEO bundle artifacts |
 | `POST` | `/api/inject` | Inject structured data and discovery tags into HTML |
 | `POST` | `/api/bot-audit` | Evaluate `robots.txt` rules across frontier AI crawlers |
