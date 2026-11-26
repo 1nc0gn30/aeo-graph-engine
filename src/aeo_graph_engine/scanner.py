@@ -17,6 +17,7 @@ from html.parser import HTMLParser
 from typing import Dict, Any, List, Optional, Set, Tuple
 
 from .extractor import extract_metadata_from_html
+from .net_guard import SSRFBlockedError, validate_public_url
 from .validator import validate_schema_jsonld_dict, AEODiagnosticReport
 
 
@@ -65,12 +66,12 @@ class LiveAEOScanner:
 
     USER_AGENT = "Mozilla/5.0 (compatible; AEOGraphEngine/1.0; +https://github.com/1nc0gn30/aeo-graph-engine)"
 
-    def __init__(self, target_url: str, max_pages: int = 5, timeout: int = 8):
-        # Normalize target URL
-        if not target_url.startswith("http://") and not target_url.startswith("https://"):
-            target_url = "https://" + target_url
+    def __init__(self, target_url: str, max_pages: int = 5, timeout: int = 8, allow_private: bool = False):
+        self.allow_private = allow_private
+        # Strictly validate URL scheme and SSRF policy (never rewrites file:// to https://)
+        validated_url = validate_public_url(target_url, allow_private=self.allow_private)
 
-        self.target_url = target_url.rstrip("/")
+        self.target_url = validated_url.rstrip("/")
         self.parsed_root = urllib.parse.urlparse(self.target_url)
         self.base_origin = f"{self.parsed_root.scheme}://{self.parsed_root.netloc}"
         self.max_pages = max_pages
@@ -87,7 +88,8 @@ class LiveAEOScanner:
         }
 
     def _fetch_url(self, url: str) -> Tuple[int, str, Optional[str]]:
-        """Fetches a URL safely with timeouts and redirects."""
+        """Fetches a URL safely with SSRF validation, timeouts, and redirects."""
+        validate_public_url(url, allow_private=self.allow_private)
         req = urllib.request.Request(
             url,
             headers={
@@ -97,11 +99,16 @@ class LiveAEOScanner:
         )
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as response:
+                final_url = getattr(response, "geturl", lambda: url)()
+                if isinstance(final_url, str) and final_url and final_url != url:
+                    validate_public_url(final_url, allow_private=self.allow_private)
                 status = response.status
                 content_type = response.headers.get("Content-Type", "")
                 raw_bytes = response.read(2_000_000) # Read up to 2MB max
                 text = raw_bytes.decode("utf-8", errors="replace")
                 return status, text, content_type
+        except SSRFBlockedError:
+            raise
         except urllib.error.HTTPError as e:
             return e.code, "", None
         except Exception:

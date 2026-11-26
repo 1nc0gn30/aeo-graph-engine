@@ -56,15 +56,11 @@ pip install -e .
 python3 server.py --port 8127
 ```
 
-Open `http://127.0.0.1:8127` in your browser, or serve the static client workstation directly:
-
-```bash
-python3 -m http.server 8127 --directory public
-```
+Open `http://127.0.0.1:8127` in your browser. Always run via `server.py` (or `aeo serve`) so all REST `/api/*`, SSRF-guarded scanning, ZIP export, and multi-provider AI endpoints stay active.
 
 ## CLI & MCP Usage
 
-Installing via `pip install -e .` registers the `aeo` CLI binary (and ZothOS v3.4.0 exposes `aeo` and `aeo-graph` on `$PATH`).
+Installing via `pip install -e .` registers the `aeo` CLI binary, and ZothOS exposes `aeo`, `aeo-graph-engine`, and `aeo-graph-engine-tui` on `$PATH`.
 
 ```bash
 # Check status, platform info, and JSON telemetry

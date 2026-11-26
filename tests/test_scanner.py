@@ -83,7 +83,7 @@ def test_live_scanner_execution():
 
     try:
         url = f"http://{host}:{port}/"
-        scanner = LiveAEOScanner(url, max_pages=3, timeout=5)
+        scanner = LiveAEOScanner(url, max_pages=3, timeout=5, allow_private=True)
         report = scanner.compute_audit_scores()
 
         assert report["overall_aeo_score"] > 0

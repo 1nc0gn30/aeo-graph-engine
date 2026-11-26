@@ -16,6 +16,7 @@ from html.parser import HTMLParser
 from typing import Dict, Any, List, Optional, Set, Tuple, Union
 
 from .extractor import extract_metadata_from_html
+from .net_guard import SSRFBlockedError, validate_public_url
 from .validator import validate_schema_jsonld_dict, AEODiagnosticReport
 
 
@@ -114,10 +115,9 @@ class SitemapCrawler:
 
     USER_AGENT = "Mozilla/5.0 (compatible; AEOGraphEngine-Crawler/1.0; +https://github.com/1nc0gn30/aeo-graph-engine)"
 
-    def __init__(self, target_url_or_domain: str, max_pages: int = 15, timeout: float = 5.0):
-        raw = target_url_or_domain.strip()
-        if not raw.startswith(("http://", "https://")):
-            raw = "https://" + raw
+    def __init__(self, target_url_or_domain: str, max_pages: int = 15, timeout: float = 5.0, allow_private: bool = False):
+        self.allow_private = allow_private
+        raw = validate_public_url(target_url_or_domain.strip(), allow_private=self.allow_private)
 
         self.initial_target = raw
         self.parsed_root = urllib.parse.urlparse(raw)
@@ -140,6 +140,7 @@ class SitemapCrawler:
 
     def _fetch(self, url: str) -> Tuple[int, str, Optional[str], float]:
         """Fetches a URL, measures latency in milliseconds, and handles HTTP errors."""
+        validate_public_url(url, allow_private=self.allow_private)
         start_time = time.perf_counter()
         req = urllib.request.Request(
             url,
@@ -150,12 +151,17 @@ class SitemapCrawler:
         )
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as response:
+                final_url = getattr(response, "geturl", lambda: url)()
+                if isinstance(final_url, str) and final_url and final_url != url:
+                    validate_public_url(final_url, allow_private=self.allow_private)
                 status = response.status
                 content_type = response.headers.get("Content-Type", "")
                 raw_bytes = response.read(2_000_000)
                 elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
                 text = raw_bytes.decode("utf-8", errors="replace")
                 return status, text, content_type, elapsed_ms
+        except SSRFBlockedError:
+            raise
         except urllib.error.HTTPError as e:
             elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
             return e.code, "", None, elapsed_ms

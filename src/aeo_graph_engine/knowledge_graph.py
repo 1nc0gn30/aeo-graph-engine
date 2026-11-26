@@ -469,7 +469,7 @@ def audit_knowledge_graph_schema_alignment(
         elif e.salience >= 0.4:
             orphan_entities.append(e.name)
 
-    coverage_score = (matched_count / len(entities) * 100.0) if entities else 100.0
+    coverage_score = (matched_count / len(entities) * 100.0) if entities else 0.0
 
     # Build suggested Schema.org patches for orphan concepts
     suggested_patches: List[Dict[str, Any]] = []

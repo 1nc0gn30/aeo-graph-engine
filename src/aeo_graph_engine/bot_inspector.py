@@ -24,6 +24,8 @@ import urllib.request
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
+from .net_guard import SSRFBlockedError, validate_public_url
+
 
 # ---------------------------------------------------------------------------
 # Registry of 10 Major AI Search Bots and Crawlers
@@ -470,9 +472,11 @@ class BotInspector:
         default_timeout: float = 5.0,
         custom_user_agents: Optional[Dict[str, str]] = None,
         max_workers: int = 5,
+        allow_private: bool = False,
     ):
         self.default_timeout = default_timeout
         self.max_workers = max_workers
+        self.allow_private = allow_private
         self.registry = dict(AI_BOT_REGISTRY)
 
         # Allow overriding/extending bot User-Agents
@@ -484,11 +488,8 @@ class BotInspector:
                     self.registry[norm_id]["user_agent"] = ua
 
     def _normalize_url(self, url: str) -> str:
-        """Ensures URL has a proper scheme and format."""
-        clean_url = url.strip()
-        if not clean_url.startswith("http://") and not clean_url.startswith("https://"):
-            clean_url = "https://" + clean_url
-        return clean_url
+        """Validates scheme & SSRF policy and returns normalized http/https URL."""
+        return validate_public_url(url, allow_private=self.allow_private)
 
     def inspect_bot(
         self,

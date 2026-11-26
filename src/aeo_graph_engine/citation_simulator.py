@@ -15,6 +15,8 @@ from pathlib import Path
 from html.parser import HTMLParser
 from typing import Dict, Any, List, Optional, Tuple, Union
 
+from .net_guard import SSRFBlockedError, validate_public_url
+
 
 class HTMLStructureParser(HTMLParser):
     """
@@ -1102,7 +1104,7 @@ def generate_optimization_tips(sub_scores: Dict[str, Any], structure: Dict[str, 
     return tips
 
 
-def simulate_ai_citation(html_or_url: str, query: Optional[str] = None) -> Dict[str, Any]:
+def simulate_ai_citation(html_or_url: str, query: Optional[str] = None, *, allow_private: bool = False) -> Dict[str, Any]:
     """
     Primary API entrypoint:
     Analyzes an HTML string, file path, or live URL for AI Citation Extractability,
@@ -1117,23 +1119,29 @@ def simulate_ai_citation(html_or_url: str, query: Optional[str] = None) -> Dict[
 
     input_str = html_or_url.strip()
 
-    if input_str.startswith("http://") or input_str.startswith("https://"):
+    if "://" in input_str and "<" not in input_str and "\n" not in input_str:
+        validated = validate_public_url(input_str, allow_private=allow_private)
         source_type = "url"
-        source_location = input_str
+        source_location = validated
         req = urllib.request.Request(
-            input_str,
+            validated,
             headers={
-                "User-Agent": "Mozilla/5.0 (compatible; AEOGraphEngine-CitationSimulator/1.0; +https://github.com/1nc0gn30/aeo-graph-engine)",
+                "User-Agent": "Mozilla/5.0 (compatible; AEOGraphEngine-CitationSimulator/2.1; +https://github.com/1nc0gn30/aeo-graph-engine)",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
             }
         )
         try:
             with urllib.request.urlopen(req, timeout=10.0) as resp:
+                final_url = getattr(resp, "geturl", lambda: validated)()
+                if isinstance(final_url, str) and final_url and final_url != validated:
+                    validate_public_url(final_url, allow_private=allow_private)
                 raw_bytes = resp.read(2_000_000)
                 html_content = raw_bytes.decode("utf-8", errors="replace")
+        except SSRFBlockedError:
+            raise
         except Exception as e:
             # Fallback if URL fetch fails in offline/test environment
-            html_content = f"<html><head><title>Error fetching {input_str}</title></head><body><h1>Fetch Error</h1><p>{str(e)}</p></body></html>"
+            html_content = f"<html><head><title>Error fetching {validated}</title></head><body><h1>Fetch Error</h1><p>{str(e)}</p></body></html>"
     elif input_str and "\n" not in input_str and ("<" not in input_str) and Path(input_str).is_file():
         source_type = "file"
         source_location = str(Path(input_str).resolve())

@@ -74,12 +74,18 @@ def validate_schema_jsonld_dict(data: Dict[str, Any], report: AEODiagnosticRepor
         for entity in graph:
             if isinstance(entity, dict):
                 etype = entity.get("@type")
-                if etype:
-                    found_types.add(etype)
+                etype_list = []
+                if isinstance(etype, str) and etype.strip():
+                    etype_list = [etype.strip()]
+                elif isinstance(etype, list):
+                    etype_list = [t.strip() for t in etype if isinstance(t, str) and t.strip()]
+                for t in etype_list:
+                    found_types.add(t)
+                primary_etype = etype_list[0] if etype_list else etype
                 if not entity.get("@id"):
-                    report.add_warn(f"Entity of type '{etype}' lacks a canonical @id URI", 3.0)
-                if not entity.get("name") and etype not in ("BreadcrumbList", "SearchAction"):
-                    report.add_warn(f"Entity of type '{etype}' lacks a 'name' property", 3.0)
+                    report.add_warn(f"Entity of type '{primary_etype}' lacks a canonical @id URI", 3.0)
+                if not entity.get("name") and not any(t in ("BreadcrumbList", "SearchAction") for t in etype_list):
+                    report.add_warn(f"Entity of type '{primary_etype}' lacks a 'name' property", 3.0)
 
         # Expected core entity types
         expected = ["Organization", "WebSite"]

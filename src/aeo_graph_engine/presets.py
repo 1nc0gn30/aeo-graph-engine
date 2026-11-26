@@ -15,7 +15,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "architect_contact": "https://github.com/1nc0gn30/aeo-graph-engine/issues",
     "domain": "aeo.nullai.tech",
     "base_url": "https://aeo.nullai.tech",
-    "version": "1.0.0",
+    "version": "2.1.0",
     "release_date": "2026-09-16",
     "niche": "developer_tools",
     "category": "DeveloperApplication",

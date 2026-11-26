@@ -15,29 +15,68 @@ from .presets import DEFAULT_CONFIG, NICHE_PRESETS
 def resolve_config(user_config: Optional[Dict[str, Any]] = None, niche: str = "developer_tools") -> Dict[str, Any]:
     """
     Merges base canonical configuration with selected niche preset and user overrides.
-    Synchronizes URLs and surface paths if domain changes.
+    Synchronizes URLs, publisher metadata, and surface paths when a custom domain
+    or site_name is supplied so default NullAI values never leak into user sites.
     """
-    base = dict(DEFAULT_CONFIG)
+    import copy
+
+    base = copy.deepcopy(DEFAULT_CONFIG)
     if niche in NICHE_PRESETS and niche != "developer_tools":
-        preset = NICHE_PRESETS[niche]
+        preset = copy.deepcopy(NICHE_PRESETS[niche])
         base.update(preset)
 
-    if user_config:
-        for k, v in user_config.items():
-            if v is not None:
-                base[k] = v
+    user_cfg = {k: v for k, v in (user_config or {}).items() if v is not None}
+    for k, v in user_cfg.items():
+        base[k] = v
 
-    # Normalize base_url from domain if needed
-    if "domain" in base:
-        domain = base["domain"].strip().rstrip("/")
-        if not base.get("base_url") or base["domain"] != DEFAULT_CONFIG["domain"]:
-            base["base_url"] = f"https://{domain}"
-        base_url = base["base_url"].rstrip("/")
+    # Normalize domain & base_url
+    raw_domain = str(base.get("domain", DEFAULT_CONFIG["domain"])).strip()
+    raw_domain = raw_domain.replace("https://", "").replace("http://", "").rstrip("/")
+    if not raw_domain:
+        raw_domain = DEFAULT_CONFIG["domain"]
+    base["domain"] = raw_domain
 
-        # Update surface URLs
-        for s in base.get("surfaces", []):
-            if isinstance(s, dict) and s.get("path") and not str(s["path"]).startswith("http"):
-                s["url"] = f"{base_url}{s['path']}"
+    is_custom_domain = raw_domain.lower() != DEFAULT_CONFIG["domain"].lower()
+    is_custom_site = (
+        "site_name" in user_cfg
+        and str(user_cfg["site_name"]).strip()
+        and str(user_cfg["site_name"]).strip().lower() != DEFAULT_CONFIG["site_name"].lower()
+    )
+
+    if "base_url" not in user_cfg or is_custom_domain:
+        base["base_url"] = f"https://{raw_domain}"
+    base_url = str(base["base_url"]).rstrip("/")
+
+    if is_custom_domain or is_custom_site:
+        site_name = str(base.get("site_name") or raw_domain).strip()
+        if "publisher_name" not in user_cfg or not str(user_cfg.get("publisher_name", "")).strip():
+            base["publisher_name"] = site_name
+        if "legal_name" not in user_cfg:
+            base["legal_name"] = base["publisher_name"]
+        if "founding_architect" not in user_cfg:
+            base["founding_architect"] = f"{base['publisher_name']} Engineering Team"
+        if "logo_url" not in user_cfg:
+            base["logo_url"] = f"{base_url}/assets/logo.svg"
+        if "og_image_url" not in user_cfg:
+            base["og_image_url"] = f"{base_url}/og-image.jpg"
+        if "architect_url" not in user_cfg:
+            base["architect_url"] = f"{base_url}/"
+        if "architect_contact" not in user_cfg:
+            base["architect_contact"] = f"{base_url}/contact"
+        if "same_as" not in user_cfg:
+            base["same_as"] = [f"{base_url}/"]
+        if "downloads" not in user_cfg:
+            base["downloads"] = []
+        if "breadcrumbs" not in user_cfg:
+            base["breadcrumbs"] = [
+                {"position": 1, "name": "Home", "item": f"{base_url}/"},
+                {"position": 2, "name": "Documentation", "item": f"{base_url}/docs/"},
+            ]
+
+    # Update surface URLs
+    for s in base.get("surfaces", []):
+        if isinstance(s, dict) and s.get("path") and not str(s["path"]).startswith("http"):
+            s["url"] = f"{base_url}{s['path']}"
 
     return base
 

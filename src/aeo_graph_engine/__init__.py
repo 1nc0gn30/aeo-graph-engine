@@ -5,7 +5,7 @@ Includes AEO Studio interactive dashboard (design influenced by Material 3), Mod
 framework exporter, HTML extractor, and live multi-page audit crawler.
 """
 
-__version__ = "1.0.0"
+__version__ = "2.1.0"
 __author__ = "NullAI / 1nc0gn30 Team"
 __license__ = "MIT"
 

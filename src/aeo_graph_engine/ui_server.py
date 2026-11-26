@@ -1,2432 +1,367 @@
 """
-Interactive Web UI & REST API Server for AEO Graph Engine.
-Delivers an AEO Studio dashboard (design influenced by Material 3) with real-time
-Schema.org visualization, llms.txt compiler, HTML injector, AI prompt synthesizer,
-Model Context Protocol (MCP) hub, framework code exporter, and live multi-page crawler.
-Zero external runtime dependencies.
+Hardened Loopback Web UI & REST API Server for AEO Graph Engine (v2.1.0).
+
+Security & Contract Guarantees:
+  - Strict loopback-only CORS via urllib.parse + .port + netloc regex (zero wildcard '*')
+  - OPTIONS returns 204 No Content for valid loopback origins and 403 for non-loopback origins
+  - Path.is_relative_to() static file containment with zero path-existence oracle
+  - SSRFBlockedError mapped cleanly to HTTP 403 across all scanning/crawling endpoints
+  - Strict HTTP 400 on malformed JSON or missing/empty POST /api/validate payloads
+  - Supports BOTH GET and POST /api/export-zip with zero secret leakage
+  - Real computed validation score on POST /api/generate (zero hardcoded 100.0)
+  - Multi-provider AI discovery (GET /api/providers), testing, simulation, and offline HTML scan
+Zero external runtime dependencies (Python standard library only).
 """
 
-import sys
-import os
-import json
-import zipfile
-import io
-import urllib.parse
-from pathlib import Path
-from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-from typing import Optional, Dict, Any
+from __future__ import annotations
 
+import io
+import json
+import mimetypes
+import re
+import urllib.parse
+import zipfile
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
+
+from . import __version__
+from .ai_config import get_agent_json_schema, synthesize_config_from_prompt
+from .ai_gateway import AIGateway, redact_secrets
+from .benchmark import compare_sites
+from .bot_inspector import BotInspector
+from .claim_evidence_matrix import analyze_claim_evidence_matrix
 from .core import (
-    resolve_config,
-    generate_schema_graph,
-    generate_llms_txt,
-    generate_llms_full_txt,
     generate_ai_txt,
+    generate_llms_full_txt,
+    generate_llms_txt,
     generate_robots_txt,
-    write_aeo_bundle
+    generate_schema_graph,
+    resolve_config,
 )
-from .injector import inject_jsonld_into_html
-from .validator import validate_aeo_bundle, validate_schema_jsonld_dict, AEODiagnosticReport
-from .extractor import extract_metadata_from_html
 from .discovery import discover_project_metadata
-from .ai_config import synthesize_config_from_prompt, get_agent_json_schema
-from .scanner import LiveAEOScanner
-from .framework_exporter import FrameworkExporter, AEORemediationGenerator
+from .extractor import extract_metadata_from_html
+from .framework_exporter import AEORemediationGenerator, FrameworkExporter
+from .injector import inject_jsonld_into_html
+from .knowledge_graph import analyze_knowledge_graph
 from .mcp_server import (
-    MCPServer,
+    crawl_sitemap_batch,
     generate_mcp_client_config,
     simulate_ai_citations,
     visualize_schema_graph,
-    crawl_sitemap_batch,
 )
-from .ai_gateway import AIGateway, DEFAULT_AI_GATEWAY_CONFIG
-from .bot_inspector import BotInspector, AI_BOT_REGISTRY
-from .benchmark import compare_sites, CompetitorBenchmark
+from .net_guard import SSRFBlockedError
 from .reporter import generate_markdown_report, generate_standalone_html_report
-from .presets import NICHE_PRESETS, DEFAULT_CONFIG
+from .scanner import LiveAEOScanner
+from .validator import AEODiagnosticReport, validate_schema_jsonld_dict
 
+_LOOPBACK_NETLOC_RE = re.compile(r"^(?:127\.0\.0\.1|localhost)(?::\d{1,5})?$")
+_MAX_BODY_BYTES = 5 * 1024 * 1024  # 5 MiB request body cap
 
-STUDIO_HTML_TEMPLATE = """<!DOCTYPE html>
+_FALLBACK_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AEO Studio — Answer Engine & Schema Knowledge Graph Workbench</title>
-  <style>
-    :root {
-      --google-blue: #1a73e8;
-      --google-blue-hover: #1557b0;
-      --google-blue-surface: #e8f0fe;
-      --google-green: #1e8e3e;
-      --google-green-surface: #e6f4ea;
-      --google-yellow: #f9ab00;
-      --google-yellow-surface: #fef7e0;
-      --google-red: #d93025;
-      --google-red-surface: #fce8e6;
-      --google-purple: #9334e6;
-      --google-purple-surface: #f3e8fd;
-      --canvas-bg: #f8f9fa;
-      --surface-bg: #ffffff;
-      --border-subtle: #dadce0;
-      --border-divider: #e8eaed;
-      --text-primary: #202124;
-      --text-secondary: #5f6368;
-      --text-tertiary: #80868b;
-      --font-sans: 'Google Sans', 'Google Sans Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      --font-mono: 'Roboto Mono', ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: var(--font-sans);
-      background-color: var(--canvas-bg);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    /* Top Google-Style App Bar */
-    header.app-bar {
-      background: var(--surface-bg);
-      border-bottom: 1px solid var(--border-divider);
-      height: 64px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 1px 2px rgba(60,64,67,0.06);
-    }
-    .brand-section {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .google-dots {
-      display: flex;
-      gap: 3px;
-    }
-    .dot { width: 8px; height: 8px; border-radius: 50%; }
-    .dot-blue { background: #4285f4; }
-    .dot-red { background: #ea4335; }
-    .dot-yellow { background: #fbbc04; }
-    .dot-green { background: #34a853; }
-    .brand-title {
-      font-size: 20px;
-      font-weight: 500;
-      color: var(--text-primary);
-      letter-spacing: -0.2px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .brand-badge {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      background: var(--google-blue-surface);
-      color: var(--google-blue);
-      padding: 2px 8px;
-      border-radius: 12px;
-    }
-
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .score-chip {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      background: var(--google-green-surface);
-      color: var(--google-green);
-      border: 1px solid rgba(30, 142, 62, 0.2);
-    }
-
-    /* Buttons */
-    .btn {
-      font-family: var(--font-sans);
-      font-size: 14px;
-      font-weight: 500;
-      padding: 8px 18px;
-      border-radius: 20px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid transparent;
-      outline: none;
-      text-decoration: none;
-    }
-    .btn-primary {
-      background: var(--google-blue);
-      color: #ffffff;
-      box-shadow: 0 1px 2px rgba(60,64,67,0.3);
-    }
-    .btn-primary:hover {
-      background: var(--google-blue-hover);
-      box-shadow: 0 1px 3px 1px rgba(60,64,67,0.25);
-    }
-    .btn-tonal {
-      background: var(--google-blue-surface);
-      color: var(--google-blue);
-    }
-    .btn-tonal:hover {
-      background: #d2e3fc;
-    }
-    .btn-purple {
-      background: var(--google-purple-surface);
-      color: var(--google-purple);
-      border-color: rgba(147, 52, 230, 0.2);
-    }
-    .btn-purple:hover {
-      background: #ebd8fc;
-    }
-    .btn-outline {
-      background: transparent;
-      border-color: var(--border-subtle);
-      color: var(--text-primary);
-    }
-    .btn-outline:hover {
-      background: rgba(60,64,67,0.04);
-      border-color: var(--text-secondary);
-    }
-    .btn-sm {
-      padding: 5px 12px;
-      font-size: 12px;
-      border-radius: 16px;
-    }
-
-    /* Layout */
-    .app-layout {
-      display: grid;
-      grid-template-columns: 390px 1fr;
-      flex: 1;
-      height: calc(100vh - 64px);
-      overflow: hidden;
-    }
-
-    /* Sidebar */
-    .sidebar {
-      background: var(--surface-bg);
-      border-right: 1px solid var(--border-divider);
-      overflow-y: auto;
-      padding: 20px 20px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    /* AI Prompt Hero Box */
-    .ai-hero-box {
-      background: linear-gradient(135deg, #f3e8fd 0%, #e8f0fe 100%);
-      border: 1px solid rgba(147, 52, 230, 0.25);
-      border-radius: 12px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .ai-hero-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--google-purple);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .ai-prompt-input {
-      font-family: var(--font-sans);
-      font-size: 13px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(147, 52, 230, 0.3);
-      background: #ffffff;
-      color: var(--text-primary);
-      width: 100%;
-    }
-    .ai-prompt-input:focus {
-      outline: none;
-      border-color: var(--google-purple);
-      box-shadow: 0 0 0 2px rgba(147, 52, 230, 0.2);
-    }
-    .ai-quick-samples {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-    .sample-pill {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.8);
-      border: 1px solid rgba(147, 52, 230, 0.2);
-      color: var(--google-purple);
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .sample-pill:hover {
-      background: #ffffff;
-      border-color: var(--google-purple);
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
-    }
-    .section-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Preset Pills */
-    .preset-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-bottom: 4px;
-    }
-    .preset-pill {
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 14px;
-      border: 1px solid var(--border-subtle);
-      background: var(--surface-bg);
-      color: var(--text-secondary);
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.15s ease;
-    }
-    .preset-pill.active {
-      background: var(--google-blue-surface);
-      color: var(--google-blue);
-      border-color: var(--google-blue);
-      font-weight: 600;
-    }
-
-    /* Form Fields */
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .form-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    .form-control {
-      font-family: var(--font-sans);
-      font-size: 13px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border-subtle);
-      background: #ffffff;
-      color: var(--text-primary);
-      transition: border-color 0.2s, box-shadow 0.2s;
-      width: 100%;
-    }
-    .form-control:focus {
-      outline: none;
-      border-color: var(--google-blue);
-      box-shadow: 0 0 0 2px var(--google-blue-surface);
-    }
-    textarea.form-control {
-      resize: vertical;
-      min-height: 60px;
-    }
-
-    /* Main Area */
-    .main-panel {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow: hidden;
-      background: var(--canvas-bg);
-    }
-    .tabs-bar {
-      background: var(--surface-bg);
-      border-bottom: 1px solid var(--border-divider);
-      display: flex;
-      padding: 0 20px;
-      gap: 4px;
-      overflow-x: auto;
-    }
-    .tab-btn {
-      font-family: var(--font-sans);
-      font-size: 13px;
-      font-weight: 500;
-      padding: 13px 16px;
-      color: var(--text-secondary);
-      background: transparent;
-      border: none;
-      border-bottom: 3px solid transparent;
-      cursor: pointer;
-      transition: all 0.2s;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .tab-btn:hover {
-      color: var(--google-blue);
-      background: rgba(26, 115, 232, 0.04);
-    }
-    .tab-btn.active {
-      color: var(--google-blue);
-      border-bottom-color: var(--google-blue);
-      font-weight: 600;
-    }
-
-    .tab-content-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-    }
-    .tab-pane {
-      display: none;
-      animation: fadeIn 0.2s ease-in-out;
-    }
-    .tab-pane.active {
-      display: block;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Cards */
-    .card {
-      background: var(--surface-bg);
-      border: 1px solid var(--border-divider);
-      border-radius: 12px;
-      padding: 22px;
-      box-shadow: 0 1px 2px rgba(60,64,67,0.06);
-      margin-bottom: 20px;
-    }
-    .card-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    /* Score Gauge Grid */
-    .audit-grid {
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 20px;
-      align-items: center;
-    }
-    .gauge-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background: var(--google-green-surface);
-      border-radius: 16px;
-      border: 1px solid rgba(30, 142, 62, 0.2);
-    }
-    .gauge-num {
-      font-size: 52px;
-      font-weight: 700;
-      color: var(--google-green);
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-    .gauge-label {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--google-green);
-    }
-
-    .audit-items {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .audit-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px;
-      background: #ffffff;
-      border: 1px solid var(--border-divider);
-      border-radius: 8px;
-    }
-    .audit-row-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      font-weight: 500;
-    }
-    .status-icon { font-size: 15px; }
-    .status-pass { color: var(--google-green); }
-    .status-warn { color: var(--google-yellow); }
-    .status-fail { color: var(--google-red); }
-
-    /* Code Viewers */
-    .code-box {
-      background: #ffffff;
-      border: 1px solid var(--border-divider);
-      border-radius: 8px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      line-height: 1.5;
-      padding: 14px;
-      color: #24292e;
-      overflow-x: auto;
-      max-height: 520px;
-      white-space: pre;
-    }
-
-    /* Entity Cards Grid */
-    .entity-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-    .entity-card {
-      background: #ffffff;
-      border: 1px solid var(--border-divider);
-      border-left: 4px solid var(--google-blue);
-      border-radius: 8px;
-      padding: 14px;
-    }
-    .entity-type {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--google-blue);
-      margin-bottom: 3px;
-    }
-    .entity-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-    }
-    .entity-desc {
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-
-    /* Bot Crawler Matrix */
-    .bot-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 12px;
-    }
-    .bot-card {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 12px 14px;
-      background: #ffffff;
-      border: 1px solid var(--border-divider);
-      border-radius: 8px;
-    }
-    .bot-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .bot-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
-    .bot-badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 12px;
-      background: var(--google-green-surface);
-      color: var(--google-green);
-    }
-    .bot-badge-warn {
-      background: var(--google-yellow-surface);
-      color: var(--google-yellow);
-    }
-    .bot-badge-fail {
-      background: var(--google-red-surface);
-      color: var(--google-red);
-    }
-    .bot-desc {
-      font-size: 11px;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-
-    /* Scanner Specific Styles */
-    .scanner-hero {
-      background: linear-gradient(135deg, #e8f0fe 0%, #f1f3f4 100%);
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .scanner-bar {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .scanner-input {
-      flex: 1;
-      font-family: var(--font-sans);
-      font-size: 14px;
-      padding: 10px 16px;
-      border-radius: 24px;
-      border: 1px solid var(--border-subtle);
-      background: #ffffff;
-      box-shadow: 0 1px 2px rgba(60,64,67,0.1);
-    }
-    .scanner-input:focus {
-      outline: none;
-      border-color: var(--google-blue);
-      box-shadow: 0 0 0 3px var(--google-blue-surface);
-    }
-
-    .badge-pill-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 6px;
-    }
-    .asset-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 12px;
-      background: #f1f3f4;
-      color: var(--text-secondary);
-      border: 1px solid var(--border-divider);
-    }
-    .asset-badge.found {
-      background: var(--google-green-surface);
-      color: var(--google-green);
-      border-color: rgba(30,142,62,0.3);
-    }
-    .asset-badge.missing {
-      background: var(--google-red-surface);
-      color: var(--google-red);
-      border-color: rgba(217,48,37,0.3);
-    }
-
-    .table-container {
-      overflow-x: auto;
-      border: 1px solid var(--border-divider);
-      border-radius: 8px;
-    }
-    table.data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      text-align: left;
-    }
-    table.data-table th {
-      background: #f8f9fa;
-      padding: 10px 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      border-bottom: 1px solid var(--border-divider);
-      white-space: nowrap;
-    }
-    table.data-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border-divider);
-      color: var(--text-primary);
-      vertical-align: top;
-    }
-    table.data-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .progress-bar-wrap {
-      background: #e8eaed;
-      border-radius: 8px;
-      height: 8px;
-      overflow: hidden;
-      margin-top: 4px;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--google-blue);
-      border-radius: 8px;
-      transition: width 0.4s ease;
-    }
-
-    /* Guide Section Cards */
-    .guide-box {
-      border-left: 4px solid var(--google-blue);
-      padding: 14px 18px;
-      background: #f8f9fa;
-      border-radius: 0 8px 8px 0;
-      margin-bottom: 14px;
-    }
-    .guide-title {
-      font-weight: 700;
-      font-size: 14px;
-      color: var(--google-blue);
-      margin-bottom: 4px;
-    }
-    .guide-desc {
-      font-size: 13px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-
-    @media (max-width: 900px) {
-      .app-layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
-      .sidebar { border-right: none; border-bottom: 1px solid var(--border-divider); height: auto; }
-      .audit-grid { grid-template-columns: 1fr; }
-      .scanner-bar { flex-direction: column; align-items: stretch; }
-    }
-  </style>
+  <title>AEO Studio — Answer Engine &amp; Schema Knowledge Graph Workbench</title>
 </head>
-<body>
-
-  <!-- Google-Style Header -->
-  <header class="app-bar">
-    <div class="brand-section">
-      <div class="google-dots">
-        <div class="dot dot-blue"></div>
-        <div class="dot dot-red"></div>
-        <div class="dot dot-yellow"></div>
-        <div class="dot dot-green"></div>
-      </div>
-      <div class="brand-title">
-        AEO Studio
-        <span class="brand-badge">Engine v1.0</span>
-      </div>
-    </div>
-    <div class="top-actions">
-      <div class="score-chip" id="topScoreChip">
-        <span id="topScoreValue">100 / 100</span> AEO Readiness
-      </div>
-      <button class="btn btn-outline btn-sm" onclick="triggerAutoDetect()">🔍 Auto-Detect</button>
-      <button class="btn btn-primary btn-sm" onclick="downloadZipBundle()">📥 Download .zip</button>
-    </div>
-  </header>
-
-  <div class="app-layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <!-- AI Agent Auto-Config Hero -->
-      <div class="ai-hero-box">
-        <div class="ai-hero-title">
-          <span>🪄</span> AI Prompt Synthesizer
-        </div>
-        <input type="text" class="ai-prompt-input" id="inpAiPrompt" placeholder="Describe your app in 1 sentence..." onkeydown="if(event.key==='Enter') executeAiPrompt()">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <button class="btn btn-purple btn-sm" onclick="executeAiPrompt()">⚡ Synthesize</button>
-          <div class="ai-quick-samples">
-            <span class="sample-pill" onclick="fillPrompt('DeFi lending on Solana called SolarYield on solaryield.fi')">DeFi</span>
-            <span class="sample-pill" onclick="fillPrompt('AI resume builder called CVForge on cvforge.app')">AI SaaS</span>
-            <span class="sample-pill" onclick="fillPrompt('Local plumbing service called QuickFlow Plumbing in Seattle')">Plumbing</span>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div class="section-header">
-          <span class="section-title">Domain Niche Preset</span>
-        </div>
-        <div class="preset-group">
-          <button class="preset-pill active" onclick="selectPreset('developer_tools')">Developer Tools</button>
-          <button class="preset-pill" onclick="selectPreset('saas')">SaaS</button>
-          <button class="preset-pill" onclick="selectPreset('ai_swarm')">AI Swarm</button>
-          <button class="preset-pill" onclick="selectPreset('cybersecurity')">Security</button>
-          <button class="preset-pill" onclick="selectPreset('spatial_3d')">3D Spatial</button>
-          <button class="preset-pill" onclick="selectPreset('creator')">Creator</button>
-          <button class="preset-pill" onclick="selectPreset('ecommerce')">E-Commerce</button>
-          <button class="preset-pill" onclick="selectPreset('local_business')">Local Business</button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Site / Brand Name</label>
-        <input type="text" class="form-control" id="inpSiteName" value="AEO Graph Engine" oninput="regenerateAll()">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Canonical Domain Name</label>
-        <input type="text" class="form-control" id="inpDomain" value="aeo.nullai.tech" oninput="regenerateAll()">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Tagline</label>
-        <input type="text" class="form-control" id="inpTagline" value="Answer Engine Optimization (AEO/GEO) Knowledge Graph & llms.txt Engine" oninput="regenerateAll()">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Description (AI Knowledge Base)</label>
-        <textarea class="form-control" id="inpDescription" oninput="regenerateAll()">Standalone, zero-dependency generator and validator for Schema.org linked data, llms.txt, ai.txt, and AI crawler directives.</textarea>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Publisher / Organization</label>
-        <input type="text" class="form-control" id="inpPublisher" value="NullAI" oninput="regenerateAll()">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <select class="form-control" id="inpCategory" onchange="regenerateAll()">
-          <option value="DeveloperApplication">DeveloperApplication</option>
-          <option value="SoftwareApplication">SoftwareApplication</option>
-          <option value="SecurityApplication">SecurityApplication</option>
-          <option value="MultimediaApplication">MultimediaApplication</option>
-          <option value="BusinessApplication">BusinessApplication</option>
-          <option value="LocalBusiness">LocalBusiness</option>
-        </select>
-      </div>
-    </aside>
-
-    <!-- Main Panel -->
-    <main class="main-panel">
-      <nav class="tabs-bar">
-        <button class="tab-btn active" onclick="switchTab('tab-scanner')">🌐 Live Scanner</button>
-        <button class="tab-btn" onclick="switchTab('tab-citation-simulator')">🎯 AI Citation Simulator</button>
-        <button class="tab-btn" onclick="switchTab('tab-entity-visualizer')">📊 Entity Graph Visualizer</button>
-        <button class="tab-btn" onclick="switchTab('tab-sitemap-crawler')">🕷️ Sitemap & Batch Crawler</button>
-        <button class="tab-btn" onclick="switchTab('tab-frameworks')">📦 Frameworks & Code</button>
-        <button class="tab-btn" onclick="switchTab('tab-agent-hub')">🤖 AI Agent & MCP Hub</button>
-        <button class="tab-btn" onclick="switchTab('tab-audit')">📊 AEO Scorecard</button>
-        <button class="tab-btn" onclick="switchTab('tab-schema')">🕸️ Schema.org Graph</button>
-        <button class="tab-btn" onclick="switchTab('tab-llms')">📄 llms.txt</button>
-        <button class="tab-btn" onclick="switchTab('tab-llms-full')">📚 llms-full.txt</button>
-        <button class="tab-btn" onclick="switchTab('tab-ai-txt')">🤖 ai.txt & robots.txt</button>
-        <button class="tab-btn" onclick="switchTab('tab-injector')">💉 HTML Injector</button>
-        <button class="tab-btn" onclick="switchTab('tab-guide')">📖 How It Works</button>
-        <button class="tab-btn" onclick="switchTab('tab-api')">🔌 CLI & Python API</button>
-      </nav>
-
-      <div class="tab-content-area">
-
-        <!-- 0. Live Site Scanner Tab -->
-        <div id="tab-scanner" class="tab-pane active">
-          <div class="scanner-hero">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <div>
-                <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
-                  🌐 Live Multi-Page AEO & AI Readiness Crawler
-                </h2>
-                <p style="font-size:13px; color:var(--text-secondary);">
-                  Crawl any live URL, inspect sitemaps, audit robots.txt & llms.txt, test AI search bot policies, and get actionable citation & backlink intelligence.
-                </p>
-              </div>
-              <span class="brand-badge">Real Time</span>
-            </div>
-
-            <div class="scanner-bar">
-              <input type="url" id="inpScanUrl" class="scanner-input" placeholder="https://example.com (or http://127.0.0.1:8090)" value="http://127.0.0.1:8090" onkeydown="if(event.key==='Enter') executeLiveScan()">
-              <select id="selScanMaxPages" class="form-control" style="width:130px; border-radius:20px; font-weight:500;">
-                <option value="1">1 Page (Root)</option>
-                <option value="3">3 Pages</option>
-                <option value="5" selected>5 Pages</option>
-                <option value="10">10 Pages</option>
-              </select>
-              <button id="btnRunScan" class="btn btn-primary" onclick="executeLiveScan()">🚀 Scan Website</button>
-            </div>
-
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-              <span style="font-size:11px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Quick Tests:</span>
-              <button class="btn btn-outline btn-sm" onclick="quickScan('http://127.0.0.1:8090')">Localhost (8090)</button>
-              <button class="btn btn-outline btn-sm" onclick="quickScan('https://python.org')">python.org</button>
-              <button class="btn btn-outline btn-sm" onclick="quickScan('https://schema.org')">schema.org</button>
-            </div>
-          </div>
-
-          <!-- Loading State -->
-          <div id="scanLoadingState" style="display:none; text-align:center; padding:40px 20px;">
-            <div style="font-size:32px; animation:spin 1s linear infinite; display:inline-block;">⚡</div>
-            <div style="font-weight:600; margin-top:12px; font-size:16px;">Crawling live domain & auditing machine discovery layers...</div>
-            <div style="color:var(--text-secondary); font-size:13px; margin-top:4px;">Inspecting robots.txt, llms.txt, schema graphs, internal subpages & AI crawler policies...</div>
-          </div>
-
-          <!-- Scan Results Area -->
-          <div id="scanResultsArea" style="display:none;">
-            <!-- Overall Score & Category Breakdown -->
-            <div class="card">
-              <div class="audit-grid">
-                <div class="gauge-container" id="scanScoreGauge">
-                  <div class="gauge-num" id="scanScoreNum">--</div>
-                  <div class="gauge-label" id="scanScoreLabel">AEO READINESS</div>
-                </div>
-                <div>
-                  <div class="card-title" style="margin-bottom:10px;">
-                    Category Score Breakdown
-                    <button class="btn btn-tonal btn-sm" onclick="applyScanToGenerator()">🪄 1-Click Fix with Generator</button>
-                  </div>
-                  <div style="display:flex; flex-direction:column; gap:10px;" id="scanCategoryBars"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Root Assets Found -->
-            <div class="card">
-              <div class="card-title">Root Machine Discovery Manifests</div>
-              <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">
-                Direct verification of standardized root files queried by modern LLM retrieval agents:
-              </p>
-              <div class="badge-pill-group" id="scanRootAssetsBadges"></div>
-            </div>
-
-            <!-- AI Engine Compatibility Matrix -->
-            <div class="card">
-              <div class="card-title">AI Search Engine Bot Access & Compatibility</div>
-              <p style="font-size:12px; color:var(--text-secondary); margin-bottom:12px;">
-                How top AI search crawlers access and ingest your content based on live robots.txt and schema structures:
-              </p>
-              <div class="bot-grid" id="scanBotGrid"></div>
-            </div>
-
-            <!-- Actionable Optimization Items -->
-            <div class="card">
-              <div class="card-title">Priority Action Items for Answer Engine Ranking</div>
-              <div id="scanActionItemsList" style="display:flex; flex-direction:column; gap:10px;"></div>
-            </div>
-
-            <!-- Crawled Pages Table -->
-            <div class="card">
-              <div class="card-title">
-                <span>Crawled Pages Breakdown (<span id="scanPagesCount">0</span>)</span>
-              </div>
-              <div class="table-container">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Page URL</th>
-                      <th>Status</th>
-                      <th>Title & H1</th>
-                      <th>Word Count</th>
-                      <th>Schema Entities</th>
-                      <th>Links (In/Ext)</th>
-                    </tr>
-                  </thead>
-                  <tbody id="scanPagesTableBody"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Backlinks & AI Citation Distribution Strategy -->
-            <div class="card">
-              <div class="card-title">AEO Backlinks & High-Authority Citation Strategy</div>
-              <p style="font-size:12px; color:var(--text-secondary); margin-bottom:14px;">
-                AI answer engines (Perplexity, ChatGPT, Claude) build factual confidence through Co-Citation graphs across high-authority domains.
-              </p>
-              
-              <div style="margin-bottom:16px;">
-                <div style="font-size:13px; font-weight:700; color:var(--google-blue); margin-bottom:8px;">
-                  🏛️ Primary Knowledge Graph Anchors & LLM Indexing Hubs
-                </div>
-                <div id="scanCitationHubsList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px;"></div>
-              </div>
-
-              <div>
-                <div style="font-size:13px; font-weight:700; color:var(--google-purple); margin-bottom:8px;">
-                  🎯 Vertical & Domain-Specific Distribution Channels
-                </div>
-                <div id="scanNicheChannelsList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:12px;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 1. Framework Integration & Code Exporter Tab -->
-        <div id="tab-frameworks" class="tab-pane">
-          <div class="card">
-            <div class="card-title">
-              <span>📦 Framework Integration Exporter</span>
-              <button class="btn btn-tonal btn-sm" onclick="copyCurrentFrameworkCode()">📋 Copy File Code</button>
-            </div>
-            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
-              Export zero-dependency, typed, copy-paste integration snippets tailored for your frontend framework:
-            </p>
-
-            <div class="preset-group" style="margin-bottom:14px;">
-              <button class="preset-pill active" onclick="selectFwTab('nextjs_app')">Next.js (App Router)</button>
-              <button class="preset-pill" onclick="selectFwTab('nextjs_pages')">Next.js (Pages)</button>
-              <button class="preset-pill" onclick="selectFwTab('astro')">Astro</button>
-              <button class="preset-pill" onclick="selectFwTab('vite_react')">Vite + React (SPA)</button>
-              <button class="preset-pill" onclick="selectFwTab('sveltekit')">SvelteKit</button>
-              <button class="preset-pill" onclick="selectFwTab('remix')">Remix</button>
-              <button class="preset-pill" onclick="selectFwTab('nuxt')">Nuxt / Vue</button>
-              <button class="preset-pill" onclick="selectFwTab('static')">Static HTML / Hugo</button>
-            </div>
-
-            <!-- Framework File Sub-tabs -->
-            <div style="display:flex; gap:6px; margin-bottom:12px; border-bottom:1px solid var(--border-divider); padding-bottom:8px; overflow-x:auto;" id="fwFilesNav"></div>
-
-            <div class="code-box" id="codeFrameworkFile">// Loading framework code...</div>
-          </div>
-        </div>
-
-        <!-- 2. AI Agent Integration & MCP Setup Hub Tab -->
-        <div id="tab-agent-hub" class="tab-pane">
-          <div class="card">
-            <div class="card-title">
-              <span>🤖 1-Click Model Context Protocol (MCP) Setup</span>
-              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeMcpConfig')">📋 Copy MCP Config</button>
-            </div>
-            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
-              Connect your AI assistant (Claude Desktop, Cursor, Cline, Zed, Hermes) directly to this engine to automatically optimize AEO during coding sessions:
-            </p>
-
-            <div class="preset-group" style="margin-bottom:14px;">
-              <button class="preset-pill active" onclick="selectMcpClient('claude_desktop')">Claude Desktop</button>
-              <button class="preset-pill" onclick="selectMcpClient('cursor')">Cursor (.cursor/mcp.json)</button>
-              <button class="preset-pill" onclick="selectMcpClient('cline')">Cline (VS Code)</button>
-              <button class="preset-pill" onclick="selectMcpClient('zed')">Zed Editor</button>
-              <button class="preset-pill" onclick="selectMcpClient('hermes')">Hermes Agent</button>
-            </div>
-
-            <div class="code-box" id="codeMcpConfig"></div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">
-              <span>🧠 Specialized AI Agent System Prompts</span>
-              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeAgentPrompt')">📋 Copy Prompt</button>
-            </div>
-            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
-              Paste these system prompt templates into your custom GPTs, Claude Projects, or Agent Runners:
-            </p>
-
-            <div class="preset-group" style="margin-bottom:14px;">
-              <button class="preset-pill active" onclick="selectAgentPrompt('engineer')">Autonomous AEO Engineer</button>
-              <button class="preset-pill" onclick="selectAgentPrompt('auditor')">Pre-Deploy CI/CD Auditor</button>
-              <button class="preset-pill" onclick="selectAgentPrompt('strategist')">Citation & Backlink Strategist</button>
-            </div>
-
-            <div class="code-box" id="codeAgentPrompt"></div>
-          </div>
-        </div>
-
-        <!-- 3. Audit Scorecard -->
-        <div id="tab-audit" class="tab-pane">
-          <div class="card">
-            <div class="audit-grid">
-              <div class="gauge-container">
-                <div class="gauge-num">100</div>
-                <div class="gauge-label">EXCELLENT AEO</div>
-              </div>
-              <div class="audit-items">
-                <div class="audit-row">
-                  <div class="audit-row-left">
-                    <span class="status-icon status-pass">✔</span>
-                    <span>Schema.org Linked Data Graph (@graph: Organization, WebSite, App, FAQ)</span>
-                  </div>
-                  <span class="bot-badge">Connected</span>
-                </div>
-                <div class="audit-row">
-                  <div class="audit-row-left">
-                    <span class="status-icon status-pass">✔</span>
-                    <span>llms.txt Standard Manifest (llmstxt.org compliant)</span>
-                  </div>
-                  <span class="bot-badge">Valid</span>
-                </div>
-                <div class="audit-row">
-                  <div class="audit-row-left">
-                    <span class="status-icon status-pass">✔</span>
-                    <span>Deep Research Knowledge Base (llms-full.txt with citations)</span>
-                  </div>
-                  <span class="bot-badge">Active</span>
-                </div>
-                <div class="audit-row">
-                  <div class="audit-row-left">
-                    <span class="status-icon status-pass">✔</span>
-                    <span>AI Search Bot Directives (GPTBot, PerplexityBot, ClaudeBot, Applebot)</span>
-                  </div>
-                  <span class="bot-badge">Optimized</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">
-              Connected Schema Entities
-              <button class="btn btn-tonal btn-sm" onclick="switchTab('tab-schema')">View Raw JSON-LD</button>
-            </div>
-            <div class="entity-grid" id="entityGridPreview"></div>
-          </div>
-        </div>
-
-        <!-- 4. Schema Tab -->
-        <div id="tab-schema" class="tab-pane">
-          <div class="card">
-            <div class="card-title">
-              Schema.org JSON-LD Linked Data (@graph)
-              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeSchema')">📋 Copy JSON-LD</button>
-            </div>
-            <div class="code-box" id="codeSchema"></div>
-          </div>
-        </div>
-
-        <!-- 5. llms.txt Tab -->
-        <div id="tab-llms" class="tab-pane">
-          <div class="card">
-            <div class="card-title">
-              llms.txt (Concise AI Index per llmstxt.org)
-              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeLlms')">📋 Copy llms.txt</button>
-            </div>
-            <div class="code-box" id="codeLlms"></div>
-          </div>
-        </div>
-
-        <!-- 6. llms-full.txt Tab -->
-        <div id="tab-llms-full" class="tab-pane">
-          <div class="card">
-            <div class="card-title">
-              llms-full.txt (Comprehensive Deep-Research Knowledge Base)
-              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeLlmsFull')">📋 Copy llms-full.txt</button>
-            </div>
-            <div class="code-box" id="codeLlmsFull"></div>
-          </div>
-        </div>
-
-        <!-- 7. ai.txt & robots.txt Tab -->
-        <div id="tab-ai-txt" class="tab-pane">
-          <div class="card">
-            <div class="card-title">AI Search Engine Bot Directives</div>
-            <div class="bot-grid">
-              <div class="bot-card">
-                <div class="bot-header">
-                  <span class="bot-name">ChatGPT (GPTBot)</span>
-                  <span class="bot-badge">Allowed</span>
-                </div>
-                <div class="bot-desc">Direct search indexer for OpenAI ChatGPT search retrieval.</div>
-              </div>
-              <div class="bot-card">
-                <div class="bot-header">
-                  <span class="bot-name">Perplexity (PerplexityBot)</span>
-                  <span class="bot-badge">Allowed</span>
-                </div>
-                <div class="bot-desc">Real-time web search crawler for Perplexity answer citations.</div>
-              </div>
-              <div class="bot-card">
-                <div class="bot-header">
-                  <span class="bot-name">Claude (ClaudeBot)</span>
-                  <span class="bot-badge">Allowed</span>
-                </div>
-                <div class="bot-desc">Anthropic retrieval agent for Claude artifacts & knowledge.</div>
-              </div>
-              <div class="bot-card">
-                <div class="bot-header">
-                  <span class="bot-name">Apple (Applebot-Ext)</span>
-                  <span class="bot-badge">Allowed</span>
-                </div>
-                <div class="bot-desc">Apple Intelligence indexing for Siri & Spotlight answers.</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">
-              ai.txt Machine Access Policy
-              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeAiTxt')">📋 Copy ai.txt</button>
-            </div>
-            <div class="code-box" id="codeAiTxt"></div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">
-              robots.txt AI Directives
-              <button class="btn btn-tonal btn-sm" onclick="copyCode('codeRobots')">📋 Copy robots.txt</button>
-            </div>
-            <div class="code-box" id="codeRobots"></div>
-          </div>
-        </div>
-
-        <!-- 8. HTML Injector Tab -->
-        <div id="tab-injector" class="tab-pane">
-          <div class="card">
-            <div class="card-title">Live HTML Schema Injector</div>
-            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
-              Paste any raw HTML document below and click <strong>Inject Schema</strong> to embed the synthesized JSON-LD tag into the &lt;head&gt; element idempotently.
-            </p>
-            <div class="form-group" style="margin-bottom:12px;">
-              <textarea class="form-control" id="inpRawHtml" style="min-height:120px; font-family:var(--font-mono); font-size:12px;"><!DOCTYPE html>
-<html>
-<head>
-  <title>My Website</title>
-</head>
-<body>
-  <h1>Hello World</h1>
-</body>
-</html></textarea>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="performHtmlInjection()">💉 Inject Schema</button>
-
-            <div style="margin-top:16px;">
-              <div class="card-title">
-                Injected HTML Result
-                <button class="btn btn-tonal btn-sm" onclick="copyCode('codeInjectedHtml')">📋 Copy Result</button>
-              </div>
-              <div class="code-box" id="codeInjectedHtml">Click 'Inject Schema' above...</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 9. How It Works Guide Tab -->
-        <div id="tab-guide" class="tab-pane">
-          <div class="card">
-            <div class="card-title">How Answer Engine Optimization (AEO / GEO) Works</div>
-            
-            <div class="guide-box">
-              <div class="guide-title">1. What is AEO vs SEO?</div>
-              <div class="guide-desc">
-                Classic SEO aimed to rank on 10 blue links on Google. Modern <strong>AEO</strong> structures your data so AI answer engines (Perplexity, ChatGPT Search, Claude, Google AI Overviews) can directly read, synthesize, and cite your website during conversational answers.
-              </div>
-            </div>
-
-            <div class="guide-box">
-              <div class="guide-title">2. Why Connected Schema.org @graph Matters</div>
-              <div class="guide-desc">
-                Isolated schema tags leave ambiguity. A connected <strong>@graph</strong> links your Organization, WebSite, Software/Product, FAQPage, and BreadcrumbList into a unified entity network with canonical @id URIs, giving AI models 100% confidence in factual claims.
-              </div>
-            </div>
-
-            <div class="guide-box">
-              <div class="guide-title">3. llms.txt & llms-full.txt (The Machine Index)</div>
-              <div class="guide-desc">
-                LLMs have strict token limits during live search queries. <strong>llms.txt</strong> provides an ultra-concise summary index with structured markdown links so AI crawlers can retrieve your core documentation in sub-50 tokens.
-              </div>
-            </div>
-
-            <div class="guide-box">
-              <div class="guide-title">4. Live Multi-Page Crawler & Verification</div>
-              <div class="guide-desc">
-                The engine includes a live URL scanner that crawls your internal pages, verifies robots.txt and sitemaps, inspects JSON-LD tags, and scores your site across 5 critical AEO dimensions.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 10. API Tab -->
-        <div id="tab-api" class="tab-pane">
-          <div class="card">
-            <div class="card-title">CLI Quickstart</div>
-            <div class="code-box"># 1. Live crawl and audit any website
-aeo scan https://example.com --max-pages 5
-
-# 2. Run Model Context Protocol (MCP) server
-aeo mcp
-
-# 3. Export framework code
-aeo framework nextjs_app --output-dir app/
-
-# 4. Synthesize from natural language prompt
-aeo prompt "An AI resume builder called CVForge on cvforge.app" --output-dir dist/
-
-# 5. Start interactive local Studio
-aeo serve --port 8127</div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Python Programmatic Library Usage</div>
-            <div class="code-box">from aeo_graph_engine import (
-    LiveAEOScanner,
-    FrameworkExporter,
-    MCPServer,
-    synthesize_config_from_prompt,
-    write_aeo_bundle,
-    validate_aeo_bundle
-)
-
-# 1. Crawl & Audit Live Website
-scanner = LiveAEOScanner("https://example.com", max_pages=5)
-results = scanner.compute_audit_scores()
-print(f"Overall AEO Score: {results['overall_aeo_score']}/100")
-
-# 2. Export Framework Integration Files
-exporter = FrameworkExporter({"site_name": "Apex", "domain": "apex.dev"})
-next_files = exporter.export("nextjs_app")
-print(f"Generated {len(next_files)} Next.js integration files.")</div>
-          </div>
-        </div>
-
-        <!-- Tab: AI Citation Simulator -->
-        <div id="tab-citation-simulator" class="tab-pane">
-          <div class="scanner-hero">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <div>
-                <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
-                  🎯 AI Search Engine Citation & Perception Simulator
-                </h2>
-                <p style="font-size:13px; color:var(--text-secondary);">
-                  Simulate real-time conversational retrieval and Answer Engine citations across Perplexity AI, ChatGPT Search, and Google Gemini with extractability scoring.
-                </p>
-              </div>
-              <span class="brand-badge">Multi-Engine Simulator</span>
-            </div>
-
-            <div class="scanner-bar" style="margin-top:10px;">
-              <input type="text" id="inpSimTarget" class="scanner-input" placeholder="Enter target URL (e.g. https://example.com) or text content..." value="https://example.com" onkeydown="if(event.key==='Enter') executeCitationSimulation()">
-              <input type="text" id="inpSimQuery" class="form-control" style="width:300px; border-radius:24px; padding:10px 16px;" placeholder="Optional search query (e.g. What is X?)..." onkeydown="if(event.key==='Enter') executeCitationSimulation()">
-              <button id="btnRunSim" class="btn btn-primary" onclick="executeCitationSimulation()">🎯 Simulate Citations</button>
-            </div>
-          </div>
-
-          <div id="simLoadingState" style="display:none; text-align:center; padding:40px;">
-            <div style="font-size:24px; margin-bottom:8px;">⏳</div>
-            <div style="font-weight:600; color:var(--text-primary);">Simulating Answer Engine Retrieval & Perception...</div>
-            <div style="font-size:12px; color:var(--text-secondary);">Querying neural grounding weights and extracting key quotes</div>
-          </div>
-
-          <div id="simResultsArea">
-            <div class="card">
-              <div class="card-title">Extractability & Citation Readiness</div>
-              <div class="audit-grid">
-                <div class="gauge-container" id="simScoreGauge">
-                  <div class="gauge-num" id="simScoreNum">94</div>
-                  <div class="gauge-label" id="simScoreLabel">EXCELLENT</div>
-                  <div style="font-size:12px; font-weight:600; margin-top:6px; color:var(--text-primary);" id="simConfidenceChip">
-                    🔮 96% Citation Confidence
-                  </div>
-                </div>
-
-                <div id="simSignalBars" style="display:flex; flex-direction:column; gap:8px;"></div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">
-                <span>📑 High-Confidence Extracted Quotes & Citations</span>
-                <span class="brand-badge" id="simQuoteCountBadge">3 Key Facts</span>
-              </div>
-              <div id="simQuotesList" style="display:flex; flex-direction:column; gap:10px;"></div>
-            </div>
-
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; margin-bottom:20px;">
-              <div class="card" style="margin-bottom:0; border-top:4px solid var(--google-purple);">
-                <div class="card-title" style="color:var(--google-purple);">
-                  <span>🟣 Perplexity AI (Sonar Pro)</span>
-                </div>
-                <div class="code-box" id="simPerplexityBox" style="min-height:180px; max-height:300px;"></div>
-              </div>
-
-              <div class="card" style="margin-bottom:0; border-top:4px solid var(--google-green);">
-                <div class="card-title" style="color:var(--google-green);">
-                  <span>🟢 ChatGPT Search (GPT-4o)</span>
-                </div>
-                <div class="code-box" id="simChatGPTBox" style="min-height:180px; max-height:300px;"></div>
-              </div>
-
-              <div class="card" style="margin-bottom:0; border-top:4px solid var(--google-blue);">
-                <div class="card-title" style="color:var(--google-blue);">
-                  <span>🔵 Google Gemini (AI Overview)</span>
-                </div>
-                <div class="code-box" id="simGeminiBox" style="min-height:180px; max-height:300px;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab: Entity Graph Visualizer -->
-        <div id="tab-entity-visualizer" class="tab-pane">
-          <div class="scanner-hero">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <div>
-                <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
-                  📊 Entity Knowledge Graph & Schema Visualizer
-                </h2>
-                <p style="font-size:13px; color:var(--text-secondary);">
-                  Explore connected Schema.org linked data nodes, entity relationships, publisher links, and hierarchy via Mermaid diagrams and interactive trees.
-                </p>
-              </div>
-              <div style="display:flex; gap:8px;">
-                <button class="btn btn-outline btn-sm" onclick="loadEntityVisualizer('mermaid')">Mermaid Syntax</button>
-                <button class="btn btn-outline btn-sm" onclick="loadEntityVisualizer('ascii')">ASCII Tree</button>
-                <button class="btn btn-primary btn-sm" onclick="loadEntityVisualizer('both')">🔄 Refresh Graph</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">
-              <span>🕸️ Connected Knowledge Graph Overview</span>
-              <div style="display:flex; gap:8px;" id="visStatsBadges">
-                <span class="brand-badge" id="visEntityCountBadge">4 Entities</span>
-                <span class="brand-badge" style="background:var(--google-green-surface); color:var(--google-green);" id="visEdgeCountBadge">3 Relationships</span>
-              </div>
-            </div>
-
-            <div class="entity-grid" id="visEntitiesGrid"></div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">
-              <span>📐 Mermaid Diagram & Entity Relations</span>
-              <button class="btn btn-outline btn-sm" onclick="copyVisCode()">📋 Copy Mermaid Code</button>
-            </div>
-            <div class="code-box" id="visMermaidCode" style="max-height:400px; margin-bottom:14px;"></div>
-            <div class="card-title" style="margin-top:18px;">
-              <span>🌲 ASCII Entity Tree</span>
-            </div>
-            <div class="code-box" id="visAsciiCode" style="max-height:400px;"></div>
-          </div>
-        </div>
-
-        <!-- Tab: Sitemap & Batch Crawler -->
-        <div id="tab-sitemap-crawler" class="tab-pane">
-          <div class="scanner-hero">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-              <div>
-                <h2 style="font-size:18px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">
-                  🕷️ Sitemap Discovery & Batch Multi-Page AEO Auditor
-                </h2>
-                <p style="font-size:13px; color:var(--text-secondary);">
-                  Batch crawl XML sitemaps, inspect per-page JSON-LD schemas, measure word count, verify canonical URLs, and detect site-wide optimization gaps.
-                </p>
-              </div>
-              <span class="brand-badge">Sitemap Engine</span>
-            </div>
-
-            <div class="scanner-bar" style="margin-top:10px;">
-              <input type="text" id="inpSitemapTarget" class="scanner-input" placeholder="Enter domain or sitemap URL (e.g. https://example.com/sitemap.xml)..." value="https://example.com" onkeydown="if(event.key==='Enter') executeSitemapCrawl()">
-              <select id="selSitemapMaxPages" class="form-control" style="width:140px; border-radius:20px; font-weight:500;">
-                <option value="5">5 Pages</option>
-                <option value="10" selected>10 Pages</option>
-                <option value="25">25 Pages</option>
-                <option value="50">50 Pages</option>
-              </select>
-              <button id="btnRunSitemap" class="btn btn-primary" onclick="executeSitemapCrawl()">🕷️ Crawl Sitemap</button>
-            </div>
-          </div>
-
-          <div id="sitemapLoadingState" style="display:none; text-align:center; padding:40px;">
-            <div style="font-size:24px; margin-bottom:8px;">⏳</div>
-            <div style="font-weight:600; color:var(--text-primary);">Discovering Sitemaps & Crawling Internal Routes...</div>
-            <div style="font-size:12px; color:var(--text-secondary);">Auditing JSON-LD tags, H1 headings, and semantic health</div>
-          </div>
-
-          <div id="sitemapResultsArea" style="display:none;">
-            <div class="card">
-              <div class="card-title">Site-Wide AEO Coverage & Health</div>
-              <div class="audit-grid">
-                <div class="gauge-container" id="sitemapScoreGauge">
-                  <div class="gauge-num" id="sitemapScoreNum">88</div>
-                  <div class="gauge-label" id="sitemapScoreLabel">HEALTHY</div>
-                  <div style="font-size:12px; font-weight:600; margin-top:6px; color:var(--text-primary);" id="sitemapTotalUrlsBadge">
-                    📄 10 Pages Audited
-                  </div>
-                </div>
-
-                <div id="sitemapCoverageBars" style="display:flex; flex-direction:column; gap:8px;"></div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">
-                <span>📑 Crawled Sitemap Pages Breakdown</span>
-                <button class="btn btn-outline btn-sm" onclick="exportSitemapJson()">📥 Export JSON</button>
-              </div>
-              <div class="table-container">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Status</th>
-                      <th>Score</th>
-                      <th>Page Title & URL</th>
-                      <th>H1 Heading</th>
-                      <th>Schemas Detected</th>
-                      <th>Words</th>
-                      <th>Issues</th>
-                    </tr>
-                  </thead>
-                  <tbody id="sitemapPagesTableBody"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="card" id="sitemapActionItemsCard">
-              <div class="card-title">🛠️ Site-Wide Remediation Actions</div>
-              <div id="sitemapActionItemsList" style="display:flex; flex-direction:column; gap:10px;"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <script>
-    const PRESETS = """ + json.dumps(NICHE_PRESETS) + """;
-    let currentNiche = 'developer_tools';
-    let lastScanData = null;
-    let currentFw = 'nextjs_app';
-    let currentFwFiles = {};
-    let currentActiveFile = '';
-
-    const AGENT_PROMPTS = {
-      "engineer": `You are an Autonomous Answer Engine Optimization (AEO / GEO) Engineer.
-Your goal is to inspect any website project, audit its machine discovery readiness, and generate/inject complete Schema.org @graph, llms.txt, ai.txt, and AI crawler directives.
-
-When working in this repository:
-1. Always run 'aeo scan <url>' or 'aeo --validate <dir>' to benchmark baseline scores.
-2. Inject connected Schema.org @graph (Organization, WebSite, SoftwareApplication/Service, FAQPage) into the HTML head.
-3. Generate standard llms.txt and deep research llms-full.txt files.
-4. Ensure robots.txt explicitly allows GPTBot, PerplexityBot, ClaudeBot, Applebot-Extended, and Google-Extended.
-5. Re-validate to ensure the 0-100 score is >= 90.0 before completing.`,
-      "auditor": `You are a Pre-Deploy CI/CD AEO Quality Gate Auditor.
-Your responsibility is to strictly evaluate built web artifacts before production release.
-
-Checklist:
-- Ensure schema-graph.json exists with valid @context and @graph array.
-- Verify llms.txt conforms to the llmstxt.org specification with valid blockquotes.
-- Confirm robots.txt grants access to modern AI search agents.
-- Check that index.html contains an idempotent JSON-LD script tag.
-- Assert that 'aeo --validate' exits with status 0 and score >= 85.0.`,
-      "strategist": `You are an AI Citation & Knowledge Graph Strategist.
-Your mission is to map out Co-Citation networks, high-authority backlink anchors, and knowledge graph entities that maximize visibility in Perplexity AI, ChatGPT Search, Claude, and Google AI Overviews.
-
-Focus on:
-1. Wikidata & Wikipedia entity linking and disambiguation.
-2. Official GitHub repository documentation and README quality.
-3. Submission to the official llmstxt.org directory.
-4. Structuring FAQ entities to capture direct LLM answer citations.`
-    };
-
-    function selectPreset(nicheKey) {
-      currentNiche = nicheKey;
-      document.querySelectorAll('.preset-pill').forEach(el => el.classList.remove('active'));
-      event.target.classList.add('active');
-
-      const p = PRESETS[nicheKey] || {};
-      if (p.site_name) document.getElementById('inpSiteName').value = p.site_name;
-      if (p.tagline) document.getElementById('inpTagline').value = p.tagline;
-      if (p.description) document.getElementById('inpDescription').value = p.description;
-      if (p.category) document.getElementById('inpCategory').value = p.category;
-
-      regenerateAll();
-    }
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-
-      event.target.classList.add('active');
-      document.getElementById(tabId).classList.add('active');
-
-      if (tabId === 'tab-frameworks') {
-        loadFrameworkCode(currentFw);
-      } else if (tabId === 'tab-agent-hub') {
-        selectMcpClient('claude_desktop');
-        selectAgentPrompt('engineer');
-      }
-    }
-
-    function copyCode(elemId) {
-      const text = document.getElementById(elemId).innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Copied to clipboard!");
-      });
-    }
-
-    function fillPrompt(text) {
-      document.getElementById('inpAiPrompt').value = text;
-      executeAiPrompt();
-    }
-
-    async function executeAiPrompt() {
-      const prompt = document.getElementById('inpAiPrompt').value.trim();
-      if (!prompt) return;
-
-      try {
-        const res = await fetch('/api/agent/synthesize', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: prompt })
-        });
-        const data = await res.json();
-        if (data.site_name) document.getElementById('inpSiteName').value = data.site_name;
-        if (data.domain) document.getElementById('inpDomain').value = data.domain;
-        if (data.tagline) document.getElementById('inpTagline').value = data.tagline;
-        if (data.description) document.getElementById('inpDescription').value = data.description;
-        if (data.niche) currentNiche = data.niche;
-
-        regenerateAll();
-      } catch (e) {
-        alert("AI Synthesis error: " + e);
-      }
-    }
-
-    async function regenerateAll() {
-      const payload = {
-        site_name: document.getElementById('inpSiteName').value,
-        domain: document.getElementById('inpDomain').value,
-        tagline: document.getElementById('inpTagline').value,
-        description: document.getElementById('inpDescription').value,
-        publisher_name: document.getElementById('inpPublisher').value,
-        category: document.getElementById('inpCategory').value,
-        niche: currentNiche
-      };
-
-      try {
-        const res = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-
-        document.getElementById('codeSchema').innerText = JSON.stringify(data.schema, null, 2);
-        document.getElementById('codeLlms').innerText = data.llms_txt;
-        document.getElementById('codeLlmsFull').innerText = data.llms_full_txt;
-        document.getElementById('codeAiTxt').innerText = data.ai_txt;
-        document.getElementById('codeRobots').innerText = data.robots_txt;
-
-        const grid = document.getElementById('entityGridPreview');
-        grid.innerHTML = '';
-        (data.schema['@graph'] || []).forEach(e => {
-          const card = document.createElement('div');
-          card.className = 'entity-card';
-          card.innerHTML = `
-            <div class="entity-type">${e['@type'] || 'Entity'}</div>
-            <div class="entity-name">${e.name || e['@id'] || 'Unnamed'}</div>
-            <div class="entity-desc">${e.description || e.slogan || 'Connected Schema Node'}</div>
-          `;
-          grid.appendChild(card);
-        });
-
-      } catch (err) {
-        console.error("Failed to generate from API", err);
-      }
-    }
-
-    /* Framework Code Exporter */
-    async function selectFwTab(fwName) {
-      currentFw = fwName;
-      document.querySelectorAll('#tab-frameworks .preset-pill').forEach(el => el.classList.remove('active'));
-      event.target.classList.add('active');
-      await loadFrameworkCode(fwName);
-    }
-
-    async function loadFrameworkCode(fwName) {
-      const payload = {
-        framework: fwName,
-        niche: currentNiche,
-        config: {
-          site_name: document.getElementById('inpSiteName').value,
-          domain: document.getElementById('inpDomain').value,
-          description: document.getElementById('inpDescription').value
-        }
-      };
-
-      try {
-        const res = await fetch('/api/export-framework', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        currentFwFiles = data.files || {};
-        renderFrameworkFileTabs();
-      } catch (e) {
-        console.error("Framework load error", e);
-      }
-    }
-
-    function renderFrameworkFileTabs() {
-      const nav = document.getElementById('fwFilesNav');
-      nav.innerHTML = '';
-      const files = Object.keys(currentFwFiles);
-      if (files.length === 0) {
-        document.getElementById('codeFrameworkFile').innerText = '// No files generated';
-        return;
-      }
-
-      currentActiveFile = files[0];
-      files.forEach((file, idx) => {
-        const btn = document.createElement('button');
-        btn.className = `preset-pill ${idx === 0 ? 'active' : ''}`;
-        btn.innerText = file;
-        btn.onclick = () => {
-          document.querySelectorAll('#fwFilesNav .preset-pill').forEach(el => el.classList.remove('active'));
-          btn.classList.add('active');
-          currentActiveFile = file;
-          document.getElementById('codeFrameworkFile').innerText = currentFwFiles[file];
-        };
-        nav.appendChild(btn);
-      });
-
-      document.getElementById('codeFrameworkFile').innerText = currentFwFiles[currentActiveFile];
-    }
-
-    function copyCurrentFrameworkCode() {
-      const code = document.getElementById('codeFrameworkFile').innerText;
-      navigator.clipboard.writeText(code).then(() => {
-        alert(`Copied ${currentActiveFile} code to clipboard!`);
-      });
-    }
-
-    /* MCP and Agent Hub */
-    async function selectMcpClient(clientKey) {
-      document.querySelectorAll('#tab-agent-hub .preset-pill').forEach(el => {
-        if (el.innerText.toLowerCase().includes(clientKey.replace('_', ' '))) el.classList.add('active');
-      });
-
-      try {
-        const res = await fetch('/api/mcp/config?client=' + clientKey);
-        const data = await res.json();
-        document.getElementById('codeMcpConfig').innerText = JSON.stringify(data, null, 2);
-      } catch (e) {
-        console.error("MCP config error", e);
-      }
-    }
-
-    function selectAgentPrompt(promptKey) {
-      const prompt = AGENT_PROMPTS[promptKey] || '';
-      document.getElementById('codeAgentPrompt').innerText = prompt;
-    }
-
-    async function performHtmlInjection() {
-      const rawHtml = document.getElementById('inpRawHtml').value;
-      const payload = {
-        html: rawHtml,
-        config: {
-          site_name: document.getElementById('inpSiteName').value,
-          domain: document.getElementById('inpDomain').value,
-          niche: currentNiche
-        }
-      };
-
-      try {
-        const res = await fetch('/api/inject', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        document.getElementById('codeInjectedHtml').innerText = data.injected_html;
-      } catch (e) {
-        alert("Injection error: " + e);
-      }
-    }
-
-    function downloadZipBundle() {
-      window.location.href = '/api/export-zip?niche=' + currentNiche + '&site_name=' + encodeURIComponent(document.getElementById('inpSiteName').value);
-    }
-
-    async function triggerAutoDetect() {
-      try {
-        const res = await fetch('/api/discover');
-        const data = await res.json();
-        if (data.site_name) document.getElementById('inpSiteName').value = data.site_name;
-        if (data.description) document.getElementById('inpDescription').value = data.description;
-        regenerateAll();
-        alert("Auto-detected project metadata successfully!");
-      } catch (e) {
-        alert("Project discovery error: " + e);
-      }
-    }
-
-    /* Live Scanner Functions */
-    function quickScan(url) {
-      document.getElementById('inpScanUrl').value = url;
-      executeLiveScan();
-    }
-
-    async function executeLiveScan() {
-      const targetUrl = document.getElementById('inpScanUrl').value.trim();
-      const maxPages = document.getElementById('selScanMaxPages').value;
-      if (!targetUrl) {
-        alert("Please enter a valid website URL to scan.");
-        return;
-      }
-
-      const btn = document.getElementById('btnRunScan');
-      const loader = document.getElementById('scanLoadingState');
-      const results = document.getElementById('scanResultsArea');
-
-      btn.disabled = true;
-      btn.innerText = "Scanning...";
-      loader.style.display = 'block';
-      results.style.display = 'none';
-
-      try {
-        const res = await fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: targetUrl, max_pages: parseInt(maxPages) })
-        });
-        const data = await res.json();
-        if (data.error) {
-          alert("Scan Error: " + data.error);
-          return;
-        }
-
-        lastScanData = data;
-        renderScanResults(data);
-        results.style.display = 'block';
-      } catch (e) {
-        alert("Failed to scan: " + e);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "🚀 Scan Website";
-        loader.style.display = 'none';
-      }
-    }
-
-    function renderScanResults(data) {
-      // 1. Overall Score
-      const score = data.overall_aeo_score || 0;
-      document.getElementById('scanScoreNum').innerText = score;
-      document.getElementById('scanScoreLabel').innerText = (data.status || 'AEO AUDIT').replace('_', ' ');
-
-      const gauge = document.getElementById('scanScoreGauge');
-      if (score >= 80) {
-        gauge.style.background = 'var(--google-green-surface)';
-        gauge.style.borderColor = 'rgba(30,142,62,0.3)';
-        document.getElementById('scanScoreNum').style.color = 'var(--google-green)';
-      } else if (score >= 50) {
-        gauge.style.background = 'var(--google-yellow-surface)';
-        gauge.style.borderColor = 'rgba(249,171,0,0.3)';
-        document.getElementById('scanScoreNum').style.color = 'var(--google-yellow)';
-      } else {
-        gauge.style.background = 'var(--google-red-surface)';
-        gauge.style.borderColor = 'rgba(217,48,37,0.3)';
-        document.getElementById('scanScoreNum').style.color = 'var(--google-red)';
-      }
-
-      // 2. Category Bars
-      const barsContainer = document.getElementById('scanCategoryBars');
-      barsContainer.innerHTML = '';
-      for (const [key, cat] of Object.entries(data.category_scores || {})) {
-        const pct = Math.round((cat.score / cat.max) * 100);
-        const name = key.replace(/_/g, ' ').toUpperCase();
-        const row = document.createElement('div');
-        row.innerHTML = `
-          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600;">
-            <span>${name}</span>
-            <span>${cat.score} / ${cat.max} pts (${pct}%)</span>
-          </div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" style="width:${pct}%; background:${pct >= 75 ? 'var(--google-green)' : pct >= 40 ? 'var(--google-yellow)' : 'var(--google-red)'};"></div>
-          </div>
-        `;
-        barsContainer.appendChild(row);
-      }
-
-      // 3. Root Assets Badges
-      const assetBadges = document.getElementById('scanRootAssetsBadges');
-      assetBadges.innerHTML = '';
-      for (const [key, asset] of Object.entries(data.root_assets || {})) {
-        const badge = document.createElement('span');
-        badge.className = `asset-badge ${asset.exists ? 'found' : 'missing'}`;
-        badge.innerHTML = `<span>${asset.exists ? '✔' : '✖'}</span> ${key.replace('_', '.')}`;
-        assetBadges.appendChild(badge);
-      }
-
-      // 4. Bot Grid
-      const botGrid = document.getElementById('scanBotGrid');
-      botGrid.innerHTML = '';
-      for (const [botName, botInfo] of Object.entries(data.ai_engine_compatibility || {})) {
-        const allowed = botInfo.allowed;
-        const card = document.createElement('div');
-        card.className = 'bot-card';
-        card.innerHTML = `
-          <div class="bot-header">
-            <span class="bot-name">${botName}</span>
-            <span class="bot-badge ${allowed ? '' : 'bot-badge-fail'}">${allowed ? 'Allowed' : 'Blocked'}</span>
-          </div>
-          <div class="bot-desc">
-            ${botInfo.indexed_via_llms ? '✔ llms.txt index found. ' : ''}
-            ${botInfo.has_qa_schema ? '✔ FAQ schema found. ' : ''}
-            ${botInfo.has_graph ? '✔ @graph connected. ' : ''}
-            ${botInfo.has_ai_policy ? '✔ ai.txt present. ' : ''}
-          </div>
-        `;
-        botGrid.appendChild(card);
-      }
-
-      // 5. Action Items
-      const actionsList = document.getElementById('scanActionItemsList');
-      actionsList.innerHTML = '';
-      if (!data.action_items || data.action_items.length === 0) {
-        actionsList.innerHTML = '<div style="color:var(--google-green); font-size:13px; font-weight:600;">✨ Zero critical issues detected! Your site is fully AEO optimized.</div>';
-      } else {
-        data.action_items.forEach(item => {
-          const isCrit = item.priority === 'CRITICAL';
-          const isHigh = item.priority === 'HIGH';
-          const card = document.createElement('div');
-          card.style.borderLeft = `4px solid ${isCrit ? 'var(--google-red)' : isHigh ? 'var(--google-yellow)' : 'var(--google-blue)'}`;
-          card.style.background = '#f8f9fa';
-          card.style.padding = '12px 14px';
-          card.style.borderRadius = '0 8px 8px 0';
-          card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <span style="font-weight:700; font-size:13px; color:var(--text-primary);">${item.issue}</span>
-              <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:10px; background:${isCrit ? 'var(--google-red-surface)' : isHigh ? 'var(--google-yellow-surface)' : 'var(--google-blue-surface)'}; color:${isCrit ? 'var(--google-red)' : isHigh ? 'var(--google-yellow)' : 'var(--google-blue)'};">${item.priority}</span>
-            </div>
-            <div style="font-size:12px; color:var(--text-secondary); line-height:1.4;">${item.fix}</div>
-          `;
-          actionsList.appendChild(card);
-        });
-      }
-
-      // 6. Crawled Pages Table
-      document.getElementById('scanPagesCount').innerText = data.pages_audited_count || (data.pages || []).length;
-      const tbody = document.getElementById('scanPagesTableBody');
-      tbody.innerHTML = '';
-      (data.pages || []).forEach(p => {
-        const tr = document.createElement('tr');
-        const schemaTypes = (p.schemas || []).map(s => s['@type'] || 'Schema').join(', ') || 'None';
-        tr.innerHTML = `
-          <td style="font-family:var(--font-mono); font-size:11px; word-break:break-all;"><a href="${p.url}" target="_blank" style="color:var(--google-blue); text-decoration:none;">${p.url}</a></td>
-          <td><span class="bot-badge ${p.status === 200 ? '' : 'bot-badge-warn'}">${p.status}</span></td>
-          <td><strong>${p.title || 'No Title'}</strong><br><span style="color:var(--text-secondary); font-size:11px;">H1: ${p.h1 || 'None'}</span></td>
-          <td>${p.word_count || 0}</td>
-          <td><span style="font-weight:600; color:var(--google-blue);">${p.schema_count || 0}</span> (${schemaTypes})</td>
-          <td>${p.internal_links_count || 0} in / ${p.external_links_count || 0} out</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      // 7. Backlinks & Distribution Strategy
-      const dist = data.backlink_and_distribution_intelligence || {};
-      const hubsList = document.getElementById('scanCitationHubsList');
-      hubsList.innerHTML = '';
-      (dist.high_authority_citation_hubs || []).forEach(h => {
-        const item = document.createElement('div');
-        item.className = 'guide-box';
-        item.style.marginBottom = '0';
-        item.innerHTML = `
-          <div class="guide-title">${h.platform}</div>
-          <div style="font-size:11px; font-weight:700; color:var(--google-blue); text-transform:uppercase; margin-bottom:4px;">${h.role}</div>
-          <div class="guide-desc">${h.action}</div>
-        `;
-        hubsList.appendChild(item);
-      });
-
-      const nicheList = document.getElementById('scanNicheChannelsList');
-      nicheList.innerHTML = '';
-      (dist.vertical_specific_distribution || []).forEach(n => {
-        const item = document.createElement('div');
-        item.className = 'guide-box';
-        item.style.borderLeftColor = 'var(--google-purple)';
-        item.style.marginBottom = '0';
-        item.innerHTML = `
-          <div class="guide-title" style="color:var(--google-purple);">${n.platform}</div>
-          <div class="guide-desc">${n.action}</div>
-        `;
-        nicheList.appendChild(item);
-      });
-    }
-
-    function applyScanToGenerator() {
-      if (!lastScanData) return;
-      const pages = lastScanData.pages || [];
-      const rootPage = pages[0] || {};
-
-      if (rootPage.title) {
-        document.getElementById('inpSiteName').value = rootPage.title.split(' - ')[0].split(' | ')[0].trim();
-      }
-      if (lastScanData.origin) {
-        const cleanHost = lastScanData.origin.replace(/^https?:[/][/]/, '');
-        document.getElementById('inpDomain').value = cleanHost;
-      }
-      if (rootPage.description) {
-        document.getElementById('inpDescription').value = rootPage.description;
-      }
-      regenerateAll();
-      switchTab('tab-schema');
-      alert("Scanned site metadata successfully loaded into AEO Generator!");
-    }
-
-    // --- AI Citation Simulator JS ---
-    let lastSimData = null;
-    async function executeCitationSimulation() {
-      const target = document.getElementById('inpSimTarget').value.trim();
-      const query = document.getElementById('inpSimQuery').value.trim();
-      if (!target) {
-        alert("Please enter a target URL or text content.");
-        return;
-      }
-      const btn = document.getElementById('btnRunSim');
-      const loader = document.getElementById('simLoadingState');
-      const results = document.getElementById('simResultsArea');
-
-      btn.disabled = true;
-      btn.innerText = "Simulating...";
-      loader.style.display = 'block';
-
-      try {
-        const res = await fetch('/api/simulate-citation', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: target, query: query || undefined })
-        });
-        const data = await res.json();
-        if (data.error) {
-          alert("Simulation Error: " + data.error);
-          return;
-        }
-        lastSimData = data;
-        renderSimulationResults(data);
-        results.style.display = 'block';
-      } catch (e) {
-        alert("Failed to simulate citations: " + e);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "🎯 Simulate Citations";
-        loader.style.display = 'none';
-      }
-    }
-
-    function renderSimulationResults(data) {
-      const score = data.extractability_score || 0;
-      document.getElementById('simScoreNum').innerText = score;
-      document.getElementById('simScoreLabel').innerText = data.status || 'READY';
-      document.getElementById('simConfidenceChip').innerText = `🔮 ${data.confidence || '90%'} Citation Confidence`;
-
-      const gauge = document.getElementById('simScoreGauge');
-      if (score >= 80) {
-        gauge.style.background = 'var(--google-green-surface)';
-        gauge.style.borderColor = 'rgba(30,142,62,0.3)';
-        document.getElementById('simScoreNum').style.color = 'var(--google-green)';
-      } else if (score >= 50) {
-        gauge.style.background = 'var(--google-yellow-surface)';
-        gauge.style.borderColor = 'rgba(249,171,0,0.3)';
-        document.getElementById('simScoreNum').style.color = 'var(--google-yellow)';
-      } else {
-        gauge.style.background = 'var(--google-red-surface)';
-        gauge.style.borderColor = 'rgba(217,48,37,0.3)';
-        document.getElementById('simScoreNum').style.color = 'var(--google-red)';
-      }
-
-      const barsContainer = document.getElementById('simSignalBars');
-      barsContainer.innerHTML = '';
-      for (const [key, sig] of Object.entries(data.signals || {})) {
-        const pct = Math.round((sig.score / sig.max) * 100);
-        const name = key.replace(/_/g, ' ').toUpperCase();
-        const row = document.createElement('div');
-        row.innerHTML = `
-          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600;">
-            <span>${name}</span>
-            <span>${sig.score} / ${sig.max} pts (${pct}%)</span>
-          </div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" style="width:${pct}%; background:${pct >= 75 ? 'var(--google-green)' : pct >= 40 ? 'var(--google-yellow)' : 'var(--google-red)'};"></div>
-          </div>
-          <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">${sig.details}</div>
-        `;
-        barsContainer.appendChild(row);
-      }
-
-      const quotesList = document.getElementById('simQuotesList');
-      quotesList.innerHTML = '';
-      const quotes = data.extracted_quotes || [];
-      document.getElementById('simQuoteCountBadge').innerText = `${quotes.length} Key Facts`;
-      quotes.forEach((q, idx) => {
-        const item = document.createElement('div');
-        item.className = 'guide-box';
-        item.style.marginBottom = '0';
-        item.innerHTML = `
-          <div style="font-weight:600; font-size:13px; color:var(--text-primary); margin-bottom:3px;">${q.quote}</div>
-          <div style="font-size:11px; color:var(--google-blue); font-weight:600;">🔗 ${q.source} <span style="color:var(--text-secondary); font-weight:normal;">• Context: ${q.context} (${q.confidence})</span></div>
-        `;
-        quotesList.appendChild(item);
-      });
-
-      const engines = data.engines || {};
-      if (engines.perplexity) {
-        document.getElementById('simPerplexityBox').innerText = engines.perplexity.response;
-      }
-      if (engines.chatgpt) {
-        document.getElementById('simChatGPTBox').innerText = engines.chatgpt.response;
-      }
-      if (engines.gemini) {
-        document.getElementById('simGeminiBox').innerText = engines.gemini.response;
-      }
-    }
-
-    // --- Entity Graph Visualizer JS ---
-    let lastVisData = null;
-    async function loadEntityVisualizer(format = 'both') {
-      try {
-        const res = await fetch('/api/visualize-schema', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ schema: (typeof currentSchemaGraph !== 'undefined' ? currentSchemaGraph : undefined), format: format })
-        });
-        const data = await res.json();
-        lastVisData = data;
-        renderEntityVisualizer(data);
-      } catch (e) {
-        console.error("Failed to load entity visualizer: ", e);
-      }
-    }
-
-    function renderEntityVisualizer(data) {
-      if (document.getElementById('visEntityCountBadge')) {
-        document.getElementById('visEntityCountBadge').innerText = `${data.entities_count || 0} Entities`;
-      }
-      if (document.getElementById('visEdgeCountBadge')) {
-        document.getElementById('visEdgeCountBadge').innerText = `${data.relationships_count || 0} Relationships`;
-      }
-
-      if (document.getElementById('visMermaidCode')) {
-        document.getElementById('visMermaidCode').innerText = data.mermaid || '';
-      }
-      if (document.getElementById('visAsciiCode')) {
-        document.getElementById('visAsciiCode').innerText = data.ascii || '';
-      }
-
-      const grid = document.getElementById('visEntitiesGrid');
-      if (grid) {
-        grid.innerHTML = '';
-        (data.entities || []).forEach(ent => {
-          const card = document.createElement('div');
-          card.className = 'entity-card';
-          card.innerHTML = `
-            <div class="entity-type">${ent.icon || '📦'} ${ent.type}</div>
-            <div class="entity-name">${ent.name}</div>
-            <div class="entity-desc" style="font-family:var(--font-mono); font-size:11px; color:var(--text-secondary);">
-              ID: ${ent.raw_id}
-            </div>
-          `;
-          grid.appendChild(card);
-        });
-      }
-    }
-
-    function copyVisCode() {
-      if (lastVisData && lastVisData.mermaid) {
-        navigator.clipboard.writeText(lastVisData.mermaid);
-        alert("Mermaid code copied to clipboard!");
-      }
-    }
-
-    // --- Sitemap & Batch Crawler JS ---
-    let lastSitemapData = null;
-    async function executeSitemapCrawl() {
-      const target = document.getElementById('inpSitemapTarget').value.trim();
-      const maxPages = document.getElementById('selSitemapMaxPages').value;
-      if (!target) {
-        alert("Please enter a domain or sitemap.xml URL.");
-        return;
-      }
-
-      const btn = document.getElementById('btnRunSitemap');
-      const loader = document.getElementById('sitemapLoadingState');
-      const results = document.getElementById('sitemapResultsArea');
-
-      btn.disabled = true;
-      btn.innerText = "Crawling...";
-      loader.style.display = 'block';
-      results.style.display = 'none';
-
-      try {
-        const res = await fetch('/api/crawl-sitemap', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sitemap_url: target, max_pages: parseInt(maxPages) })
-        });
-        const data = await res.json();
-        if (data.error) {
-          alert("Sitemap Crawl Error: " + data.error);
-          return;
-        }
-
-        lastSitemapData = data;
-        renderSitemapResults(data);
-        results.style.display = 'block';
-      } catch (e) {
-        alert("Failed to crawl sitemap: " + e);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "🕷️ Crawl Sitemap";
-        loader.style.display = 'none';
-      }
-    }
-
-    function renderSitemapResults(data) {
-      const score = data.overall_sitemap_aeo_score || 0;
-      document.getElementById('sitemapScoreNum').innerText = score;
-      document.getElementById('sitemapScoreLabel').innerText = data.status || 'AEO AUDIT';
-      document.getElementById('sitemapTotalUrlsBadge').innerText = `📄 ${data.pages_audited_count} / ${data.total_urls_in_sitemap} URLs Audited`;
-
-      const gauge = document.getElementById('sitemapScoreGauge');
-      if (score >= 80) {
-        gauge.style.background = 'var(--google-green-surface)';
-        gauge.style.borderColor = 'rgba(30,142,62,0.3)';
-        document.getElementById('sitemapScoreNum').style.color = 'var(--google-green)';
-      } else if (score >= 50) {
-        gauge.style.background = 'var(--google-yellow-surface)';
-        gauge.style.borderColor = 'rgba(249,171,0,0.3)';
-        document.getElementById('sitemapScoreNum').style.color = 'var(--google-yellow)';
-      } else {
-        gauge.style.background = 'var(--google-red-surface)';
-        gauge.style.borderColor = 'rgba(217,48,37,0.3)';
-        document.getElementById('sitemapScoreNum').style.color = 'var(--google-red)';
-      }
-
-      const barsContainer = document.getElementById('sitemapCoverageBars');
-      barsContainer.innerHTML = '';
-      for (const [key, val] of Object.entries(data.coverage_metrics || {})) {
-        const name = key.replace(/_/g, ' ').toUpperCase();
-        const row = document.createElement('div');
-        row.innerHTML = `
-          <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600;">
-            <span>${name}</span>
-            <span>${val}%</span>
-          </div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" style="width:${val}%; background:${val >= 75 ? 'var(--google-green)' : val >= 40 ? 'var(--google-yellow)' : 'var(--google-red)'};"></div>
-          </div>
-        `;
-        barsContainer.appendChild(row);
-      }
-
-      const tbody = document.getElementById('sitemapPagesTableBody');
-      tbody.innerHTML = '';
-      (data.pages || []).forEach(p => {
-        const tr = document.createElement('tr');
-        const schemaTypes = (p.schema_types || []).join(', ') || 'None';
-        const issuesStr = (p.issues || []).join(', ') || 'None';
-        tr.innerHTML = `
-          <td><span class="bot-badge ${p.status === 200 ? '' : 'bot-badge-warn'}">${p.status}</span></td>
-          <td><strong style="color:var(--google-blue);">${p.aeo_score}</strong>/100</td>
-          <td style="font-family:var(--font-mono); font-size:11px;">
-            <strong>${p.title}</strong><br>
-            <a href="${p.url}" target="_blank" style="color:var(--google-blue); text-decoration:none;">${p.url}</a>
-          </td>
-          <td>${p.h1 || 'None'}</td>
-          <td><span style="font-weight:600; color:var(--google-blue);">${p.schema_count}</span> (${schemaTypes})</td>
-          <td>${p.word_count || 0}</td>
-          <td style="font-size:11px; color:${p.issues && p.issues.length ? 'var(--google-red)' : 'var(--google-green)'};">${issuesStr}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      const actionsList = document.getElementById('sitemapActionItemsList');
-      actionsList.innerHTML = '';
-      if (!data.action_items || data.action_items.length === 0) {
-        actionsList.innerHTML = '<div style="color:var(--google-green); font-size:13px; font-weight:600;">✨ All crawled pages are fully optimized for Answer Engines!</div>';
-      } else {
-        data.action_items.forEach(item => {
-          const isCrit = item.priority === 'CRITICAL';
-          const isHigh = item.priority === 'HIGH';
-          const card = document.createElement('div');
-          card.style.borderLeft = `4px solid ${isCrit ? 'var(--google-red)' : isHigh ? 'var(--google-yellow)' : 'var(--google-blue)'}`;
-          card.style.background = '#f8f9fa';
-          card.style.padding = '12px 14px';
-          card.style.borderRadius = '0 8px 8px 0';
-          card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <span style="font-weight:700; font-size:13px; color:var(--text-primary);">${item.issue}</span>
-              <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:10px; background:${isCrit ? 'var(--google-red-surface)' : isHigh ? 'var(--google-yellow-surface)' : 'var(--google-blue-surface)'}; color:${isCrit ? 'var(--google-red)' : isHigh ? 'var(--google-yellow)' : 'var(--google-blue)'};">${item.priority}</span>
-            </div>
-            <div style="font-size:12px; color:var(--text-secondary); line-height:1.4;">${item.fix}</div>
-          `;
-          actionsList.appendChild(card);
-        });
-      }
-    }
-
-    function exportSitemapJson() {
-      if (!lastSitemapData) return;
-      const blob = new Blob([JSON.stringify(lastSitemapData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'sitemap-aeo-report.json';
-      a.click();
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      regenerateAll();
-      selectMcpClient('claude_desktop');
-      selectAgentPrompt('engineer');
-      loadEntityVisualizer('both');
-    });
-  </script>
+<body style="font-family:system-ui,sans-serif;background:#08080B;color:#EDEFF2;padding:2rem;">
+  <h1>AEO Graph Engine &amp; Studio</h1>
+  <p>Public UI bundle not found on disk. REST API is active on <code>/health</code> and <code>/api/*</code>.</p>
 </body>
 </html>
 """
 
 
+def validate_loopback_origin(origin: Optional[str]) -> Tuple[bool, Optional[str]]:
+    """
+    Validates an HTTP Origin header.
+    Returns (allowed, cors_origin_to_echo):
+      - Missing Origin (same-origin / curl / CLI): (True, None)
+      - Valid http(s)://(127.0.0.1|localhost)(:port)?: (True, origin)
+      - Any external or spoofed origin (e.g. http://127.0.0.1:8127.evil.com): (False, None)
+    """
+    if not origin:
+        return True, None
+    try:
+        parsed = urllib.parse.urlparse(origin)
+        if parsed.scheme not in ("http", "https"):
+            return False, None
+        if parsed.path not in ("", "/") or parsed.params or parsed.query or parsed.fragment:
+            return False, None
+        # Force port parsing so malformed ports like '8127.evil.com' raise ValueError
+        port = parsed.port
+        if port is not None and not (1 <= port <= 65535):
+            return False, None
+        if parsed.hostname not in ("127.0.0.1", "localhost"):
+            return False, None
+        if not _LOOPBACK_NETLOC_RE.fullmatch(parsed.netloc):
+            return False, None
+        return True, f"{parsed.scheme}://{parsed.netloc}"
+    except ValueError:
+        return False, None
+
+
+def _public_roots() -> list[Path]:
+    return [
+        Path(__file__).resolve().parent.parent.parent / "public",
+        Path(__file__).resolve().parent / "public",
+        Path.cwd() / "public",
+    ]
+
+
+def _build_export_zip_bytes(cfg_input: Dict[str, Any], niche: str = "developer_tools") -> bytes:
+    safe_cfg = redact_secrets(cfg_input or {})
+    # Never allow key fields to leak into bundle config
+    for drop_key in ("keys", "api_key", "apiKey"):
+        safe_cfg.pop(drop_key, None)
+
+    cfg = resolve_config(safe_cfg, niche=niche)
+    schema = generate_schema_graph(cfg, niche=niche)
+    llms_txt = generate_llms_txt(cfg, niche=niche)
+    llms_full = generate_llms_full_txt(cfg, niche=niche)
+    ai_txt = generate_ai_txt(cfg, niche=niche)
+    robots_txt = generate_robots_txt(cfg, niche=niche)
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("schema-graph.json", json.dumps(schema, indent=2, ensure_ascii=False))
+        zf.writestr("llms.txt", llms_txt)
+        zf.writestr("llms-full.txt", llms_full)
+        zf.writestr("ai.txt", ai_txt)
+        zf.writestr("robots.txt", robots_txt)
+    return zip_buffer.getvalue()
+
+
 class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
-    """Custom HTTP handler serving AEO Studio UI and REST endpoints."""
+    """Hardened HTTP handler serving AEO Studio UI and REST endpoints."""
 
     def log_message(self, format, *args):
         pass
 
-    def _send_json(self, data: Any, status: int = 200):
+    def _check_origin(self) -> Tuple[bool, Optional[str]]:
+        origin = self.headers.get("Origin")
+        allowed, echo = validate_loopback_origin(origin)
+        if not allowed:
+            self._send_json(
+                {"error": "Cross-origin requests are restricted to loopback origins (127.0.0.1 / localhost)."},
+                status=403,
+                cors_origin=None,
+            )
+            return False, None
+        return True, echo
+
+    def _send_security_headers(self, cors_origin: Optional[str] = None) -> None:
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header(
+            "Content-Security-Policy",
+            "frame-ancestors 'self' http://127.0.0.1:3000 http://localhost:3000 http://127.0.0.1:8127 http://localhost:8127",
+        )
+        self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
+        self.send_header("Vary", "Origin")
+        if cors_origin:
+            self.send_header("Access-Control-Allow-Origin", cors_origin)
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+    def _send_json(self, data: Any, status: int = 200, cors_origin: Optional[str] = None) -> None:
         body = json.dumps(data, indent=2, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self._send_security_headers(cors_origin)
         self.end_headers()
         self.wfile.write(body)
 
-    def _send_html(self, html: str, status: int = 200):
-        body = html.encode("utf-8")
+    def _send_html(self, html_text: str, status: int = 200, cors_origin: Optional[str] = None) -> None:
+        body = html_text.encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self._send_security_headers(cors_origin)
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_not_found(self, cors_origin: Optional[str] = None) -> None:
+        """Uniform 404 response (prevents any path-existence oracle)."""
+        self._send_json({"error": "Not found"}, status=404, cors_origin=cors_origin)
+
+    def _read_json_body(self, cors_origin: Optional[str]) -> Tuple[Optional[Dict[str, Any]], bool]:
+        """Reads and parses JSON body. Returns (payload, ok)."""
+        raw_len = self.headers.get("Content-Length", "0")
+        try:
+            content_length = int(raw_len)
+        except ValueError:
+            self._send_json({"error": "Invalid Content-Length header."}, status=400, cors_origin=cors_origin)
+            return None, False
+
+        if content_length < 0 or content_length > _MAX_BODY_BYTES:
+            self._send_json({"error": "Request body exceeds maximum allowed size."}, status=413, cors_origin=cors_origin)
+            return None, False
+
+        if content_length == 0:
+            return {}, True
+
+        body = self.rfile.read(content_length)
+        try:
+            parsed = json.loads(body.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            self._send_json({"error": f"Malformed JSON body: {exc}"}, status=400, cors_origin=cors_origin)
+            return None, False
+
+        if not isinstance(parsed, dict):
+            self._send_json({"error": "JSON request body must be an object."}, status=400, cors_origin=cors_origin)
+            return None, False
+
+        return parsed, True
+
     def do_OPTIONS(self):
-        self.send_response(200)
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        ok, cors_origin = self._check_origin()
+        if not ok:
+            return
+        self.send_response(204)
+        self._send_security_headers(cors_origin)
+        self.send_header("Content-Length", "0")
         self.end_headers()
 
     def do_HEAD(self):
+        ok, cors_origin = self._check_origin()
+        if not ok:
+            return
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self._send_security_headers(cors_origin)
         self.end_headers()
 
     def do_GET(self):
+        ok, cors_origin = self._check_origin()
+        if not ok:
+            return
+
         parsed = urllib.parse.urlparse(self.path)
-        path = parsed.path
+        raw_path = parsed.path
+
+        # Reject any raw traversal tokens early with uniform 404 (zero existence oracle)
+        unquoted_path = urllib.parse.unquote(raw_path)
+        if ".." in unquoted_path.split("/") or "\x00" in unquoted_path or "\\" in unquoted_path:
+            return self._send_not_found(cors_origin)
+
+        path = raw_path
 
         if path in ("/", "/index.html", "/ui", "/ui/"):
-            # Check local public/index.html for live development, fallback to embedded template
-            for candidate in [
-                Path(__file__).parent.parent.parent / "public" / "index.html",
-                Path(__file__).parent / "public" / "index.html",
-                Path("public/index.html"),
-            ]:
-                if candidate.exists():
+            for root in _public_roots():
+                candidate = root / "index.html"
+                if candidate.is_file():
                     try:
-                        with open(candidate, "r", encoding="utf-8") as f:
-                            return self._send_html(f.read())
+                        return self._send_html(candidate.read_text(encoding="utf-8"), cors_origin=cors_origin)
                     except Exception:
                         pass
-            return self._send_html(STUDIO_HTML_TEMPLATE)
+            return self._send_html(_FALLBACK_HTML, cors_origin=cors_origin)
 
         if path in ("/health", "/api/health", "/api/status"):
-            return self._send_json({"status": "healthy", "engine": "aeo-graph-engine", "version": "1.0.0"})
+            return self._send_json(
+                {"status": "healthy", "engine": "aeo-graph-engine", "version": __version__},
+                cors_origin=cors_origin,
+            )
 
         if path == "/api/schema":
-            return self._send_json(get_agent_json_schema())
+            return self._send_json(get_agent_json_schema(), cors_origin=cors_origin)
 
         if path == "/api/mcp/config":
             query = urllib.parse.parse_qs(parsed.query)
             client = query.get("client", ["claude_desktop"])[0]
-            return self._send_json(generate_mcp_client_config(client))
+            return self._send_json(generate_mcp_client_config(client), cors_origin=cors_origin)
 
         if path == "/api/discover":
-            meta = discover_project_metadata(".")
-            return self._send_json(meta)
+            return self._send_json(discover_project_metadata("."), cors_origin=cors_origin)
+
+        if path == "/api/providers":
+            gateway = AIGateway()
+            return self._send_json(gateway.discover_providers(), cors_origin=cors_origin)
 
         if path == "/api/export-zip":
             query = urllib.parse.parse_qs(parsed.query)
             niche = query.get("niche", ["developer_tools"])[0]
             site_name = query.get("site_name", ["AEO Graph Engine"])[0]
-
-            cfg = resolve_config({"site_name": site_name}, niche=niche)
-            schema = generate_schema_graph(cfg, niche=niche)
-            llms_txt = generate_llms_txt(cfg, niche=niche)
-            llms_full = generate_llms_full_txt(cfg, niche=niche)
-            ai_txt = generate_ai_txt(cfg, niche=niche)
-            robots_txt = generate_robots_txt(cfg, niche=niche)
-
-            zip_buffer = io.BytesIO()
-            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-                zf.writestr("schema-graph.json", json.dumps(schema, indent=2))
-                zf.writestr("llms.txt", llms_txt)
-                zf.writestr("llms-full.txt", llms_full)
-                zf.writestr("ai.txt", ai_txt)
-                zf.writestr("robots.txt", robots_txt)
-
-            zip_bytes = zip_buffer.getvalue()
+            domain = query.get("domain", [None])[0]
+            cfg_in: Dict[str, Any] = {"site_name": site_name}
+            if domain:
+                cfg_in["domain"] = domain
+            zip_bytes = _build_export_zip_bytes(cfg_in, niche=niche)
             self.send_response(200)
             self.send_header("Content-Type", "application/zip")
             self.send_header("Content-Disposition", 'attachment; filename="aeo-bundle.zip"')
             self.send_header("Content-Length", str(len(zip_bytes)))
+            self._send_security_headers(cors_origin)
             self.end_headers()
             self.wfile.write(zip_bytes)
             return
 
         if path == "/api/ai/settings":
             gateway = AIGateway()
-            return self._send_json(gateway.get_public_status())
+            return self._send_json(gateway.get_public_status(), cors_origin=cors_origin)
 
         if path == "/api/simulate-citation":
             query_params = urllib.parse.parse_qs(parsed.query)
-            target = query_params.get("url", [""])[0] or query_params.get("target", [""])[0] or query_params.get("content", [""])[0]
-            query = query_params.get("query", [None])[0]
+            target = (
+                query_params.get("url", [""])[0]
+                or query_params.get("target", [""])[0]
+                or query_params.get("content", [""])[0]
+            )
+            q_str = query_params.get("query", [None])[0]
             brand = query_params.get("brand_name", [None])[0]
             dom = query_params.get("domain", [None])[0]
-            res = simulate_ai_citations(target, query=query, brand_name=brand, domain=dom)
-            return self._send_json(res)
+            try:
+                res = simulate_ai_citations(target, query=q_str, brand_name=brand, domain=dom)
+                return self._send_json(res, cors_origin=cors_origin)
+            except SSRFBlockedError as exc:
+                return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
 
         if path == "/api/visualize-schema":
             query_params = urllib.parse.parse_qs(parsed.query)
             fmt = query_params.get("format", ["mermaid"])[0]
-            file_path = query_params.get("file", [None])[0]
-            res = visualize_schema_graph(schema_input=file_path, format=fmt)
-            return self._send_json(res)
+            res = visualize_schema_graph(schema_input=None, format=fmt)
+            return self._send_json(res, cors_origin=cors_origin)
 
         if path == "/api/crawl-sitemap":
             query_params = urllib.parse.parse_qs(parsed.query)
-            target = query_params.get("url", [""])[0] or query_params.get("sitemap_url", [""])[0] or query_params.get("domain", [""])[0]
+            target = (
+                query_params.get("url", [""])[0]
+                or query_params.get("sitemap_url", [""])[0]
+                or query_params.get("domain", [""])[0]
+            )
             max_pages = int(query_params.get("max_pages", [10])[0])
             if not target:
-                return self._send_json({"error": "Missing 'url' or 'sitemap_url' parameter"}, status=400)
-            res = crawl_sitemap_batch(target, max_pages=max_pages)
-            return self._send_json(res)
+                return self._send_json({"error": "Missing 'url' or 'sitemap_url' parameter"}, status=400, cors_origin=cors_origin)
+            try:
+                res = crawl_sitemap_batch(target, max_pages=max_pages)
+                return self._send_json(res, cors_origin=cors_origin)
+            except SSRFBlockedError as exc:
+                return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
 
         if path == "/api/claims/demo":
-            from .claim_evidence_matrix import analyze_claim_evidence_matrix
             demo_text = (
                 "AEO Graph Engine delivers automated Schema.org linked data graphs with zero external dependencies. "
-                "The engine boosts SearchGPT and Perplexity citation confidence by 3.8x with full RFC-conforming output. "
-                "Webmasters can configure crawler directives across 10 autonomous AI bot user agents in under 3 minutes."
+                "The engine structures SearchGPT and Perplexity citation anchors with RFC-conforming JSON-LD output. "
+                "Operators can configure crawler directives across 10 AI bot user agents locally."
             )
-            matrix = analyze_claim_evidence_matrix(demo_text, base_url="https://aeo.nullai.tech", title="AEO Graph Engine Architecture")
-            return self._send_json(matrix.to_dict())
+            matrix = analyze_claim_evidence_matrix(
+                demo_text, base_url="https://aeo.nullai.tech", title="AEO Graph Engine Architecture"
+            )
+            return self._send_json(matrix.to_dict(), cors_origin=cors_origin)
 
-        # Check static file in public/
-        for candidate_root in [
-            Path(__file__).parent.parent.parent / "public",
-            Path(__file__).parent / "public",
-            Path("public"),
-        ]:
-            if candidate_root.exists():
-                static_file = (candidate_root / path.lstrip("/")).resolve()
-                if static_file.is_file() and str(static_file).startswith(str(candidate_root.resolve())):
-                    import mimetypes
+        # Static file serving with strict Path.is_relative_to containment
+        rel_path = unquoted_path.lstrip("/")
+        if rel_path:
+            for root in _public_roots():
+                if not root.exists():
+                    continue
+                resolved_root = root.resolve()
+                try:
+                    static_file = (resolved_root / rel_path).resolve()
+                except Exception:
+                    return self._send_not_found(cors_origin)
+                if static_file.is_relative_to(resolved_root) and static_file.is_file():
                     mime_type, _ = mimetypes.guess_type(str(static_file))
                     mime_type = mime_type or "application/octet-stream"
                     try:
@@ -2434,32 +369,34 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
                         self.send_response(200)
                         self.send_header("Content-Type", mime_type)
                         self.send_header("Content-Length", str(len(data)))
-                        self.send_header("Access-Control-Allow-Origin", "*")
+                        self._send_security_headers(cors_origin)
                         self.end_headers()
                         self.wfile.write(data)
                         return
                     except Exception:
-                        pass
+                        break
 
-        self.send_error(404, "Endpoint not found")
+        return self._send_not_found(cors_origin)
 
     def do_POST(self):
+        ok, cors_origin = self._check_origin()
+        if not ok:
+            return
+
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
-        content_length = int(self.headers.get("Content-Length", 0))
-        body = self.rfile.read(content_length)
-        payload = {}
-        if body:
-            try:
-                payload = json.loads(body.decode("utf-8"))
-            except Exception:
-                pass
+        payload, body_ok = self._read_json_body(cors_origin)
+        if not body_ok or payload is None:
+            return
 
         if path == "/api/ai/settings":
             gateway = AIGateway()
-            saved = gateway.save_config(payload)
-            return self._send_json({"success": saved, "status": gateway.get_public_status()})
+            if payload.get("clear_keys"):
+                saved = gateway.clear_keys()
+            else:
+                saved = gateway.save_config(payload)
+            return self._send_json({"success": saved, "status": gateway.get_public_status()}, cors_origin=cors_origin)
 
         if path == "/api/ai/test":
             gateway = AIGateway()
@@ -2468,15 +405,44 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
             api_key = payload.get("api_key")
             model = payload.get("model")
             res = gateway.test_connection(provider, endpoint=endpoint, api_key=api_key, model=model)
-            return self._send_json(res)
+            return self._send_json(res, cors_origin=cors_origin)
 
         if path == "/api/ai/simulate":
             gateway = AIGateway()
-            brand_name = payload.get("brand_name", "My App")
-            domain = payload.get("domain", "example.com")
+            brand_name = payload.get("brand_name", "")
+            domain = payload.get("domain", "")
             query = payload.get("query")
-            res = gateway.simulate_answer_engine_perception(brand_name, domain, query=query)
-            return self._send_json(res)
+            provider = payload.get("provider")
+            model = payload.get("model")
+            schema = payload.get("schema")
+            description = payload.get("description")
+            api_key = payload.get("api_key")
+            endpoint = payload.get("endpoint")
+            res = gateway.simulate_answer_engine_perception(
+                brand_name,
+                domain,
+                query=query,
+                provider=provider,
+                model=model,
+                schema=schema,
+                description=description,
+                api_key=api_key,
+                endpoint=endpoint,
+            )
+            return self._send_json(res, cors_origin=cors_origin)
+
+        if path == "/api/export-zip":
+            niche = payload.get("niche", "developer_tools")
+            cfg_in = payload.get("config") if isinstance(payload.get("config"), dict) else payload
+            zip_bytes = _build_export_zip_bytes(cfg_in, niche=niche)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/zip")
+            self.send_header("Content-Disposition", 'attachment; filename="aeo-bundle.zip"')
+            self.send_header("Content-Length", str(len(zip_bytes)))
+            self._send_security_headers(cors_origin)
+            self.end_headers()
+            self.wfile.write(zip_bytes)
+            return
 
         if path == "/api/export-framework":
             fw_name = payload.get("framework", "nextjs_app")
@@ -2484,33 +450,102 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
             cfg = resolve_config(payload.get("config", {}), niche=niche)
             exporter = FrameworkExporter(cfg)
             bundle = exporter.export(fw_name)
-            return self._send_json({"framework": fw_name, "files": bundle})
+            return self._send_json({"framework": fw_name, "files": bundle}, cors_origin=cors_origin)
 
         if path == "/api/remediate":
-            target_url = payload.get("url", "")
+            target_url = str(payload.get("url", "")).strip()
             target_fw = payload.get("framework", "nextjs_app")
             audit_data = payload.get("audit_data")
             if not audit_data and target_url:
-                scanner = LiveAEOScanner(target_url, max_pages=3)
-                audit_data = scanner.compute_audit_scores()
+                try:
+                    scanner = LiveAEOScanner(target_url, max_pages=3)
+                    audit_data = scanner.compute_audit_scores()
+                except SSRFBlockedError as exc:
+                    return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
             remediator = AEORemediationGenerator(audit_data or {}, target_framework=target_fw)
-            plan = remediator.generate_remediations()
-            return self._send_json(plan)
+            return self._send_json(remediator.generate_remediations(), cors_origin=cors_origin)
 
         if path == "/api/scan":
-            target_url = payload.get("url", "").strip()
-            max_pages = int(payload.get("max_pages", 5))
+            target_url = str(payload.get("url", "")).strip()
+            max_pages = max(1, min(20, int(payload.get("max_pages", 5))))
             if not target_url:
-                return self._send_json({"error": "Missing 'url' parameter"}, status=400)
-            scanner = LiveAEOScanner(target_url, max_pages=max_pages)
-            results = scanner.compute_audit_scores()
-            return self._send_json(results)
+                return self._send_json({"error": "Missing 'url' parameter"}, status=400, cors_origin=cors_origin)
+            try:
+                scanner = LiveAEOScanner(target_url, max_pages=max_pages)
+                results = scanner.compute_audit_scores()
+                return self._send_json(results, cors_origin=cors_origin)
+            except SSRFBlockedError as exc:
+                return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
+
+        if path == "/api/scan-html":
+            raw_html = str(payload.get("html", "")).strip()
+            page_url = str(payload.get("url", "https://example.com/")).strip()
+            if not raw_html:
+                return self._send_json({"error": "Missing 'html' parameter for offline HTML audit."}, status=400, cors_origin=cors_origin)
+            meta = extract_metadata_from_html(raw_html)
+            schemas = meta.get("existing_jsonld", [])
+            report = AEODiagnosticReport(page_url)
+            if schemas:
+                for sch in schemas:
+                    if isinstance(sch, dict):
+                        validate_schema_jsonld_dict(sch, report)
+            else:
+                report.add_error("No <script type='application/ld+json'> Schema.org block found in HTML", 35.0)
+            if not meta.get("description"):
+                report.add_warn("Missing <meta name='description'> tag", 10.0)
+            if not meta.get("canonical_url"):
+                report.add_warn("Missing <link rel='canonical'> tag", 10.0)
+            if not meta.get("headings"):
+                report.add_warn("No semantic heading elements (H1-H6) detected", 10.0)
+            plain_words = len(re.sub(r"<[^>]+>", " ", raw_html).split())
+            return self._send_json(
+                {
+                    "mode": "offline_html_audit",
+                    "url": page_url,
+                    "overall_aeo_score": round(report.score, 1),
+                    "status": report.to_dict()["status"],
+                    "title": meta.get("site_name") or meta.get("tagline") or "(No title)",
+                    "description": meta.get("description") or "",
+                    "canonical_url": meta.get("canonical_url") or "",
+                    "headings": meta.get("headings", [])[:12],
+                    "word_count": plain_words,
+                    "schema_count": len(schemas),
+                    "schemas": schemas,
+                    "diagnostics": report.to_dict(),
+                },
+                cors_origin=cors_origin,
+            )
 
         if path == "/api/agent/synthesize":
-            prompt = payload.get("prompt", "")
+            prompt = str(payload.get("prompt", "")).strip()
             base_niche = payload.get("niche")
+            if not prompt:
+                return self._send_json({"error": "Missing 'prompt' parameter"}, status=400, cors_origin=cors_origin)
             cfg = synthesize_config_from_prompt(prompt, base_niche=base_niche)
-            return self._send_json(cfg)
+            cfg["synthesis_mode"] = "offline_heuristic"
+            use_llm = bool(payload.get("use_llm"))
+            if use_llm:
+                gateway = AIGateway()
+                provider = payload.get("provider") or gateway.config.get("active_provider", "heuristic")
+                if provider and provider != "heuristic":
+                    llm_prompt = (
+                        "Return ONLY valid JSON (no markdown fences) with keys: site_name, domain, tagline, description, niche "
+                        f"for this product description: {prompt}"
+                    )
+                    res = gateway.complete_prompt(llm_prompt, provider=provider, model=payload.get("model"), timeout=25)
+                    if res.get("success") and res.get("content"):
+                        raw = res["content"].strip()
+                        match = re.search(r"\{.*\}", raw, re.DOTALL)
+                        if match:
+                            try:
+                                parsed_llm = json.loads(match.group(0))
+                                for k in ("site_name", "domain", "tagline", "description", "niche"):
+                                    if isinstance(parsed_llm.get(k), str) and parsed_llm[k].strip():
+                                        cfg[k] = parsed_llm[k].strip()
+                                cfg["synthesis_mode"] = f"live_llm:{res['provider']}"
+                            except Exception:
+                                pass
+            return self._send_json(cfg, cors_origin=cors_origin)
 
         if path == "/api/generate":
             niche = payload.get("niche", "developer_tools")
@@ -2521,117 +556,199 @@ class AEOStudioHTTPHandler(BaseHTTPRequestHandler):
             ai = generate_ai_txt(cfg, niche=niche)
             robots = generate_robots_txt(cfg, niche=niche)
 
-            return self._send_json({
-                "schema": schema,
-                "llms_txt": llms,
-                "llms_full_txt": llms_full,
-                "ai_txt": ai,
-                "robots_txt": robots,
-                "score": 100.0
-            })
+            val_report = AEODiagnosticReport(cfg.get("base_url", "generated"))
+            validate_schema_jsonld_dict(schema, val_report)
+            if not str(cfg.get("site_name", "")).strip():
+                val_report.add_error("Site name is empty", 15.0)
+            if not str(cfg.get("description", "")).strip():
+                val_report.add_warn("Description is empty", 10.0)
+
+            return self._send_json(
+                {
+                    "schema": schema,
+                    "llms_txt": llms,
+                    "llms_full_txt": llms_full,
+                    "ai_txt": ai,
+                    "robots_txt": robots,
+                    "score": round(val_report.score, 1),
+                    "validation": val_report.to_dict(),
+                },
+                cors_origin=cors_origin,
+            )
 
         if path == "/api/inject":
             raw_html = payload.get("html", "")
             cfg = resolve_config(payload.get("config", {}))
             schema = generate_schema_graph(cfg)
             injected = inject_jsonld_into_html(raw_html, schema)
-            return self._send_json({"injected_html": injected})
+            return self._send_json({"injected_html": injected}, cors_origin=cors_origin)
 
         if path == "/api/validate":
             raw_schema = payload.get("schema")
+            raw_jsonld = payload.get("jsonld")
+
+            if raw_schema is None and raw_jsonld is None:
+                return self._send_json(
+                    {"error": "Missing required 'schema' (object) or 'jsonld' (JSON string) field."},
+                    status=400,
+                    cors_origin=cors_origin,
+                )
+
+            schema_obj: Optional[Dict[str, Any]] = None
+            if raw_schema is not None:
+                if isinstance(raw_schema, dict):
+                    schema_obj = raw_schema
+                elif isinstance(raw_schema, str):
+                    raw_jsonld = raw_schema
+                else:
+                    return self._send_json(
+                        {"error": "'schema' must be a JSON object or JSON-LD string."},
+                        status=400,
+                        cors_origin=cors_origin,
+                    )
+
+            if schema_obj is None and raw_jsonld is not None:
+                if not isinstance(raw_jsonld, str) or not raw_jsonld.strip():
+                    return self._send_json(
+                        {"error": "'jsonld' must be a non-empty JSON string."},
+                        status=400,
+                        cors_origin=cors_origin,
+                    )
+                try:
+                    parsed_ld = json.loads(raw_jsonld)
+                except json.JSONDecodeError as exc:
+                    return self._send_json(
+                        {"error": f"Invalid JSON-LD syntax: {exc}"},
+                        status=400,
+                        cors_origin=cors_origin,
+                    )
+                if not isinstance(parsed_ld, dict):
+                    return self._send_json(
+                        {"error": "JSON-LD root payload must be a JSON object."},
+                        status=400,
+                        cors_origin=cors_origin,
+                    )
+                schema_obj = parsed_ld
+
+            if not schema_obj:
+                return self._send_json(
+                    {"error": "Empty Schema.org object provided."},
+                    status=400,
+                    cors_origin=cors_origin,
+                )
+
             report = AEODiagnosticReport("API Validation")
-            if isinstance(raw_schema, dict):
-                validate_schema_jsonld_dict(raw_schema, report)
-            return self._send_json(report.to_dict())
+            validate_schema_jsonld_dict(schema_obj, report)
+            return self._send_json(report.to_dict(), cors_origin=cors_origin)
 
         if path == "/api/bot-audit":
-            target_url = payload.get("url", "").strip()
+            target_url = str(payload.get("url", "")).strip()
             timeout = float(payload.get("timeout", 5.0))
             if not target_url:
-                return self._send_json({"error": "Missing 'url' parameter"}, status=400)
-            inspector = BotInspector()
-            summary = inspector.inspect_all_bots(target_url, timeout=timeout)
-            return self._send_json(summary)
+                return self._send_json({"error": "Missing 'url' parameter"}, status=400, cors_origin=cors_origin)
+            try:
+                inspector = BotInspector()
+                summary = inspector.inspect_all_bots(target_url, timeout=timeout)
+                return self._send_json(summary, cors_origin=cors_origin)
+            except SSRFBlockedError as exc:
+                return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
 
         if path == "/api/compare":
-            url_a = payload.get("url_a", "").strip()
-            url_b = payload.get("url_b", "").strip()
-            max_p = int(payload.get("max_pages", 5))
+            url_a = str(payload.get("url_a", "")).strip()
+            url_b = str(payload.get("url_b", "")).strip()
+            max_p = max(1, min(10, int(payload.get("max_pages", 5))))
             if not url_a or not url_b:
-                return self._send_json({"error": "Missing 'url_a' or 'url_b'"}, status=400)
-            bench = compare_sites(url_a, url_b, max_pages=max_p)
-            return self._send_json(bench)
+                return self._send_json({"error": "Missing 'url_a' or 'url_b'"}, status=400, cors_origin=cors_origin)
+            try:
+                bench = compare_sites(url_a, url_b, max_pages=max_p)
+                return self._send_json(bench, cors_origin=cors_origin)
+            except SSRFBlockedError as exc:
+                return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
 
         if path == "/api/report":
             scan_data = payload.get("scan_data")
-            target_url = payload.get("url", "").strip()
-            comp_url = payload.get("competitor_url", "").strip()
+            target_url = str(payload.get("url", "")).strip()
+            comp_url = str(payload.get("competitor_url", "")).strip()
             if not scan_data and target_url:
-                scanner = LiveAEOScanner(target_url, max_pages=5)
-                scan_data = scanner.compute_audit_scores()
+                try:
+                    scanner = LiveAEOScanner(target_url, max_pages=3)
+                    scan_data = scanner.compute_audit_scores()
+                except SSRFBlockedError as exc:
+                    return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
             bench_data = payload.get("benchmark_data")
             if not bench_data and comp_url and target_url:
-                bench_data = compare_sites(target_url, comp_url, scan_a=scan_data)
+                try:
+                    bench_data = compare_sites(target_url, comp_url, scan_a=scan_data)
+                except SSRFBlockedError as exc:
+                    return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
             md_report = generate_markdown_report(scan_data or {}, benchmark_result=bench_data)
             html_report = generate_standalone_html_report(scan_data or {}, benchmark_result=bench_data)
-            return self._send_json({
-                "markdown": md_report,
-                "html": html_report,
-                "target_url": target_url or (scan_data or {}).get("url", "https://example.com")
-            })
+            return self._send_json(
+                {
+                    "markdown": md_report,
+                    "html": html_report,
+                    "target_url": target_url or (scan_data or {}).get("target_url") or "https://example.com",
+                },
+                cors_origin=cors_origin,
+            )
 
         if path == "/api/simulate-citation":
             target = payload.get("url") or payload.get("content") or payload.get("target") or ""
-            query = payload.get("query")
+            q_str = payload.get("query")
             brand = payload.get("brand_name")
             dom = payload.get("domain")
             timeout = int(payload.get("timeout", 8))
-            res = simulate_ai_citations(target, query=query, brand_name=brand, domain=dom, timeout=timeout)
-            return self._send_json(res)
+            try:
+                res = simulate_ai_citations(target, query=q_str, brand_name=brand, domain=dom, timeout=timeout)
+                return self._send_json(res, cors_origin=cors_origin)
+            except SSRFBlockedError as exc:
+                return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
 
         if path == "/api/visualize-schema":
             schema = payload.get("schema")
-            schema_file = payload.get("file_path") or payload.get("schema_file")
-            fmt = payload.get("format", "mermaid")
-            res = visualize_schema_graph(schema_input=schema or schema_file, format=fmt)
-            return self._send_json(res)
+            fmt = payload.get("format", "both")
+            res = visualize_schema_graph(schema_input=schema, format=fmt)
+            return self._send_json(res, cors_origin=cors_origin)
 
         if path == "/api/crawl-sitemap":
-            target = payload.get("sitemap_url") or payload.get("url") or payload.get("domain") or payload.get("target") or ""
-            max_pages = int(payload.get("max_pages", 10))
+            target = str(
+                payload.get("sitemap_url") or payload.get("url") or payload.get("domain") or payload.get("target") or ""
+            ).strip()
+            max_pages = max(1, min(20, int(payload.get("max_pages", 10))))
             timeout = int(payload.get("timeout", 8))
             if not target:
-                return self._send_json({"error": "Missing 'sitemap_url' parameter"}, status=400)
-            res = crawl_sitemap_batch(target, max_pages=max_pages, timeout=timeout)
-            return self._send_json(res)
+                return self._send_json({"error": "Missing 'sitemap_url' parameter"}, status=400, cors_origin=cors_origin)
+            try:
+                res = crawl_sitemap_batch(target, max_pages=max_pages, timeout=timeout)
+                return self._send_json(res, cors_origin=cors_origin)
+            except SSRFBlockedError as exc:
+                return self._send_json({"error": str(exc), "blocked": True}, status=403, cors_origin=cors_origin)
 
         if path == "/api/knowledge-graph":
-            from .knowledge_graph import analyze_knowledge_graph
             content = payload.get("content") or payload.get("text") or payload.get("html") or ""
             schema_data = payload.get("schema")
             base_url = payload.get("base_url", "https://example.com")
             min_conf = float(payload.get("min_confidence", 0.4))
-            kg_report = analyze_knowledge_graph(content, schema_or_graph=schema_data, base_url=base_url, min_confidence=min_conf)
-            return self._send_json(kg_report.to_dict())
+            kg_report = analyze_knowledge_graph(
+                content, schema_or_graph=schema_data, base_url=base_url, min_confidence=min_conf
+            )
+            return self._send_json(kg_report.to_dict(), cors_origin=cors_origin)
 
         if path in ("/api/claims", "/api/claim-matrix"):
-            from .claim_evidence_matrix import analyze_claim_evidence_matrix
             content = payload.get("content") or payload.get("text") or payload.get("html") or ""
             base_url = payload.get("base_url", "https://example.com")
             title = payload.get("title")
             fmt = payload.get("format", "json")
             matrix = analyze_claim_evidence_matrix(content, base_url=base_url, title=title)
-
             if fmt == "svg":
-                return self._send_json({"svg": matrix.to_svg()})
-            elif fmt == "markdown":
-                return self._send_json({"markdown": matrix.to_markdown()})
-            return self._send_json(matrix.to_dict())
+                return self._send_json({"svg": matrix.to_svg()}, cors_origin=cors_origin)
+            if fmt == "markdown":
+                return self._send_json({"markdown": matrix.to_markdown()}, cors_origin=cors_origin)
+            return self._send_json(matrix.to_dict(), cors_origin=cors_origin)
 
-        self.send_error(404, "Endpoint not found")
+        return self._send_not_found(cors_origin)
 
 
 def start_ui_server(host: str = "127.0.0.1", port: int = 8127) -> ThreadingHTTPServer:
-    """Starts the AEO Studio HTTP server."""
-    server = ThreadingHTTPServer((host, port), AEOStudioHTTPHandler)
-    return server
+    """Starts the hardened AEO Studio loopback HTTP server."""
+    return ThreadingHTTPServer((host, port), AEOStudioHTTPHandler)

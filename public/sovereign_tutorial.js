@@ -40,7 +40,7 @@
     modal.innerHTML = `
       <div style="background:#0D111E; border:2px solid ${accentColor}; border-radius:20px; max-width:640px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.8), 0 0 35px ${accentColor}33; padding:28px; color:#F8FAFC; position:relative; font-family:ui-monospace, 'JetBrains Mono', SFMono-Regular, monospace; box-sizing:border-box;">
         
-        <button id="sovCloseBtn-${toolId}" style="position:absolute; top:18px; right:18px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#F8FAFC; width:34px; height:34px; border-radius:50%; font-size:16px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center;">✕</button>
+        <button id="sovCloseBtn-${toolId}" aria-label="Close tutorial dialog" style="position:absolute; top:18px; right:18px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#F8FAFC; width:44px; height:44px; border-radius:50%; font-size:16px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center;">✕</button>
 
         <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
           <span style="font-size:32px;">✨</span>
